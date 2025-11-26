@@ -39,6 +39,8 @@ export const endpoints = {
   pets: {
     base: withBase('/mascotas/'),
     detail: (id: number | string) => withBase(`/mascotas/${id}/`)(),
+    species: withBase('/mascotas/especies/'),
+    breeds: withBase('/mascotas/razas/'),
   },
   appointments: {
     base: withBase('/citas/'),

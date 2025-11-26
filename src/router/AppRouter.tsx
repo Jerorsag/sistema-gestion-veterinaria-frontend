@@ -14,6 +14,9 @@ import { ProfilePage } from '@/pages/dashboard/ProfilePage'
 import { UsersListPage } from '@/pages/users/UsersListPage'
 import { UserDetailPage } from '@/pages/users/UserDetailPage'
 import { UserCreatePage } from '@/pages/users/UserCreatePage'
+import { PetsListPage } from '@/pages/pets/PetsListPage'
+import { PetCreatePage } from '@/pages/pets/PetCreatePage'
+import { PetDetailPage } from '@/pages/pets/PetDetailPage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -48,9 +51,13 @@ const router = createBrowserRouter([
       { path: 'usuarios', element: <UsersListPage /> },
       { path: 'usuarios/nuevo', element: <UserCreatePage /> },
       { path: 'usuarios/:id', element: <UserDetailPage /> },
+      { path: 'mascotas', element: <PetsListPage /> },
+      { path: 'mascotas/nueva', element: <PetCreatePage /> },
+      { path: 'mascotas/:id', element: <PetDetailPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
 ])
 
 export const AppRouter = () => <RouterProvider router={router} />
+
