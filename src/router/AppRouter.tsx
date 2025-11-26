@@ -1,6 +1,7 @@
 import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 import { RequireAuth } from '@/core/auth/RequireAuth'
+import { RoleGuard } from '@/core/auth/RoleGuard'
 import { AuthLayout } from '@/layout/AuthLayout'
 import { DashboardLayout } from '@/layout/DashboardLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -61,9 +62,30 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardHome /> },
       { path: 'perfil', element: <ProfilePage /> },
-      { path: 'usuarios', element: <UsersListPage /> },
-      { path: 'usuarios/nuevo', element: <UserCreatePage /> },
-      { path: 'usuarios/:id', element: <UserDetailPage /> },
+      {
+        path: 'usuarios',
+        element: (
+          <RoleGuard allowedRoles={['administrador']}>
+            <UsersListPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'usuarios/nuevo',
+        element: (
+          <RoleGuard allowedRoles={['administrador']}>
+            <UserCreatePage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'usuarios/:id',
+        element: (
+          <RoleGuard allowedRoles={['administrador']}>
+            <UserDetailPage />
+          </RoleGuard>
+        ),
+      },
       { path: 'mascotas', element: <PetsListPage /> },
       { path: 'mascotas/nueva', element: <PetCreatePage /> },
       { path: 'mascotas/:id', element: <PetDetailPage /> },
@@ -73,13 +95,55 @@ const router = createBrowserRouter([
       { path: 'historias', element: <HistoriesListPage /> },
       { path: 'historias/:id', element: <HistoryDetailPage /> },
       { path: 'consultas', element: <ConsultationsListPage /> },
-      { path: 'consultas/nueva', element: <ConsultationCreatePage /> },
+      {
+        path: 'consultas/nueva',
+        element: (
+          <RoleGuard allowedRoles={['administrador', 'veterinario', 'practicante']}>
+            <ConsultationCreatePage />
+          </RoleGuard>
+        ),
+      },
       { path: 'consultas/:id', element: <ConsultationDetailPage /> },
-      { path: 'inventario', element: <InventoryListPage /> },
-      { path: 'inventario/nuevo', element: <InventoryCreatePage /> },
-      { path: 'inventario/kardex', element: <InventoryKardexPage /> },
-      { path: 'inventario/movimientos/nuevo', element: <KardexMovementCreatePage /> },
-      { path: 'inventario/:id', element: <InventoryDetailPage /> },
+      {
+        path: 'inventario',
+        element: (
+          <RoleGuard allowedRoles={['administrador', 'veterinario', 'recepcionista']}>
+            <InventoryListPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'inventario/nuevo',
+        element: (
+          <RoleGuard allowedRoles={['administrador']}>
+            <InventoryCreatePage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'inventario/kardex',
+        element: (
+          <RoleGuard allowedRoles={['administrador', 'veterinario', 'recepcionista']}>
+            <InventoryKardexPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'inventario/movimientos/nuevo',
+        element: (
+          <RoleGuard allowedRoles={['administrador']}>
+            <KardexMovementCreatePage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'inventario/:id',
+        element: (
+          <RoleGuard allowedRoles={['administrador', 'veterinario', 'recepcionista']}>
+            <InventoryDetailPage />
+          </RoleGuard>
+        ),
+      },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

@@ -5,16 +5,16 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
-import { useSessionStore } from '@/core/store/session-store'
 import { usePetsFilters, usePetsQuery, useSpeciesQuery } from '@/hooks/pets'
 import { formatPetSex } from './components/PetForm'
+import { usePermissions } from '@/hooks/permissions'
 
 export const PetsListPage = () => {
   const { filters, updateFilters } = usePetsFilters()
   const { data: species } = useSpeciesQuery()
   const { data: pets, isLoading } = usePetsQuery(filters)
-  const userRoles = useSessionStore((state) => state.user?.roles ?? [])
-  const canCreate = userRoles.includes('cliente')
+  const { checkPermission } = usePermissions()
+  const canCreate = checkPermission('mascotas', 'canCreate')
 
   return (
     <div className="space-y-6">
