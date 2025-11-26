@@ -8,18 +8,30 @@ import { Button } from '@/components/ui/Button'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
 import { formatDateTime } from '@/utils/datetime'
+import { usePermissions } from '@/hooks/permissions'
 
 export const ConsultationsListPage = () => {
   const [query, setQuery] = useState('')
   const [petFilter, setPetFilter] = useState<string>('')
+  const { hasRole } = usePermissions()
 
   const filters = useMemo(() => ({ search: '', especie: null as number | null }), [])
   const { data: pets } = usePetsQuery(filters)
+
+  // El backend ya filtra automáticamente por cliente, pero solo mostramos sus mascotas en el selector
+  const clientPets = useMemo(() => {
+    // Si es cliente, solo mostrar sus mascotas (el backend ya las filtra)
+    // Si no es cliente, mostrar todas (para admin, veterinario, etc.)
+    return pets || []
+  }, [pets])
 
   const { data: consultations, isLoading } = useConsultationsQuery({
     search: query || undefined,
     mascota: petFilter ? Number(petFilter) : undefined,
   })
+  
+  // Solo mostrar el botón de crear consulta si no es cliente
+  const canCreate = !hasRole('cliente')
 
   return (
     <div className="space-y-6">
@@ -27,34 +39,42 @@ export const ConsultationsListPage = () => {
         <div>
           <p className="text-xs uppercase tracking-[0.4em] text-white/40">Consultas</p>
           <h1 className="text-3xl font-semibold">Historial clínico activo</h1>
-          <p className="text-sm text-white/70">Revisa y gestiona las consultas recientes de cada paciente.</p>
+          <p className="text-sm text-white/70">
+            {hasRole('cliente')
+              ? 'Revisa las consultas de tus mascotas realizadas por nuestros veterinarios.'
+              : 'Revisa y gestiona las consultas recientes de cada paciente.'}
+          </p>
         </div>
-        <Button asChild>
-          <Link to="/app/consultas/nueva">Nueva consulta</Link>
-        </Button>
+        {canCreate && (
+          <Button asChild>
+            <Link to="/app/consultas/nueva">Nueva consulta</Link>
+          </Button>
+        )}
       </header>
 
       <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className={`grid gap-4 ${hasRole('cliente') ? 'md:grid-cols-1' : 'md:grid-cols-3'}`}>
           <Input label="Buscar" placeholder="Mascota, diagnóstico..." value={query} onChange={(e) => setQuery(e.target.value)} />
-          <label className="space-y-2 text-sm text-white/80">
-            <span>Mascota</span>
-            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-              <Filter size={16} className="text-white/60" />
-              <select
-                className="w-full bg-transparent text-white focus:outline-none"
-                value={petFilter}
-                onChange={(event) => setPetFilter(event.target.value)}
-              >
-                <option value="">Todas</option>
-                {pets?.map((pet) => (
-                  <option key={pet.id} value={pet.id}>
-                    {pet.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </label>
+          {!hasRole('cliente') && (
+            <label className="space-y-2 text-sm text-white/80">
+              <span>Mascota</span>
+              <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                <Filter size={16} className="text-white/60" />
+                <select
+                  className="w-full bg-transparent text-white focus:outline-none"
+                  value={petFilter}
+                  onChange={(event) => setPetFilter(event.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {clientPets?.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </label>
+          )}
         </div>
       </section>
 
