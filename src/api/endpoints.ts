@@ -24,9 +24,13 @@ export const endpoints = {
   },
   users: {
     base: withBase('/usuarios/'),
+    detail: (id: number | string) => withBase(`/usuarios/${id}/`)(),
     me: withBase('/usuarios/me/'),
     search: withBase('/usuarios/buscar/'),
     stats: withBase('/usuarios/estadisticas/'),
+    activate: (id: number | string) => withBase(`/usuarios/${id}/activar/`)(),
+    suspend: (id: number | string) => withBase(`/usuarios/${id}/suspender/`)(),
+    changePassword: (id: number | string) => withBase(`/usuarios/${id}/cambiar_password/`)(),
   },
   roles: {
     base: withBase('/roles/'),

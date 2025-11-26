@@ -62,3 +62,11 @@ export interface UserQueryParams {
 
 export type UserListResponse = PaginatedResponse<UserListItem>
 
+export interface RoleOption {
+  id: number
+  nombre: string
+  descripcion?: string
+}
+
+export type RoleListResponse = PaginatedResponse<RoleOption>
+

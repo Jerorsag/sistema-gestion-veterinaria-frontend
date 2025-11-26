@@ -11,6 +11,9 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { DashboardHome } from '@/pages/dashboard/DashboardHome'
 import { ProfilePage } from '@/pages/dashboard/ProfilePage'
+import { UsersListPage } from '@/pages/users/UsersListPage'
+import { UserDetailPage } from '@/pages/users/UserDetailPage'
+import { UserCreatePage } from '@/pages/users/UserCreatePage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -42,10 +45,12 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardHome /> },
       { path: 'perfil', element: <ProfilePage /> },
+      { path: 'usuarios', element: <UsersListPage /> },
+      { path: 'usuarios/nuevo', element: <UserCreatePage /> },
+      { path: 'usuarios/:id', element: <UserDetailPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
 ])
 
 export const AppRouter = () => <RouterProvider router={router} />
-

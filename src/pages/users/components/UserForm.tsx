@@ -141,7 +141,7 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
             <Spinner size="sm" />
           ) : (
             <div className="flex flex-wrap gap-2">
-              {roles?.map((rol) => {
+              {(Array.isArray(roles) ? roles : []).map((rol) => {
                 const checked = form.watch('roles')?.includes(rol.nombre)
                 return (
                   <label

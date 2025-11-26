@@ -1,18 +1,21 @@
 import { apiClient } from '@/api/httpClient'
 import { endpoints } from '@/api/endpoints'
+import type { RoleListResponse, RoleOption } from '@/api/types/users'
 
-export interface RoleOption {
-  id: number
-  nombre: string
-  descripcion?: string
-}
+const list = async (): Promise<RoleOption[]> => {
+  const { data } = await apiClient.get<RoleListResponse | RoleOption[]>(endpoints.roles.base())
 
-const list = async () => {
-  const { data } = await apiClient.get<RoleOption[]>(endpoints.roles.base())
-  return data
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  if (data && Array.isArray(data.results)) {
+    return data.results
+  }
+
+  return []
 }
 
 export const roleService = {
   list,
 }
-
