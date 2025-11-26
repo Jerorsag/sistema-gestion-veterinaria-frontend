@@ -65,6 +65,14 @@ export const endpoints = {
     consent: (id: number | string) => withBase(`/consultas/${id}/enviar-consentimiento/`)(),
     stats: withBase('/consultas/estadisticas/'),
   },
+  inventory: {
+    products: withBase('/productos/'),
+    productDetail: (id: number | string) => withBase(`/productos/${id}/`)(),
+    categories: withBase('/categorias/'),
+    brands: withBase('/marcas/'),
+    kardex: withBase('/kardex/'),
+    kardexDetail: (id: number | string) => withBase(`/kardex/${id}/`)(),
+  },
 }
 
 export type EndpointGroups = typeof endpoints
