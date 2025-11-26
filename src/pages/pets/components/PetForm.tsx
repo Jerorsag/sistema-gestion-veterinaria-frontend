@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,14 +10,19 @@ import { useBreedsQuery, useSpeciesQuery } from '@/hooks/pets'
 import type { Pet, PetPayload } from '@/api/types/pets'
 
 const sexOptions = [
-  { label: 'Macho', value: 'macho' },
-  { label: 'Hembra', value: 'hembra' },
-  { label: 'No definido', value: 'desconocido' },
+  { label: 'Macho', value: 'M' },
+  { label: 'Hembra', value: 'H' },
 ]
+
+export const formatPetSex = (sexo: string | undefined | null): string => {
+  if (sexo === 'M') return 'Macho'
+  if (sexo === 'H') return 'Hembra'
+  return sexo ?? '—'
+}
 
 const schema = z.object({
   nombre: z.string().min(2, 'El nombre es requerido'),
-  sexo: z.string().min(1, 'Selecciona el sexo'),
+  sexo: z.enum(['M', 'H'], { message: 'Selecciona el sexo' }),
   especieId: z.union([z.number(), z.literal('')]),
   razaId: z.union([z.number(), z.literal('')]),
   fecha_nacimiento: z.string().optional(),
@@ -34,12 +39,27 @@ interface PetFormProps {
 }
 
 export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormProps) => {
+  const { data: species, isLoading: speciesLoading } = useSpeciesQuery()
+
+  // Encontrar el ID de especie desde initialData (puede venir como string nombre o objeto Species)
+  const initialEspecieId = useMemo(() => {
+    if (!initialData?.especie || !species) return undefined
+    if (typeof initialData.especie === 'string') {
+      const found = species.find((s) => s.nombre === initialData.especie)
+      return found?.id
+    }
+    if (typeof initialData.especie === 'object' && 'id' in initialData.especie) {
+      return initialData.especie.id
+    }
+    return undefined
+  }, [initialData?.especie, species])
+
   const form = useForm<PetFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       nombre: initialData?.nombre ?? '',
-      sexo: initialData?.sexo ?? sexOptions[0].value,
-      especieId: '' as const,
+      sexo: (initialData?.sexo === 'M' || initialData?.sexo === 'H' ? initialData.sexo : sexOptions[0].value) as 'M' | 'H',
+      especieId: initialEspecieId ?? ('' as const),
       razaId: '' as const,
       fecha_nacimiento: initialData?.fecha_nacimiento ?? '',
       peso: initialData?.peso ? String(initialData.peso) : '',
@@ -50,21 +70,41 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
 
   useEffect(() => {
     // Reset breed when species changes
-    form.setValue('razaId', '' as const)
-  }, [selectedSpecies, form])
+    if (selectedSpecies !== initialEspecieId) {
+      form.setValue('razaId', '' as const)
+    }
+  }, [selectedSpecies, form, initialEspecieId])
 
-  const { data: species, isLoading: speciesLoading } = useSpeciesQuery()
+  // Cargar razas cuando se selecciona una especie
   const speciesIdNumber = typeof selectedSpecies === 'number' ? selectedSpecies : undefined
   const { data: breeds, isLoading: breedsLoading } = useBreedsQuery(speciesIdNumber)
 
+  // Encontrar el ID de raza cuando ya tenemos las razas cargadas
+  useEffect(() => {
+    if (initialData?.raza && breeds && speciesIdNumber) {
+      let razaId: number | undefined
+      if (typeof initialData.raza === 'string') {
+        const found = breeds.find((r) => r.nombre === initialData.raza)
+        razaId = found?.id
+      } else if (typeof initialData.raza === 'object' && 'id' in initialData.raza) {
+        razaId = initialData.raza.id
+      }
+      if (razaId) {
+        form.setValue('razaId', razaId)
+      }
+    }
+  }, [initialData?.raza, breeds, speciesIdNumber, form])
+
   const handleSubmit = form.handleSubmit(async (values) => {
     const payload: PetPayload = {
-      nombre: values.nombre,
+      nombre: values.nombre.trim(),
       sexo: values.sexo,
-      especie: values.especieId === '' ? null : Number(values.especieId),
-      raza: values.razaId === '' ? null : Number(values.razaId),
-      fecha_nacimiento: values.fecha_nacimiento || null,
-      peso: values.peso ? Number(values.peso) : null,
+      ...(typeof values.especieId === 'number' ? { especie: values.especieId } : { especie: null }),
+      ...(typeof values.razaId === 'number' ? { raza: values.razaId } : { raza: null }),
+      ...(values.fecha_nacimiento && values.fecha_nacimiento.trim() !== ''
+        ? { fecha_nacimiento: values.fecha_nacimiento }
+        : { fecha_nacimiento: null }),
+      ...(values.peso && values.peso.trim() !== '' ? { peso: Number(values.peso) } : { peso: null }),
     }
 
     await onSubmit(payload)
@@ -98,10 +138,10 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
           ) : (
             <select
               className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
-              value={form.watch('especieId')}
+              value={typeof form.watch('especieId') === 'number' ? form.watch('especieId') : ''}
               onChange={(event) => {
                 const value = event.target.value
-                form.setValue('especieId', value ? Number(value) : '')
+                form.setValue('especieId', value ? Number(value) : ('' as const))
               }}
             >
               <option value="">Selecciona especie</option>
@@ -123,10 +163,10 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
           ) : (
             <select
               className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
-              value={form.watch('razaId')}
+              value={typeof form.watch('razaId') === 'number' ? form.watch('razaId') : ''}
               onChange={(event) => {
                 const value = event.target.value
-                form.setValue('razaId', value ? Number(value) : '')
+                form.setValue('razaId', value ? Number(value) : ('' as const))
               }}
               disabled={!speciesIdNumber}
             >
