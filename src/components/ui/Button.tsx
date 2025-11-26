@@ -1,5 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Children, cloneElement, isValidElement } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, ReactElement } from 'react'
 import clsx from 'clsx'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
@@ -22,6 +22,7 @@ export const Button = ({
   asChild,
   ...props
 }: ButtonProps) => {
+  const { type, ...restProps } = props
   const baseStyles =
     'inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60'
 
@@ -31,15 +32,43 @@ export const Button = ({
     ghost: 'bg-transparent text-white/80 hover:text-white hover:bg-white/5 focus-visible:outline-white',
   }
 
-  const Component = asChild ? Slot : 'button'
-  const componentProps = asChild ? props : { type: props.type ?? 'button', ...props }
-
-  return (
-    <Component className={clsx(baseStyles, variants[variant], fullWidth && 'w-full', className)} {...componentProps}>
+  const content = (
+    <>
       {startIcon && <span className="text-base">{startIcon}</span>}
       <span>{children}</span>
       {endIcon && <span className="text-base">{endIcon}</span>}
-    </Component>
+    </>
+  )
+
+  if (asChild) {
+    const onlyChild = Children.only(children) as ReactElement | null
+    if (!onlyChild || !isValidElement(onlyChild)) {
+      throw new Error('Button with asChild expects a single React element as its child.')
+    }
+
+    const child = onlyChild as ReactElement<{ className?: string; children?: ReactNode }>
+
+    return cloneElement(child, {
+      ...(restProps as Record<string, unknown>),
+      className: clsx(baseStyles, variants[variant], fullWidth && 'w-full', child.props.className, className),
+      children: (
+        <>
+          {startIcon && <span className="text-base">{startIcon}</span>}
+          <span>{child.props.children ?? null}</span>
+          {endIcon && <span className="text-base">{endIcon}</span>}
+        </>
+      ),
+    })
+  }
+
+  return (
+    <button
+      type={type ?? 'button'}
+      className={clsx(baseStyles, variants[variant], fullWidth && 'w-full', className)}
+      {...restProps}
+    >
+      {content}
+    </button>
   )
 }
 
