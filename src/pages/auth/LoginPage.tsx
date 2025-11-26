@@ -3,13 +3,11 @@ import type { Location } from 'react-router-dom'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import toast from 'react-hot-toast'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useSessionStore } from '@/core/store/session-store'
-import type { UserRole } from '@/core/types/auth'
+import { useLoginMutation } from '@/hooks/auth'
 
 const loginSchema = z.object({
   username: z.string().min(2, 'Ingresa un usuario válido'),
@@ -21,7 +19,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const setSession = useSessionStore((state) => state.setSession)
+  const loginMutation = useLoginMutation()
   const {
     register,
     handleSubmit,
@@ -37,22 +35,7 @@ export const LoginPage = () => {
   }, [location.state])
 
   const onSubmit = async (values: LoginFormValues) => {
-    const mockRoles: UserRole[] = ['administrador']
-    const mockUser = {
-      id: 0,
-      username: values.username,
-      email: `${values.username}@sgv.dev`,
-      nombre_completo: 'Usuario Demo',
-      roles: mockRoles,
-    }
-
-    setSession({
-      user: mockUser,
-      accessToken: 'demo-access-token',
-      refreshToken: 'demo-refresh-token',
-    })
-
-    toast.success('Sesión local iniciada (modo base)')
+    await loginMutation.mutateAsync(values)
     navigate(redirectPath, { replace: true })
   }
 
@@ -62,8 +45,7 @@ export const LoginPage = () => {
         <p className="text-xs uppercase tracking-[0.4em] text-white/40">Bienvenido</p>
         <h2 className="mt-2 text-3xl font-semibold">Inicia sesión</h2>
         <p className="mt-2 text-sm text-white/70">
-          Este formulario aún no se conecta al backend. Usa la acción de &ldquo;sesión local&rdquo; para habilitar el dashboard
-          durante la fase base.
+          Autentícate con tus credenciales del backend (JWT). Validamos estados, bloqueos y roles exactamente como la API.
         </p>
       </div>
 
@@ -78,13 +60,23 @@ export const LoginPage = () => {
       />
 
       <Button type="submit" fullWidth disabled={isSubmitting}>
-        {isSubmitting ? 'Ingresando...' : 'Iniciar sesión local'}
+        {isSubmitting ? 'Validando...' : 'Iniciar sesión'}
       </Button>
 
-      <p className="text-center text-sm text-white/70">
+      <div className="text-center text-sm text-white/70">
         ¿No tienes cuenta?{' '}
         <Link to="/auth/register" className="font-semibold text-primary hover:text-primary/80">
-          Regístrate
+          Registro rápido
+        </Link>
+        {' • '}
+        <Link to="/auth/register/step" className="font-semibold text-primary hover:text-primary/80">
+          Registro + verificación
+        </Link>
+      </div>
+
+      <p className="text-center text-sm">
+        <Link to="/auth/forgot-password" className="text-primary hover:text-primary/80">
+          ¿Olvidaste tu contraseña?
         </Link>
       </p>
     </form>
