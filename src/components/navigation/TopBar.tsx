@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
-import { Menu, Search, UserRound } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
 import clsx from 'clsx'
+
+import { NotificationsDropdown } from './NotificationsDropdown'
+import { UserMenu } from './UserMenu'
 
 interface TopBarProps {
   title?: ReactNode
@@ -34,9 +37,8 @@ export const TopBar = ({ title, onToggleSidebar }: TopBarProps) => (
           placeholder="Buscar módulo..."
         />
       </div>
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/80">
-        <UserRound size={18} />
-      </div>
+      <NotificationsDropdown />
+      <UserMenu />
     </div>
   </header>
 )
