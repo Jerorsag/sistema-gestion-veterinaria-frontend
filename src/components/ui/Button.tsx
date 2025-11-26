@@ -27,9 +27,9 @@ export const Button = ({
     'inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60'
 
   const variants: Record<ButtonVariant, string> = {
-    primary: 'bg-primary text-gray-950 hover:bg-primary/90 focus-visible:outline-primary',
-    secondary: 'bg-surface-200 text-white border border-white/10 hover:border-white/30 focus-visible:outline-white',
-    ghost: 'bg-transparent text-white/80 hover:text-white hover:bg-white/5 focus-visible:outline-white',
+    primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-primary)] border border-transparent',
+    secondary: 'bg-[var(--color-surface-200)] text-[#2D2D2D] border border-[var(--color-border)] hover:bg-[var(--color-surface)] focus-visible:outline-[var(--color-secondary)]',
+    ghost: 'bg-transparent text-[var(--color-muted)] hover:text-[#2D2D2D] hover:bg-[var(--color-surface-200)] focus-visible:outline-[var(--color-primary)]',
     danger: 'bg-red-500 text-white hover:bg-red-600 focus-visible:outline-red-500',
   }
 

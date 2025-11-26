@@ -23,9 +23,9 @@ export const InventoryDetailPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Inventario</p>
-          <h1 className="text-3xl font-semibold">{data.nombre}</h1>
-          <p className="text-sm text-white/70">{data.descripcion || 'Sin descripción'}</p>
+          <p className="text-label">Inventario</p>
+          <h1 className="text-3xl font-semibold text-heading">{data.nombre}</h1>
+          <p className="text-sm text-secondary">{data.descripcion || 'Sin descripción'}</p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="ghost" startIcon={<ClipboardList size={14} />}>
@@ -39,24 +39,24 @@ export const InventoryDetailPage = () => {
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Stock</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{data.stock_actual} u.</p>
-          <p className="text-sm text-white/70">Mínimo configurado: {data.stock_minimo}</p>
+          <p className="text-label">Stock</p>
+          <p className="mt-2 text-2xl font-semibold text-heading">{data.stock_actual} u.</p>
+          <p className="text-sm text-secondary">Mínimo configurado: {data.stock_minimo}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Precios</p>
-          <p className="mt-2 text-sm text-white/80">Compra: ${data.precio_compra}</p>
-          <p className="text-sm text-white/80">Venta: ${data.precio_venta}</p>
+          <p className="text-label">Precios</p>
+          <p className="mt-2 text-sm text-primary">Compra: ${data.precio_compra}</p>
+          <p className="text-sm text-primary">Venta: ${data.precio_venta}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Identificadores</p>
-          <p className="mt-2 text-sm text-white/80">Código interno: {data.codigo_interno || '—'}</p>
-          <p className="text-sm text-white/80">Código barras: {data.codigo_barras || '—'}</p>
+          <p className="text-label">Identificadores</p>
+          <p className="mt-2 text-sm text-primary">Código interno: {data.codigo_interno || '—'}</p>
+          <p className="text-sm text-primary">Código barras: {data.codigo_barras || '—'}</p>
         </Card>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-        <div className="mb-4 flex items-center gap-2 text-white">
+      <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <div className="mb-4 flex items-center gap-2 text-heading">
           <Edit3 size={16} />
           <p className="font-semibold">Actualizar información</p>
         </div>

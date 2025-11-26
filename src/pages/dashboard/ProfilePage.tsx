@@ -106,10 +106,10 @@ export const ProfilePage = () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <section className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+      <section className="space-y-4 rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Perfil</p>
-          <h2 className="text-2xl font-semibold">Datos de cuenta</h2>
+          <p className="text-label">Perfil</p>
+          <h2 className="text-2xl font-semibold text-heading">Datos de cuenta</h2>
         </div>
 
         <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
@@ -132,10 +132,10 @@ export const ProfilePage = () => {
         </form>
       </section>
 
-      <section className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+      <section className="space-y-4 rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Seguridad</p>
-          <h2 className="text-2xl font-semibold">Actualizar contraseña</h2>
+          <p className="text-label">Seguridad</p>
+          <h2 className="text-2xl font-semibold text-heading">Actualizar contraseña</h2>
         </div>
 
         <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">

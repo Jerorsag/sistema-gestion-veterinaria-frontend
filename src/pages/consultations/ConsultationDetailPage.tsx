@@ -24,9 +24,9 @@ export const ConsultationDetailPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Consulta #{data.id}</p>
-          <h1 className="text-3xl font-semibold">{data.mascota}</h1>
-          <p className="text-sm text-white/70">{formatDateTime(data.fecha_consulta)}</p>
+          <p className="text-label">Consulta #{data.id}</p>
+          <h1 className="text-3xl font-semibold text-heading">{data.mascota}</h1>
+          <p className="text-sm text-secondary">{formatDateTime(data.fecha_consulta)}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => consentMutation.mutate(data.id)}>
@@ -40,36 +40,36 @@ export const ConsultationDetailPage = () => {
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">Diagnóstico</p>
-          <p className="mt-2 text-white">{data.diagnostico}</p>
+          <p className="text-label">Diagnóstico</p>
+          <p className="mt-2 text-heading">{data.diagnostico}</p>
           {data.notas_adicionales && (
             <>
-              <p className="mt-3 text-xs uppercase tracking-[0.3em] text-white/40">Notas adicionales</p>
-              <p className="text-white/80">{data.notas_adicionales}</p>
+              <p className="mt-3 text-label">Notas adicionales</p>
+              <p className="text-secondary">{data.notas_adicionales}</p>
             </>
           )}
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">Descripción</p>
-          <p className="mt-2 text-sm text-white/80">{data.descripcion_consulta}</p>
+          <p className="text-label">Descripción</p>
+          <p className="mt-2 text-sm text-secondary">{data.descripcion_consulta}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/40">Veterinario</p>
-          <p className="mt-2 text-white">{data.veterinario_nombre}</p>
+          <p className="text-label">Veterinario</p>
+          <p className="mt-2 text-heading">{data.veterinario_nombre}</p>
         </Card>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Prescripciones</h2>
+        <h2 className="text-lg font-semibold text-heading">Prescripciones</h2>
         <div className="grid gap-3 md:grid-cols-2">
           {data.prescripciones.map((pres) => (
             <Card key={pres.id}>
-              <p className="text-sm font-semibold text-white">{pres.producto_nombre}</p>
-              <p className="text-xs text-white/60">{pres.dosis}</p>
-              <p className="text-xs text-white/60">{pres.frecuencia}</p>
+              <p className="text-sm font-semibold text-heading">{pres.producto_nombre}</p>
+              <p className="text-xs text-tertiary">{pres.dosis}</p>
+              <p className="text-xs text-tertiary">{pres.frecuencia}</p>
             </Card>
           ))}
-          {data.prescripciones.length === 0 && <p className="text-sm text-white/60">Sin prescripciones registradas.</p>}
+          {data.prescripciones.length === 0 && <p className="text-sm text-secondary">Sin prescripciones registradas.</p>}
         </div>
       </section>
     </div>

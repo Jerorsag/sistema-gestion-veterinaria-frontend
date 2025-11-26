@@ -48,9 +48,9 @@ export const UsersListPage = () => {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Usuarios</p>
-          <h1 className="text-3xl font-semibold">Gestión de usuarios del SGV</h1>
-          <p className="text-sm text-white/70">CRUD completo alineado al backend (roles, estados y perfiles).</p>
+          <p className="text-label">Usuarios</p>
+          <h1 className="text-3xl font-semibold text-heading">Gestión de usuarios del SGV</h1>
+          <p className="text-description">CRUD completo alineado al backend (roles, estados y perfiles).</p>
         </div>
         <div className="flex gap-3">
           <Button variant="ghost" onClick={() => updateFilters({})} startIcon={<RefreshCw size={16} />}>
@@ -63,14 +63,14 @@ export const UsersListPage = () => {
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card header={<p className="text-xs uppercase tracking-[0.3em] text-white/50">Total</p>}>
-          <p className="text-3xl font-semibold">{stats?.total_usuarios ?? '--'}</p>
+        <Card header={<p className="text-label">Total</p>}>
+          <p className="text-3xl font-semibold text-heading">{stats?.total_usuarios ?? '--'}</p>
         </Card>
-        <Card header={<p className="text-xs uppercase tracking-[0.3em] text-white/50">Activos</p>}>
-          <p className="text-3xl font-semibold">{stats?.usuarios_activos ?? '--'}</p>
+        <Card header={<p className="text-label">Activos</p>}>
+          <p className="text-3xl font-semibold text-heading">{stats?.usuarios_activos ?? '--'}</p>
         </Card>
-        <Card header={<p className="text-xs uppercase tracking-[0.3em] text-white/50">Roles</p>}>
-          <div className="space-y-1 text-sm text-white/70">
+        <Card header={<p className="text-label">Roles</p>}>
+          <div className="space-y-1 text-sm text-secondary">
             {stats?.usuarios_por_rol
               ? Object.entries(stats.usuarios_por_rol).map(([rol, total]) => (
                   <div key={rol} className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export const UsersListPage = () => {
         </Card>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
           <Input
             label="Buscar"
@@ -94,10 +94,14 @@ export const UsersListPage = () => {
               updateFilters({ search: event.target.value, page: 1 })
             }}
           />
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Estado</span>
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={filters.estado ?? 'todos'}
               onChange={(event) => handleEstadoChange(event.target.value)}
             >
@@ -108,10 +112,14 @@ export const UsersListPage = () => {
               ))}
             </select>
           </label>
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Orden</span>
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={filters.ordering ?? '-created_at'}
               onChange={(event) => updateFilters({ ordering: event.target.value })}
             >
@@ -124,7 +132,7 @@ export const UsersListPage = () => {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         {isLoading ? (
           <div className="flex justify-center py-10">
             <Spinner size="lg" />
@@ -134,7 +142,7 @@ export const UsersListPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-left">
                 <thead>
-                  <tr className="text-sm uppercase tracking-wide text-white/50">
+                  <tr className="text-sm uppercase tracking-wide text-subtle">
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3">Correo</th>
                     <th className="px-4 py-3">Roles</th>
@@ -142,18 +150,18 @@ export const UsersListPage = () => {
                     <th className="px-4 py-3">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle-color)' }}>
                   {data?.results.map((usuario) => (
-                    <tr key={usuario.id} className="text-sm text-white/80 hover:bg-white/5">
+                    <tr key={usuario.id} className="text-sm text-secondary hover:bg-[var(--color-surface-200)]/50 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="font-semibold">{usuario.nombre_completo}</div>
-                        <p className="text-xs text-white/50">@{usuario.username}</p>
+                        <div className="font-semibold text-heading">{usuario.nombre_completo}</div>
+                        <p className="text-xs text-tertiary">@{usuario.username}</p>
                       </td>
-                      <td className="px-4 py-3">{usuario.email}</td>
+                      <td className="px-4 py-3 text-primary">{usuario.email}</td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1 text-xs text-white/70">
+                        <div className="flex flex-wrap gap-1 text-xs">
                           {usuario.roles.map((rol) => (
-                            <span key={rol} className="rounded-full bg-white/10 px-2 py-0.5 capitalize">
+                            <span key={rol} className="rounded-full bg-[var(--color-surface-200)] px-2 py-0.5 capitalize text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                               {rol}
                             </span>
                           ))}
@@ -174,11 +182,11 @@ export const UsersListPage = () => {
             </div>
 
             {data && data.results.length === 0 && (
-              <p className="py-6 text-center text-white/60">No encontramos usuarios con los filtros seleccionados.</p>
+              <p className="py-6 text-center text-secondary">No encontramos usuarios con los filtros seleccionados.</p>
             )}
 
             {data && data.results.length > 0 && (
-              <div className="mt-4 flex items-center justify-between text-sm text-white/70">
+              <div className="mt-4 flex items-center justify-between text-sm text-secondary">
                 <span>
                   Página {filters.page ?? 1} de {totalPages}
                 </span>
@@ -204,7 +212,7 @@ export const UsersListPage = () => {
         )}
       </section>
       {isFetching && !isLoading && (
-        <div className="flex items-center gap-2 text-sm text-white/60">
+        <div className="flex items-center gap-2 text-sm text-secondary">
           <Spinner size="sm" />
           <span>Actualizando...</span>
         </div>

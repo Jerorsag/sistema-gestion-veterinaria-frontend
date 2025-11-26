@@ -65,9 +65,9 @@ export const AppointmentDetailPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Detalle de cita</p>
-          <h1 className="text-3xl font-semibold">{data.mascota_nombre}</h1>
-          <p className="text-sm text-white/70">ID #{data.id}</p>
+          <p className="text-label">Detalle de cita</p>
+          <h1 className="text-3xl font-semibold text-heading">{data.mascota_nombre}</h1>
+          <p className="text-sm text-secondary">ID #{data.id}</p>
         </div>
         <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} />}>
           <Link to="/app/citas">Volver</Link>
@@ -82,35 +82,35 @@ export const AppointmentDetailPage = () => {
                 <CalendarClock size={18} />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Fecha y hora</p>
-                <p className="text-lg font-semibold">{formatDateTime(data.fecha_hora)}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-subtle">Fecha y hora</p>
+                <p className="text-lg font-semibold text-heading">{formatDateTime(data.fecha_hora)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/10 p-2 text-white">
+              <div className="rounded-2xl bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
                 <PawPrint size={18} />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Mascota</p>
-                <p className="text-lg">{data.mascota_nombre}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-subtle">Mascota</p>
+                <p className="text-lg text-heading">{data.mascota_nombre}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/10 p-2 text-white">
+              <div className="rounded-2xl bg-[var(--color-secondary)]/20 p-2 text-[var(--color-secondary)]">
                 <User2 size={18} />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Veterinario</p>
-                <p className="text-lg">{data.veterinario_nombre ?? 'Por asignar'}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-subtle">Veterinario</p>
+                <p className="text-lg text-heading">{data.veterinario_nombre ?? 'Por asignar'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/10 p-2 text-white">
+              <div className="rounded-2xl bg-[var(--color-surface-200)] p-2 text-tertiary">
                 <Scissors size={18} />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Servicio</p>
-                <p className="text-lg">{data.servicio_nombre ?? '—'}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-subtle">Servicio</p>
+                <p className="text-lg text-heading">{data.servicio_nombre ?? '—'}</p>
               </div>
             </div>
           </div>
@@ -120,10 +120,10 @@ export const AppointmentDetailPage = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Acciones rápidas</p>
-                <p className="text-lg font-semibold">Gestiona la cita</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-subtle">Acciones rápidas</p>
+                <p className="text-lg font-semibold text-heading">Gestiona la cita</p>
               </div>
-              <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white/70">
+              <span className="inline-flex items-center rounded-full bg-[var(--color-surface-200)] px-3 py-1 text-xs uppercase tracking-wide text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                 {data.estado}
               </span>
             </div>
@@ -152,10 +152,10 @@ export const AppointmentDetailPage = () => {
 
             {activeAction === 'reschedule' ? (
               <div className="space-y-4">
-                <p className="text-sm text-white/70">
+                <p className="text-sm text-secondary">
                   Selecciona el profesional y el nuevo horario disponible. Los horarios bloqueados se muestran en rojo.
                 </p>
-                <label className="space-y-2 text-sm text-white/80">
+                <label className="space-y-2 text-sm text-primary">
                   <span>Veterinario</span>
                   {vetsLoading ? (
                     <div className="flex min-h-[42px] items-center">
@@ -163,7 +163,11 @@ export const AppointmentDetailPage = () => {
                     </div>
                   ) : (
                     <select
-                      className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+                      className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+                      style={{
+                        borderWidth: 'var(--border-subtle-width)',
+                        borderStyle: 'var(--border-subtle-style)',
+                      }}
                       value={selectedVet}
                       onChange={(event) => setSelectedVet(event.target.value)}
                     >
@@ -176,8 +180,8 @@ export const AppointmentDetailPage = () => {
                     </select>
                   )}
                 </label>
-                <div className="rounded-2xl border border-white/10 p-4">
-                  <p className="text-sm font-semibold text-white">Nuevo horario</p>
+                <div className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <p className="text-sm font-semibold text-heading">Nuevo horario</p>
                   <AvailabilityPicker veterinarioId={selectedVet} value={newDateTime} onChange={setNewDateTime} />
                 </div>
                 <Button
@@ -190,11 +194,11 @@ export const AppointmentDetailPage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-red-100">
-                  <AlertTriangle size={18} />
+                <div className="flex items-center gap-3 rounded-2xl bg-red-50 p-4 border border-red-200" style={{ boxShadow: '0 2px 8px rgba(239, 68, 68, 0.1)' }}>
+                  <AlertTriangle size={18} className="text-red-600" />
                   <div>
-                    <p className="text-sm font-semibold">¿Seguro que quieres cancelar?</p>
-                    <p className="text-xs text-red-200">
+                    <p className="text-sm font-semibold text-red-800">¿Seguro que quieres cancelar?</p>
+                    <p className="text-xs text-red-700">
                       Notificaremos al cliente y liberaremos el horario para que otros usuarios puedan agendarlo.
                     </p>
                   </div>

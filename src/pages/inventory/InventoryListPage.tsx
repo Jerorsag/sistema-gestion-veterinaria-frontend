@@ -62,22 +62,26 @@ export const InventoryListPage = () => {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Inventario</p>
-          <h1 className="text-3xl font-semibold">Control de insumos</h1>
-          <p className="text-sm text-white/70">Monitorea stock, entradas y consumos en tiempo real.</p>
+          <p className="text-label">Inventario</p>
+          <h1 className="text-3xl font-semibold text-heading">Control de insumos</h1>
+          <p className="text-description">Monitorea stock, entradas y consumos en tiempo real.</p>
         </div>
         <Button startIcon={<PlusCircle size={16} />} asChild>
           <Link to="/app/inventario/nuevo">Registrar producto</Link>
         </Button>
       </header>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className="grid gap-4 md:grid-cols-3">
           <Input label="Buscar" placeholder="Nombre, código..." value={search} onChange={(event) => setSearch(event.target.value)} />
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Categoría</span>
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={category}
               onChange={(event) => setCategory(event.target.value)}
             >
@@ -89,10 +93,14 @@ export const InventoryListPage = () => {
               ))}
             </select>
           </label>
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Marca</span>
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={brand}
               onChange={(event) => setBrand(event.target.value)}
             >
@@ -110,12 +118,13 @@ export const InventoryListPage = () => {
       <section>
         <button
           onClick={toggleProducts}
-          className="mb-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:bg-white/[0.05]"
+          className="mb-4 flex w-full items-center justify-between rounded-xl bg-surface px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-200)]"
+          style={{ boxShadow: 'var(--shadow-card)' }}
         >
-          <span className="text-sm font-semibold text-white/80">
+          <span className="text-sm font-semibold text-heading">
             {isProductsExpanded ? 'Ocultar productos' : 'Mostrar productos'} ({products?.length || 0})
           </span>
-          {isProductsExpanded ? <ChevronUp size={20} className="text-white/60" /> : <ChevronDown size={20} className="text-white/60" />}
+          {isProductsExpanded ? <ChevronUp size={20} className="text-tertiary" /> : <ChevronDown size={20} className="text-tertiary" />}
         </button>
 
         {isProductsExpanded && (
@@ -148,23 +157,23 @@ export const InventoryListPage = () => {
               return (
                 <Card
                   key={product.id}
-                  className="flex flex-col gap-3 border-white/10 bg-white/[0.02] p-4 md:flex-row md:items-center md:justify-between"
+                  className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="rounded-2xl bg-primary/15 p-3 text-primary">
+                    <div className="rounded-2xl bg-[var(--color-primary)]/15 p-3 text-[var(--color-primary)]">
                       <PackageSearch size={20} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{product.nombre}</h3>
-                      <p className="text-sm text-white/70">{product.descripcion || 'Sin descripción'}</p>
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-white/60">
+                      <h3 className="text-lg font-semibold text-heading">{product.nombre}</h3>
+                      <p className="text-sm text-secondary">{product.descripcion || 'Sin descripción'}</p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-tertiary">
                         {product.categoria?.descripcion && <span>{product.categoria.descripcion}</span>}
                         {product.marca?.descripcion && <span>{product.marca.descripcion}</span>}
                         <span>Código interno: {product.codigo_interno || '—'}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 text-sm text-white/70">
+                  <div className="flex flex-col gap-2 text-sm text-secondary">
                     <div className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs ${stockStyle}`}>
                       Stock: {product.stock_actual} u. (mín {product.stock_minimo})
                     </div>
@@ -188,7 +197,7 @@ export const InventoryListPage = () => {
                 })}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center text-white/60">
+              <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
                 No se encontraron productos con esos filtros.
               </div>
             )}
@@ -200,15 +209,15 @@ export const InventoryListPage = () => {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Historial de movimientos</h2>
-            <p className="text-sm text-white/60">Registro de entradas, salidas y ajustes de inventario.</p>
+            <h2 className="text-2xl font-semibold text-heading">Historial de movimientos</h2>
+            <p className="text-sm text-secondary">Registro de entradas, salidas y ajustes de inventario.</p>
           </div>
           <Button startIcon={<PlusCircle size={16} />} asChild>
             <Link to="/app/inventario/movimientos/nuevo">Registrar movimiento</Link>
           </Button>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
           <Input
             label="Buscar movimientos"
             placeholder="Producto o detalle..."
@@ -219,12 +228,13 @@ export const InventoryListPage = () => {
 
         <button
           onClick={toggleKardex}
-          className="mb-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:bg-white/[0.05]"
+          className="mb-4 flex w-full items-center justify-between rounded-xl bg-surface px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-200)]"
+          style={{ boxShadow: 'var(--shadow-card)' }}
         >
-          <span className="text-sm font-semibold text-white/80">
+          <span className="text-sm font-semibold text-heading">
             {isKardexExpanded ? 'Ocultar movimientos' : 'Mostrar movimientos'} ({kardexMovements?.length || 0})
           </span>
-          {isKardexExpanded ? <ChevronUp size={20} className="text-white/60" /> : <ChevronDown size={20} className="text-white/60" />}
+          {isKardexExpanded ? <ChevronUp size={20} className="text-tertiary" /> : <ChevronDown size={20} className="text-tertiary" />}
         </button>
 
         {isKardexExpanded && (
@@ -249,7 +259,7 @@ export const InventoryListPage = () => {
                 return (
                   <Card
                     key={movement.id}
-                    className="flex flex-col gap-3 border-white/10 bg-white/[0.02] p-4 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="flex items-start gap-3">
                       <div
@@ -258,14 +268,14 @@ export const InventoryListPage = () => {
                         {isEntry ? <PackageSearch size={18} /> : <History size={18} />}
                       </div>
                       <div>
-                        <p className="text-sm text-white/60">{formatDateTime(movement.fecha)}</p>
-                        <h3 className={`text-lg font-semibold ${anulado ? 'text-white/50 line-through' : 'text-white'}`}>
+                        <p className="text-sm text-tertiary">{formatDateTime(movement.fecha)}</p>
+                        <h3 className={`text-lg font-semibold ${anulado ? 'text-tertiary line-through' : 'text-heading'}`}>
                           {movement.producto_nombre}
                         </h3>
-                        <p className={`text-sm ${anulado ? 'text-white/40' : 'text-white/70'}`}>{movement.detalle}</p>
+                        <p className={`text-sm ${anulado ? 'text-subtle' : 'text-secondary'}`}>{movement.detalle}</p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2 text-sm text-white/80">
+                    <div className="flex flex-col items-end gap-2 text-sm text-secondary">
                       <div className="flex items-center gap-2">
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
                           {anulado ? 'Anulado' : movement.tipo === 'entrada' ? 'Entrada' : 'Salida'}
@@ -282,8 +292,8 @@ export const InventoryListPage = () => {
                           </Button>
                         )}
                       </div>
-                      <span className={anulado ? 'text-white/40' : ''}>Cantidad: {movement.cantidad} u.</span>
-                      {movement.usuario && <span className="text-xs text-white/60">Por: {movement.usuario}</span>}
+                      <span className={anulado ? 'text-subtle' : 'text-primary'}>Cantidad: {movement.cantidad} u.</span>
+                      {movement.usuario && <span className="text-xs text-tertiary">Por: {movement.usuario}</span>}
                     </div>
                   </Card>
                 )
@@ -297,7 +307,7 @@ export const InventoryListPage = () => {
               )}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center text-white/60">
+            <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
               Sin movimientos registrados. Haz clic en "Registrar movimiento" para comenzar.
             </div>
           )}
@@ -310,8 +320,8 @@ export const InventoryListPage = () => {
       {isConfirming && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <Card className="max-w-md space-y-4 p-6">
-            <h3 className="text-xl font-semibold text-white">Anular movimiento</h3>
-            <p className="text-sm text-white/70">¿Estás seguro de que deseas anular este movimiento? Esta acción revertirá los cambios en el stock.</p>
+            <h3 className="text-xl font-semibold text-heading">Anular movimiento</h3>
+            <p className="text-sm text-secondary">¿Estás seguro de que deseas anular este movimiento? Esta acción revertirá los cambios en el stock.</p>
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" onClick={closeConfirm} disabled={anularKardexMutation.isPending}>
                 Cancelar

@@ -67,10 +67,14 @@ export const AppointmentForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm text-white/80">
+        <label className="space-y-2 text-sm text-primary">
           <span>Mascota</span>
           <select
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            style={{
+              borderWidth: 'var(--border-subtle-width)',
+              borderStyle: 'var(--border-subtle-style)',
+            }}
             value={selectedMascota}
             onChange={(event) => form.setValue('mascota_id', event.target.value)}
           >
@@ -82,11 +86,11 @@ export const AppointmentForm = () => {
             ))}
           </select>
           {form.formState.errors.mascota_id && (
-            <p className="text-xs text-red-300">{form.formState.errors.mascota_id.message}</p>
+            <p className="text-xs text-red-600">{form.formState.errors.mascota_id.message}</p>
           )}
         </label>
 
-        <label className="space-y-2 text-sm text-white/80">
+        <label className="space-y-2 text-sm text-primary">
           <span>Veterinario</span>
           {vetsLoading ? (
             <div className="flex min-h-[42px] items-center">
@@ -94,7 +98,11 @@ export const AppointmentForm = () => {
             </div>
           ) : (
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={selectedVeterinario}
               onChange={(event) => form.setValue('veterinario_id', event.target.value)}
             >
@@ -107,11 +115,11 @@ export const AppointmentForm = () => {
             </select>
           )}
           {form.formState.errors.veterinario_id && (
-            <p className="text-xs text-red-300">{form.formState.errors.veterinario_id.message}</p>
+            <p className="text-xs text-red-600">{form.formState.errors.veterinario_id.message}</p>
           )}
         </label>
 
-        <label className="space-y-2 text-sm text-white/80 md:col-span-2">
+        <label className="space-y-2 text-sm text-primary md:col-span-2">
           <span>Servicio</span>
           {servicesLoading ? (
             <div className="flex min-h-[42px] items-center">
@@ -119,7 +127,11 @@ export const AppointmentForm = () => {
             </div>
           ) : (
             <select
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
               value={selectedServicio}
               onChange={(event) => form.setValue('servicio_id', event.target.value)}
             >
@@ -132,20 +144,20 @@ export const AppointmentForm = () => {
             </select>
           )}
           {form.formState.errors.servicio_id && (
-            <p className="text-xs text-red-300">{form.formState.errors.servicio_id.message}</p>
+            <p className="text-xs text-red-600">{form.formState.errors.servicio_id.message}</p>
           )}
         </label>
       </div>
 
-      <div className="rounded-2xl border border-white/10 p-4">
-        <p className="text-sm font-semibold text-white">Selecciona horario disponible</p>
+      <div className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <p className="text-sm font-semibold text-heading">Selecciona horario disponible</p>
         <AvailabilityPicker
           veterinarioId={selectedVeterinario}
           value={selectedFecha}
           onChange={(datetime) => form.setValue('fecha_hora', datetime)}
         />
         {form.formState.errors.fecha_hora && (
-          <p className="text-xs text-red-300">{form.formState.errors.fecha_hora.message}</p>
+          <p className="text-xs text-red-600">{form.formState.errors.fecha_hora.message}</p>
         )}
       </div>
 
