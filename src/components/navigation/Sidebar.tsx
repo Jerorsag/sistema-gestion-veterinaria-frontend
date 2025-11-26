@@ -18,9 +18,13 @@ interface SidebarProps {
 export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
   <aside
     className={clsx(
-      'dashboard-sidebar fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col border-r border-[var(--color-border)] bg-surface px-4 py-6 transition-transform duration-300 md:static md:translate-x-0',
+      'dashboard-sidebar fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col bg-surface px-4 py-6 transition-transform duration-300 overflow-y-auto',
+      'md:translate-x-0',
       isOpen ? 'translate-x-0' : '-translate-x-full',
     )}
+    style={{
+      boxShadow: '4px 0 12px rgba(139, 92, 246, 0.05), 2px 0 6px rgba(0, 0, 0, 0.03)',
+    }}
   >
     <div className="mb-8 flex items-center gap-3 px-2">
       <div className="h-10 w-10 rounded-2xl bg-[var(--color-primary)] text-white flex items-center justify-center font-black tracking-tight">
@@ -50,7 +54,7 @@ export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
           <Icon size={18} className="transition group-hover:scale-105" />
           <span className="flex-1">{label}</span>
           {badge && (
-            <span className="rounded-full bg-[var(--color-surface-200)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#2D2D2D] border border-[var(--color-border)]">
+            <span className="rounded-full bg-[var(--color-surface-200)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-heading)]" style={{ boxShadow: 'var(--shadow-soft)' }}>
               {badge}
             </span>
           )}
