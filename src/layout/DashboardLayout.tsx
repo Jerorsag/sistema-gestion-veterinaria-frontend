@@ -1,11 +1,12 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { BellRing, CalendarDays, ClipboardList, LayoutDashboard, Package, Receipt, Stethoscope, Users } from 'lucide-react'
+import { BellRing, CalendarDays, ClipboardList, LayoutDashboard, Package, Receipt, Stethoscope, Users, UserRound } from 'lucide-react'
 
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { TopBar } from '@/components/navigation/TopBar'
 import { Button } from '@/components/ui/Button'
 import { useDisclosure } from '@/hooks/useDisclosure'
 import { useSessionStore } from '@/core/store/session-store'
+import { useLogoutMutation } from '@/hooks/auth'
 
 const navItems = [
   { label: 'Inicio', href: '/app', icon: LayoutDashboard },
@@ -16,12 +17,13 @@ const navItems = [
   { label: 'Inventario', href: '/app/inventario', icon: Package },
   { label: 'Notificaciones', href: '/app/notificaciones', icon: BellRing },
   { label: 'Facturación', href: '/app/facturacion', icon: Receipt },
+  { label: 'Mi perfil', href: '/app/perfil', icon: UserRound },
 ]
 
 export const DashboardLayout = () => {
   const { isOpen, toggle, close } = useDisclosure(false)
-  const clearSession = useSessionStore((state) => state.clearSession)
   const user = useSessionStore((state) => state.user)
+  const logoutMutation = useLogoutMutation()
   const location = useLocation()
 
   return (
@@ -46,8 +48,8 @@ export const DashboardLayout = () => {
                     {user?.nombre_completo ?? 'Sesión demo'}
                   </p>
                 </div>
-                <Button variant="ghost" onClick={clearSession}>
-                  Cerrar sesión
+                <Button variant="ghost" onClick={() => logoutMutation.mutate()}>
+                  {logoutMutation.isPending ? 'Saliendo...' : 'Cerrar sesión'}
                 </Button>
               </div>
             </div>
