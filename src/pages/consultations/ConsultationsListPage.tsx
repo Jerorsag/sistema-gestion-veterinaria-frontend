@@ -5,6 +5,7 @@ import { Calendar, Filter } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
 import { formatDateTime } from '@/utils/datetime'
@@ -37,9 +38,9 @@ export const ConsultationsListPage = () => {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Consultas</p>
-          <h1 className="text-3xl font-semibold">Historial clínico activo</h1>
-          <p className="text-sm text-white/70">
+          <p className="text-label">Consultas</p>
+          <h1 className="text-3xl font-semibold text-heading">Historial clínico activo</h1>
+          <p className="text-description">
             {hasRole('cliente')
               ? 'Revisa las consultas de tus mascotas realizadas por nuestros veterinarios.'
               : 'Revisa y gestiona las consultas recientes de cada paciente.'}
@@ -52,16 +53,16 @@ export const ConsultationsListPage = () => {
         )}
       </header>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className={`grid gap-4 ${hasRole('cliente') ? 'md:grid-cols-1' : 'md:grid-cols-3'}`}>
           <Input label="Buscar" placeholder="Mascota, diagnóstico..." value={query} onChange={(e) => setQuery(e.target.value)} />
           {!hasRole('cliente') && (
-            <label className="space-y-2 text-sm text-white/80">
+            <label className="space-y-2 text-sm text-primary">
               <span>Mascota</span>
-              <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-                <Filter size={16} className="text-white/60" />
+              <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
+                <Filter size={16} className="text-tertiary" />
                 <select
-                  className="w-full bg-transparent text-white focus:outline-none"
+                  className="w-full bg-transparent text-primary focus:outline-none"
                   value={petFilter}
                   onChange={(event) => setPetFilter(event.target.value)}
                 >
@@ -86,15 +87,15 @@ export const ConsultationsListPage = () => {
         ) : consultations && consultations.length > 0 ? (
           <div className="space-y-3">
             {consultations.map((consultation) => (
-              <div
+              <Card
                 key={consultation.id}
-                className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Consulta #{consultation.id}</p>
-                  <h3 className="text-lg font-semibold text-white">{consultation.mascota_nombre}</h3>
-                  <p className="text-sm text-white/60">{consultation.veterinario_nombre}</p>
-                  <div className="mt-2 flex gap-4 text-xs text-white/60">
+                  <p className="text-xs uppercase tracking-[0.3em] text-subtle">Consulta #{consultation.id}</p>
+                  <h3 className="text-lg font-semibold text-heading">{consultation.mascota_nombre}</h3>
+                  <p className="text-sm text-secondary">{consultation.veterinario_nombre}</p>
+                  <div className="mt-2 flex gap-4 text-xs text-tertiary">
                     <span className="inline-flex items-center gap-1">
                       <Calendar size={14} />
                       {formatDateTime(consultation.fecha_consulta)}
@@ -104,18 +105,18 @@ export const ConsultationsListPage = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white/70">
+                  <span className="rounded-full bg-[var(--color-surface-200)] px-3 py-1 text-xs uppercase tracking-wide text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                     {consultation.estado_vacunacion}
                   </span>
                   <Button asChild variant="ghost">
                     <Link to={`/app/consultas/${consultation.id}`}>Ver detalle</Link>
                   </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center text-white/60">
+          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
             No hay consultas con esos filtros.
           </div>
         )}

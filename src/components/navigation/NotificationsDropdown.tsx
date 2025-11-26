@@ -26,10 +26,10 @@ export const NotificationsDropdown = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center justify-center rounded-xl border border-white/10 bg-white/10 p-2.5 transition-colors hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="relative flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-200)] p-2.5 transition-colors hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
         aria-label="Notificaciones"
       >
-        <Bell size={20} className="text-white/80" />
+        <Bell size={20} className="text-[var(--color-muted)]" />
         {unreadCount > 0 && (
           <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
@@ -38,12 +38,12 @@ export const NotificationsDropdown = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-white/10 bg-surface-200 shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-[var(--color-border)] bg-surface shadow-xl">
           <div className="p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">Notificaciones</h3>
+              <h3 className="text-sm font-semibold text-[#2D2D2D]">Notificaciones</h3>
               {unreadCount > 0 && (
-                <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary">
+                <span className="rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-semibold text-white">
                   {unreadCount} nuevas
                 </span>
               )}
@@ -52,18 +52,18 @@ export const NotificationsDropdown = () => {
             <div className="max-h-96 space-y-2 overflow-y-auto">
               {unreadCount === 0 ? (
                 <div className="py-8 text-center">
-                  <Bell size={32} className="mx-auto mb-2 text-white/20" />
-                  <p className="text-sm text-white/60">No hay notificaciones nuevas</p>
+                  <Bell size={32} className="mx-auto mb-2 text-[var(--color-muted)] opacity-40" />
+                  <p className="text-sm text-[var(--color-muted)]">No hay notificaciones nuevas</p>
                 </div>
               ) : (
                 <div className="py-4 text-center">
-                  <p className="text-sm text-white/60">Las notificaciones estarán disponibles próximamente</p>
+                  <p className="text-sm text-[var(--color-muted)]">Las notificaciones estarán disponibles próximamente</p>
                 </div>
               )}
             </div>
 
             {unreadCount > 0 && (
-              <button className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10">
+              <button className="mt-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-200)] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface)]">
                 Ver todas las notificaciones
               </button>
             )}

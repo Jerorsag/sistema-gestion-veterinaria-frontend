@@ -12,45 +12,45 @@ interface HistoryCardProps {
 }
 
 export const HistoryCard = ({ history }: HistoryCardProps) => (
-  <Card className="flex flex-col gap-4 border-white/10 bg-white/[0.04] p-5">
+  <Card className="flex flex-col gap-4 p-5">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-xs uppercase tracking-[0.4em] text-white/40">Historia #{history.id}</p>
-        <h3 className="text-xl font-semibold">{history.mascota.nombre}</h3>
-        <p className="text-sm text-white/70">{history.propietario_nombre}</p>
+        <p className="text-label">Historia #{history.id}</p>
+        <h3 className="text-xl font-semibold text-heading">{history.mascota.nombre}</h3>
+        <p className="text-sm text-secondary">{history.propietario_nombre}</p>
       </div>
       <span
         className={clsx(
-          'rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide',
+          'rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide border',
           history.estado_vacunacion_actual === 'completa'
-            ? 'bg-emerald-500/20 text-emerald-200'
-            : 'bg-amber-500/20 text-amber-200',
+            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+            : 'bg-amber-100 text-amber-700 border-amber-200',
         )}
       >
         {history.estado_vacunacion_display}
       </span>
     </div>
 
-    <div className="grid grid-cols-2 gap-3 text-sm text-white/70">
+    <div className="grid grid-cols-2 gap-3 text-sm text-secondary">
       <div className="flex items-center gap-2">
-        <Stethoscope size={16} className="text-primary" />
+        <Stethoscope size={16} className="text-[var(--color-primary)]" />
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Consultas</p>
-          <p className="text-base text-white">{history.total_consultas}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-subtle">Consultas</p>
+          <p className="text-base text-heading">{history.total_consultas}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Syringe size={16} className="text-secondary" />
+        <Syringe size={16} className="text-[var(--color-secondary)]" />
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Última consulta</p>
-          <p className="text-base text-white">
+          <p className="text-xs uppercase tracking-[0.3em] text-subtle">Última consulta</p>
+          <p className="text-base text-heading">
             {history.ultima_consulta_fecha ? formatDateTime(history.ultima_consulta_fecha) : 'Sin registros'}
           </p>
         </div>
       </div>
     </div>
 
-    <Button asChild variant="ghost" endIcon={<ArrowRight size={16} />} className="justify-between text-white/80">
+    <Button asChild variant="ghost" endIcon={<ArrowRight size={16} />} className="justify-between text-secondary hover:text-primary">
       <Link to={`/app/historias/${history.id}`}>Ver historia completa</Link>
     </Button>
   </Card>

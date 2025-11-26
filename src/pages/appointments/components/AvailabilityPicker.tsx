@@ -23,13 +23,13 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
 
   return (
     <div className="space-y-3">
-      <label className="space-y-2 text-sm text-white/80">
+      <label className="space-y-2 text-sm text-primary">
         <span>Fecha</span>
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-          <Calendar size={16} className="text-white/60" />
+        <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
+          <Calendar size={16} className="text-tertiary" />
           <input
             type="date"
-            className="w-full bg-transparent text-white focus:outline-none"
+            className="w-full bg-transparent text-primary focus:outline-none"
             value={date}
             onChange={(event) => setDate(event.target.value)}
           />
@@ -37,7 +37,7 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
       </label>
 
       {isFetching ? (
-        <div className="flex items-center gap-2 text-sm text-white/70">
+        <div className="flex items-center gap-2 text-sm text-secondary">
           <Spinner size="sm" />
           Consultando disponibilidad...
         </div>
@@ -48,10 +48,10 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
             { title: 'Jornada tarde', slots: AFTERNOON_SLOTS },
           ].map((section) => (
             <div key={section.title} className="space-y-2">
-              <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-white/60">
-                <span className="h-px flex-1 bg-white/10" />
+              <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-subtle">
+                <span className="h-px flex-1" style={{ backgroundColor: 'var(--border-subtle-color)' }} />
                 {section.title}
-                <span className="h-px flex-1 bg-white/10" />
+                <span className="h-px flex-1" style={{ backgroundColor: 'var(--border-subtle-color)' }} />
               </div>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                 {section.slots.map((slot) => {
@@ -64,11 +64,16 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
                       key={`${section.title}-${slot}`}
                       variant={isActive ? 'primary' : 'ghost'}
                       className={clsx(
-                        'border',
+                        'border transition-all',
                         isAvailable
-                          ? 'border-white/10'
-                          : 'border-red-500/60 bg-red-500/10 text-red-200 line-through',
+                          ? 'border-[var(--border-subtle-color)] hover:border-[var(--color-primary)]/50'
+                          : 'border-red-300 bg-red-50 text-red-600 line-through',
                       )}
+                      style={{
+                        borderWidth: isAvailable ? 'var(--border-subtle-width)' : '1px',
+                        borderStyle: 'var(--border-subtle-style)',
+                        boxShadow: isAvailable ? 'var(--shadow-soft)' : 'none',
+                      }}
                       disabled={!isAvailable}
                       onClick={() => isAvailable && onChange(iso)}
                     >
@@ -79,17 +84,17 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
               </div>
             </div>
           ))}
-          <div className="flex items-center gap-3 text-xs text-white/60">
+          <div className="flex items-center gap-3 text-xs text-secondary">
             <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-primary" /> Disponible
+              <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" /> Disponible
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-red-400" /> Ocupado
+              <span className="h-2 w-2 rounded-full bg-red-500" /> Ocupado
             </span>
           </div>
         </div>
       ) : (
-        <p className="text-sm text-white/70">Selecciona un veterinario y una fecha para ver horarios disponibles.</p>
+        <p className="text-sm text-secondary">Selecciona un veterinario y una fecha para ver horarios disponibles.</p>
       )}
     </div>
   )

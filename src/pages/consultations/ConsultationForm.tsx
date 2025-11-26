@@ -71,10 +71,14 @@ export const ConsultationForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm text-white/80">
+        <label className="space-y-2 text-sm text-primary">
           <span>Mascota</span>
           <select
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            style={{
+              borderWidth: 'var(--border-subtle-width)',
+              borderStyle: 'var(--border-subtle-style)',
+            }}
             value={form.watch('mascota')}
             onChange={(event) => form.setValue('mascota', event.target.value)}
           >
@@ -85,7 +89,7 @@ export const ConsultationForm = () => {
               </option>
             ))}
           </select>
-          {form.formState.errors.mascota && <p className="text-xs text-red-300">{form.formState.errors.mascota.message}</p>}
+          {form.formState.errors.mascota && <p className="text-xs text-red-600">{form.formState.errors.mascota.message}</p>}
         </label>
 
         <Input
@@ -118,25 +122,25 @@ export const ConsultationForm = () => {
         error={form.formState.errors.notas_adicionales?.message}
       />
 
-      <section className="rounded-2xl border border-white/10 p-4">
+      <section className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-white">Prescripciones</h3>
+          <h3 className="font-semibold text-heading">Prescripciones</h3>
           <Button type="button" variant="ghost" onClick={() => addPrescription({ producto_nombre: '', dosis: '', frecuencia: '' })}>
             Agregar
           </Button>
         </div>
         {prescriptionFields.length === 0 ? (
-          <p className="text-sm text-white/60">No se han agregado prescripciones.</p>
+          <p className="text-sm text-secondary">No se han agregado prescripciones.</p>
         ) : (
           <div className="space-y-3">
             {prescriptionFields.map((field, index) => (
-              <div key={field.id} className="rounded-xl border border-white/10 p-3">
+              <div key={field.id} className="rounded-xl bg-[var(--color-surface-200)] p-3" style={{ boxShadow: 'var(--shadow-soft)' }}>
                 <Input label="Producto" {...form.register(`prescripciones.${index}.producto_nombre`)} />
                 <div className="mt-2 grid gap-2 md:grid-cols-2">
                   <Input label="Dosis" {...form.register(`prescripciones.${index}.dosis`)} />
                   <Input label="Frecuencia" {...form.register(`prescripciones.${index}.frecuencia`)} />
                 </div>
-                <Button type="button" variant="ghost" className="mt-2 text-red-200" onClick={() => removePrescription(index)}>
+                <Button type="button" variant="ghost" className="mt-2 text-red-600 hover:text-red-700" onClick={() => removePrescription(index)}>
                   Eliminar
                 </Button>
               </div>

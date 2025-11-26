@@ -52,9 +52,9 @@ export const UserDetailPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Usuario</p>
-          <h1 className="text-3xl font-semibold">{data.nombre} {data.apellido}</h1>
-          <div className="mt-2 flex items-center gap-2 text-sm text-white/70">
+          <p className="text-label">Usuario</p>
+          <h1 className="text-3xl font-semibold text-heading">{data.nombre} {data.apellido}</h1>
+          <div className="mt-2 flex items-center gap-2 text-sm text-secondary">
             <span>{data.email}</span>
             <span>•</span>
             <StatusBadge status={data.estado} />
@@ -86,8 +86,8 @@ export const UserDetailPage = () => {
         </div>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-        <h2 className="mb-4 text-xl font-semibold">Información general</h2>
+      <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <h2 className="mb-4 text-xl font-semibold text-heading">Información general</h2>
         <UserForm
           mode="edit"
           initialValues={initialValues}
@@ -96,9 +96,9 @@ export const UserDetailPage = () => {
         />
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-        <h3 className="text-lg font-semibold text-red-200">Zona peligrosa</h3>
-        <p className="text-sm text-red-200/70">
+      <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <h3 className="text-lg font-semibold text-red-600">Zona peligrosa</h3>
+        <p className="text-sm text-red-600/80">
           Eliminar al usuario realiza un <em>soft delete</em> en el backend y no se puede recuperar desde la interfaz.
         </p>
         <Button
@@ -113,25 +113,25 @@ export const UserDetailPage = () => {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Roles</p>}>
-          <div className="flex flex-wrap gap-2 text-sm text-white/80">
+        <Card header={<p className="text-label">Roles</p>}>
+          <div className="flex flex-wrap gap-2 text-sm">
             {data.roles.map((rol) => (
-              <span key={rol.id} className="rounded-full bg-white/10 px-3 py-1 capitalize">
+              <span key={rol.id} className="rounded-full bg-[var(--color-surface-200)] px-3 py-1 capitalize text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                 {rol.nombre}
               </span>
             ))}
           </div>
         </Card>
         {data.perfil_cliente && (
-          <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Cliente</p>}>
-            <p className="text-sm text-white/70">Teléfono: {data.perfil_cliente.telefono ?? '—'}</p>
-            <p className="text-sm text-white/70">Dirección: {data.perfil_cliente.direccion ?? '—'}</p>
+          <Card header={<p className="text-label">Cliente</p>}>
+            <p className="text-sm text-secondary">Teléfono: {data.perfil_cliente.telefono ?? '—'}</p>
+            <p className="text-sm text-secondary">Dirección: {data.perfil_cliente.direccion ?? '—'}</p>
           </Card>
         )}
         {data.perfil_veterinario && (
-          <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Veterinario</p>}>
-            <p className="text-sm text-white/70">Licencia: {data.perfil_veterinario.licencia ?? '—'}</p>
-            <p className="text-sm text-white/70">Especialidad: {data.perfil_veterinario.especialidad ?? '—'}</p>
+          <Card header={<p className="text-label">Veterinario</p>}>
+            <p className="text-sm text-secondary">Licencia: {data.perfil_veterinario.licencia ?? '—'}</p>
+            <p className="text-sm text-secondary">Especialidad: {data.perfil_veterinario.especialidad ?? '—'}</p>
           </Card>
         )}
       </section>

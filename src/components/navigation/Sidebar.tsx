@@ -18,17 +18,17 @@ interface SidebarProps {
 export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
   <aside
     className={clsx(
-      'dashboard-sidebar fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col border-r border-white/5 bg-surface/80 px-4 py-6 backdrop-blur-xl transition-transform duration-300 md:static md:translate-x-0',
+      'dashboard-sidebar fixed inset-y-0 left-0 z-30 flex w-[260px] flex-col border-r border-[var(--color-border)] bg-surface px-4 py-6 transition-transform duration-300 md:static md:translate-x-0',
       isOpen ? 'translate-x-0' : '-translate-x-full',
     )}
   >
     <div className="mb-8 flex items-center gap-3 px-2">
-      <div className="h-10 w-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black tracking-tight">
+      <div className="h-10 w-10 rounded-2xl bg-[var(--color-primary)] text-white flex items-center justify-center font-black tracking-tight">
         SGV
       </div>
       <div>
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-white/60">Sistema</p>
-        <p className="text-lg font-semibold text-white">Gestión Veterinaria</p>
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-muted)]">Sistema</p>
+        <p className="text-lg font-semibold text-[#2D2D2D]">Gestión Veterinaria</p>
       </div>
     </div>
 
@@ -41,14 +41,16 @@ export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
           className={({ isActive }) =>
             clsx(
               'group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
-              isActive ? 'bg-primary/15 text-primary' : 'text-white/70 hover:bg-white/5 hover:text-white',
+              isActive
+                ? 'bg-[var(--color-primary)] text-white'
+                : 'text-[var(--color-muted)] hover:bg-[var(--color-surface-200)] hover:text-[#2D2D2D]',
             )
           }
         >
           <Icon size={18} className="transition group-hover:scale-105" />
           <span className="flex-1">{label}</span>
           {badge && (
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white/70">
+            <span className="rounded-full bg-[var(--color-surface-200)] px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-[#2D2D2D] border border-[var(--color-border)]">
               {badge}
             </span>
           )}
@@ -56,7 +58,7 @@ export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
       ))}
     </nav>
 
-    <p className="mt-6 px-2 text-xs text-white/40">© {new Date().getFullYear()} SGV. Todos los derechos reservados.</p>
+    <p className="mt-6 px-2 text-xs text-[var(--color-muted)]">© {new Date().getFullYear()} SGV. Todos los derechos reservados.</p>
   </aside>
 )
 

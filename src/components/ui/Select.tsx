@@ -1,17 +1,18 @@
-import type { InputHTMLAttributes, ReactNode } from 'react'
+import type { SelectHTMLAttributes, ReactNode } from 'react'
 import clsx from 'clsx'
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
-  helperText?: ReactNode
   error?: string
+  helperText?: ReactNode
+  children: ReactNode
 }
 
-export const Input = ({ label, helperText, error, className, id, ...props }: InputProps) => {
-  const inputId = id ?? props.name
+export const Select = ({ label, error, helperText, className, children, id, ...props }: SelectProps) => {
+  const selectId = id ?? props.name
 
   return (
-    <label className="space-y-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} htmlFor={inputId}>
+    <label className="space-y-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} htmlFor={selectId}>
       {label && (
         <span
           className="font-medium"
@@ -24,8 +25,8 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
           {label}
         </span>
       )}
-      <input
-        id={inputId}
+      <select
+        id={selectId}
         className={clsx(
           'w-full rounded-lg border bg-[var(--color-surface-200)] px-4 py-2 transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30',
           error && 'border-red-400 focus:border-red-500 focus:ring-red-300/60',
@@ -41,7 +42,9 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
           borderStyle: 'var(--border-subtle-style)',
         }}
         {...props}
-      />
+      >
+        {children}
+      </select>
       {helperText && !error && (
         <p className="text-muted" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           {helperText}

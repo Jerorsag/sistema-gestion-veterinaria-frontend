@@ -18,9 +18,9 @@ export const AppointmentsPage = () => {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Citas</p>
-          <h1 className="text-3xl font-semibold">Agenda general</h1>
-          <p className="text-sm text-white/70">Visualiza las próximas citas y accede rápidamente a su detalle.</p>
+          <p className="text-label">Citas</p>
+          <h1 className="text-3xl font-semibold text-heading">Agenda general</h1>
+          <p className="text-description">Visualiza las próximas citas y accede rápidamente a su detalle.</p>
         </div>
         {canCreate && (
           <Button startIcon={<PlusCircle size={18} />} asChild>
@@ -29,7 +29,7 @@ export const AppointmentsPage = () => {
         )}
       </header>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         {isLoading ? (
           <div className="flex justify-center py-10">
             <Spinner size="lg" />
@@ -39,22 +39,22 @@ export const AppointmentsPage = () => {
             {data.map((cita: AppointmentSummary) => (
               <Card
                 key={cita.id}
-                className="flex flex-col gap-3 border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-primary/20 p-2 text-primary">
+                  <div className="rounded-2xl bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
                     <CalendarDays size={18} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">{cita.mascota_nombre}</h3>
-                    <p className="text-sm text-white/70">
+                    <h3 className="text-lg font-semibold text-heading">{cita.mascota_nombre}</h3>
+                    <p className="text-sm text-secondary">
                       {formatDateTime(cita.fecha_hora)} · {cita.servicio_nombre ?? '—'}
                     </p>
-                    <p className="text-xs text-white/60">Veterinario: {cita.veterinario_nombre ?? 'Por asignar'}</p>
+                    <p className="text-xs text-tertiary">Veterinario: {cita.veterinario_nombre ?? 'Por asignar'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white/70">
+                  <span className="rounded-full bg-[var(--color-surface-200)] px-3 py-1 text-xs uppercase tracking-wide text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                     {cita.estado}
                   </span>
                   <Button asChild variant="ghost">
@@ -65,7 +65,7 @@ export const AppointmentsPage = () => {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-white/15 px-6 py-12 text-center text-white/60">
+          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
             No hay citas registradas por ahora.
           </div>
         )}

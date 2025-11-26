@@ -13,9 +13,9 @@ export const UserCreatePage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Nuevo usuario</p>
-          <h1 className="text-3xl font-semibold">Registro manual</h1>
-          <p className="text-sm text-white/70">
+          <p className="text-label">Nuevo usuario</p>
+          <h1 className="text-3xl font-semibold text-heading">Registro manual</h1>
+          <p className="text-description">
             Completa la información y asigna roles/perfiles según corresponda.
           </p>
         </div>
@@ -24,7 +24,7 @@ export const UserCreatePage = () => {
         </Button>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
         <UserForm
           mode="create"
           onSubmit={(payload) => mutation.mutateAsync(payload as UserCreatePayload)}

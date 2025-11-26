@@ -34,9 +34,9 @@ export const HistoriesListPage = () => {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Historias clínicas</p>
-          <h1 className="text-3xl font-semibold">Seguimiento completo de pacientes</h1>
-          <p className="text-sm text-white/70">
+          <p className="text-label">Historias clínicas</p>
+          <h1 className="text-3xl font-semibold text-heading">Seguimiento completo de pacientes</h1>
+          <p className="text-description">
             {hasRole('cliente')
               ? 'Revisa el historial clínico completo de tus mascotas.'
               : 'Consulta, filtra y analiza la evolución de cada mascota en tu clínica.'}
@@ -49,7 +49,7 @@ export const HistoriesListPage = () => {
         )}
       </header>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className={`grid gap-4 ${hasRole('cliente') ? 'md:grid-cols-1' : 'md:grid-cols-3'}`}>
           <Input
             label="Buscar"
@@ -58,12 +58,12 @@ export const HistoriesListPage = () => {
             onChange={(event) => setQuery(event.target.value)}
           />
           {!hasRole('cliente') && (
-            <label className="space-y-2 text-sm text-white/80">
+            <label className="space-y-2 text-sm text-primary">
               <span>Mascota</span>
-              <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-                <Filter size={16} className="text-white/60" />
+              <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
+                <Filter size={16} className="text-tertiary" />
                 <select
-                  className="w-full bg-transparent text-white focus:outline-none"
+                  className="w-full bg-transparent text-primary focus:outline-none"
                   value={selectedPet}
                   onChange={(event) => setSelectedPet(event.target.value)}
                 >
@@ -92,7 +92,7 @@ export const HistoriesListPage = () => {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center text-white/60">
+          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
             No encontramos historias clínicas con esos filtros.
           </div>
         )}

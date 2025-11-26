@@ -42,9 +42,9 @@ export const LoginPage = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
-        <p className="text-xs uppercase tracking-[0.4em] text-white/40">Bienvenido</p>
-        <h2 className="mt-2 text-3xl font-semibold">Inicia sesión</h2>
-        <p className="mt-2 text-sm text-white/70">
+        <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-muted)]">Bienvenido</p>
+        <h2 className="mt-2 text-3xl font-semibold text-[#2D2D2D]">Inicia sesión</h2>
+        <p className="mt-2 text-sm text-[var(--color-muted)]">
           Autentícate con tus credenciales del backend (JWT). Validamos estados, bloqueos y roles exactamente como la API.
         </p>
       </div>

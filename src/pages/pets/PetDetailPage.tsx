@@ -25,9 +25,9 @@ export const PetDetailPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Mascota</p>
-          <h1 className="text-3xl font-semibold">{data.nombre}</h1>
-          <p className="text-sm text-white/70">ID #{data.id}</p>
+          <p className="text-label">Mascota</p>
+          <h1 className="text-3xl font-semibold text-heading">{data.nombre}</h1>
+          <p className="text-sm text-secondary">ID #{data.id}</p>
         </div>
 
         <div className="flex gap-2">
@@ -45,7 +45,7 @@ export const PetDetailPage = () => {
         </div>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
         <PetForm
           mode="edit"
           initialData={data}
@@ -55,14 +55,14 @@ export const PetDetailPage = () => {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Especie</p>}>
-          <p className="text-lg text-white">{typeof data.especie === 'string' ? data.especie : data.especie?.nombre ?? '—'}</p>
+        <Card header={<p className="text-label">Especie</p>}>
+          <p className="text-lg text-heading">{typeof data.especie === 'string' ? data.especie : data.especie?.nombre ?? '—'}</p>
         </Card>
-        <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Raza</p>}>
-          <p className="text-lg text-white">{typeof data.raza === 'string' ? data.raza : data.raza?.nombre ?? '—'}</p>
+        <Card header={<p className="text-label">Raza</p>}>
+          <p className="text-lg text-heading">{typeof data.raza === 'string' ? data.raza : data.raza?.nombre ?? '—'}</p>
         </Card>
-        <Card header={<p className="text-xs uppercase tracking-[0.4em] text-white/40">Propietario</p>}>
-          <p className="text-lg text-white">{data.cliente ?? '—'}</p>
+        <Card header={<p className="text-label">Propietario</p>}>
+          <p className="text-lg text-heading">{data.cliente ?? '—'}</p>
         </Card>
       </section>
     </div>

@@ -84,10 +84,14 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm text-white/80">
+        <label className="space-y-2 text-sm text-primary">
           <span>Categoría</span>
           <select
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            style={{
+              borderWidth: 'var(--border-subtle-width)',
+              borderStyle: 'var(--border-subtle-style)',
+            }}
             value={form.watch('categoria')}
             onChange={(event) => form.setValue('categoria', event.target.value)}
           >
@@ -100,10 +104,14 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
           </select>
         </label>
 
-        <label className="space-y-2 text-sm text-white/80">
+        <label className="space-y-2 text-sm text-primary">
           <span>Marca</span>
           <select
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            style={{
+              borderWidth: 'var(--border-subtle-width)',
+              borderStyle: 'var(--border-subtle-style)',
+            }}
             value={form.watch('marca')}
             onChange={(event) => form.setValue('marca', event.target.value)}
           >
@@ -117,10 +125,14 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
         </label>
       </div>
 
-      <label className="space-y-2 text-sm text-white/80">
+      <label className="space-y-2 text-sm text-primary">
         <span>Descripción</span>
         <textarea
-          className="min-h-[120px] w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none"
+          className="min-h-[120px] w-full rounded-xl border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-3 text-sm text-primary placeholder:text-tertiary focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
+          style={{
+            borderWidth: 'var(--border-subtle-width)',
+            borderStyle: 'var(--border-subtle-style)',
+          }}
           {...form.register('descripcion')}
           placeholder="Notas sobre el producto, proveedor, presentaciones..."
         />

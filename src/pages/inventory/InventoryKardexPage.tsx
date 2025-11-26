@@ -40,9 +40,9 @@ export const InventoryKardexPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-white/40">Inventario</p>
-          <h1 className="text-3xl font-semibold">Kardex general</h1>
-          <p className="text-sm text-white/70">Movimientos de entrada, salida y ajustes de inventario.</p>
+          <p className="text-label">Inventario</p>
+          <h1 className="text-3xl font-semibold text-heading">Kardex general</h1>
+          <p className="text-description">Movimientos de entrada, salida y ajustes de inventario.</p>
         </div>
         <div className="flex gap-2">
           <Button startIcon={<PlusCircle size={16} />} onClick={() => navigate('/app/inventario/movimientos/nuevo')}>
@@ -54,7 +54,7 @@ export const InventoryKardexPage = () => {
         </div>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
         <Input label="Buscar" placeholder="Producto o detalle..." value={search} onChange={(event) => setSearch(event.target.value)} />
       </section>
 
@@ -71,7 +71,7 @@ export const InventoryKardexPage = () => {
               const color = anulado ? 'text-gray-400 bg-gray-500/10' : isEntry ? 'text-emerald-200 bg-emerald-500/10' : 'text-red-200 bg-red-500/10'
 
               return (
-                <Card key={movement.id} className="flex flex-col gap-3 border-white/10 bg-white/[0.02] p-4 md:flex-row md:items-center md:justify-between">
+                <Card key={movement.id} className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-start gap-3">
                     <div
                       className={`rounded-2xl p-3 ${anulado ? 'bg-gray-500/15 text-gray-400' : isEntry ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-200'}`}
@@ -79,14 +79,14 @@ export const InventoryKardexPage = () => {
                       {isEntry ? <PackageOpen size={18} /> : <History size={18} />}
                     </div>
                     <div>
-                      <p className="text-sm text-white/60">{formatDateTime(movement.fecha)}</p>
-                      <h3 className={`text-lg font-semibold ${anulado ? 'text-white/50 line-through' : 'text-white'}`}>{movement.producto_nombre}</h3>
-                      <p className={`text-sm ${anulado ? 'text-white/40' : 'text-white/70'}`}>{movement.detalle}</p>
+                      <p className="text-sm text-tertiary">{formatDateTime(movement.fecha)}</p>
+                      <h3 className={`text-lg font-semibold ${anulado ? 'text-tertiary line-through' : 'text-heading'}`}>{movement.producto_nombre}</h3>
+                      <p className={`text-sm ${anulado ? 'text-subtle' : 'text-secondary'}`}>{movement.detalle}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 text-sm text-white/80">
+                  <div className="flex flex-col items-end gap-2 text-sm text-secondary">
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold border ${color}`} style={{ borderWidth: 'var(--border-subtle-width)' }}>
                         {anulado ? 'Anulado' : movement.tipo === 'entrada' ? 'Entrada' : 'Salida'}
                       </span>
                       {!anulado && (
@@ -95,21 +95,21 @@ export const InventoryKardexPage = () => {
                           startIcon={<X size={14} />}
                           onClick={() => handleAnular(movement.id)}
                           disabled={anularMutation.isPending}
-                          className="text-red-300 hover:text-red-200 hover:bg-red-500/10 text-xs px-2 py-1"
+                          className="text-red-600 hover:text-red-700 text-xs px-2 py-1"
                         >
                           Anular
                         </Button>
                       )}
                     </div>
-                    <span className={anulado ? 'text-white/40' : ''}>Cantidad: {movement.cantidad} u.</span>
-                    {movement.usuario && <span className="text-xs text-white/60">Por: {movement.usuario}</span>}
+                    <span className={anulado ? 'text-subtle' : 'text-primary'}>Cantidad: {movement.cantidad} u.</span>
+                    {movement.usuario && <span className="text-xs text-tertiary">Por: {movement.usuario}</span>}
                   </div>
                 </Card>
               )
             })}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 px-6 py-12 text-center text-white/60">
+          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
             Sin movimientos registrados.
           </div>
         )}
@@ -119,8 +119,8 @@ export const InventoryKardexPage = () => {
       {isConfirming && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <Card className="max-w-md space-y-4 p-6">
-            <h3 className="text-xl font-semibold text-white">Anular movimiento</h3>
-            <p className="text-sm text-white/70">¿Estás seguro de que deseas anular este movimiento? Esta acción revertirá los cambios en el stock.</p>
+            <h3 className="text-xl font-semibold text-heading">Anular movimiento</h3>
+            <p className="text-sm text-secondary">¿Estás seguro de que deseas anular este movimiento? Esta acción revertirá los cambios en el stock.</p>
             <div className="flex gap-2 justify-end">
               <Button variant="ghost" onClick={closeConfirm} disabled={anularMutation.isPending}>
                 Cancelar

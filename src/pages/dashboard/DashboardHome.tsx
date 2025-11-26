@@ -159,7 +159,7 @@ export const DashboardHome = () => {
         <h1 className="text-3xl font-semibold">
           Bienvenido, {user?.nombre_completo || 'Usuario'}
         </h1>
-        <p className="mt-2 text-sm text-white/60">
+        <p className="mt-2 text-sm text-secondary">
           Panel de {roleLabels[primaryRole]} • {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
@@ -168,12 +168,12 @@ export const DashboardHome = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, href, isLoading }) => (
           <Link key={label} to={href}>
-            <Card
-              className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] px-5 py-6 transition-all hover:scale-105 hover:from-white/[0.12] hover:to-white/[0.04] cursor-pointer"
+              <Card
+              className="px-5 py-6 transition-all hover:scale-105 cursor-pointer"
               header={
-                <div className="flex items-center justify-between text-sm uppercase tracking-[0.3em] text-white/40">
+                <div className="flex items-center justify-between text-sm uppercase tracking-[0.3em] text-subtle">
                   <span>{label}</span>
-                  <Icon className="text-white/50" size={18} />
+                  <Icon className="text-tertiary" size={18} />
                 </div>
               }
             >
@@ -181,7 +181,7 @@ export const DashboardHome = () => {
                 {isLoading ? (
                   <Spinner size="sm" />
                 ) : (
-                  <p className="text-4xl font-semibold">{value}</p>
+                  <p className="text-4xl font-semibold text-heading">{value}</p>
                 )}
               </div>
             </Card>
@@ -193,7 +193,7 @@ export const DashboardHome = () => {
       <Card
         header={
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-white/40">Acceso rápido</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-subtle">Acceso rápido</p>
             <h3 className="mt-2 text-xl font-semibold">Navega rápidamente</h3>
           </div>
         }
@@ -203,11 +203,11 @@ export const DashboardHome = () => {
             const Icon = item.icon
             return (
               <Link key={item.href} to={item.href}>
-                <div className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-all hover:border-white/20 hover:bg-white/10">
-                  <div className="rounded-lg bg-primary/20 p-2 text-primary transition-transform group-hover:scale-110">
+                <div className="group flex items-center gap-3 rounded-xl bg-surface px-4 py-3 transition-all hover:bg-[var(--color-surface-200)] cursor-pointer" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <div className="rounded-lg bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)] transition-transform group-hover:scale-110">
                     <Icon size={20} />
                   </div>
-                  <span className="font-medium text-white/80 group-hover:text-white">{item.label}</span>
+                  <span className="font-medium text-secondary group-hover:text-primary">{item.label}</span>
                 </div>
               </Link>
             )
@@ -220,20 +220,20 @@ export const DashboardHome = () => {
         <Card
           header={
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/40">Información</p>
+              <p className="text-xs uppercase tracking-[0.4em] text-subtle">Información</p>
               <h3 className="mt-2 text-xl font-semibold">Tu información</h3>
             </div>
           }
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+            <div className="flex items-center justify-between rounded-lg bg-surface px-4 py-3" style={{ boxShadow: 'var(--shadow-card)' }}>
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-emerald-500/20 p-2 text-emerald-400">
                   <PawPrint size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Mascotas registradas</p>
-                  <p className="text-xs text-white/60">
+                  <p className="text-sm font-medium text-heading">Mascotas registradas</p>
+                  <p className="text-xs text-secondary">
                     {petsLoading ? 'Cargando...' : pets && pets.length > 0 ? `${pets.length} mascota${pets.length !== 1 ? 's' : ''}` : 'No tienes mascotas registradas'}
                   </p>
                 </div>
@@ -246,14 +246,14 @@ export const DashboardHome = () => {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+            <div className="flex items-center justify-between rounded-lg bg-surface px-4 py-3" style={{ boxShadow: 'var(--shadow-card)' }}>
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-500/20 p-2 text-blue-400">
                   <CalendarDays size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Próximas citas</p>
-                  <p className="text-xs text-white/60">
+                  <p className="text-sm font-medium text-heading">Próximas citas</p>
+                  <p className="text-xs text-secondary">
                     {appointmentsLoading ? 'Cargando...' : appointments && appointments.length > 0 ? `${appointments.length} cita${appointments.length !== 1 ? 's' : ''} agendada${appointments.length !== 1 ? 's' : ''}` : 'No tienes citas agendadas'}
                   </p>
                 </div>
@@ -273,12 +273,12 @@ export const DashboardHome = () => {
         <Card
           header={
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-white/40">Panel administrativo</p>
+              <p className="text-xs uppercase tracking-[0.4em] text-subtle">Panel administrativo</p>
               <h3 className="mt-2 text-xl font-semibold">Gestiona el sistema</h3>
             </div>
           }
         >
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-secondary">
             Como administrador, tienes acceso completo a todos los módulos del sistema. Usa el menú lateral para navegar entre
             usuarios, mascotas, citas, consultas, historias clínicas, inventario y facturación.
           </p>

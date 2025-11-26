@@ -70,33 +70,41 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold text-white">Información del movimiento</h2>
-          <p className="text-sm text-white/60">Registra una entrada o salida de inventario</p>
+          <h2 className="text-xl font-semibold text-heading">Información del movimiento</h2>
+          <p className="text-sm text-secondary">Registra una entrada o salida de inventario</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Tipo de movimiento *</span>
             <select
               {...register('tipo', { valueAsNumber: false })}
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white transition-colors hover:border-white/20 focus:border-white/30 focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary transition-colors hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
             >
               <option value="entrada">Entrada</option>
               <option value="salida">Salida</option>
             </select>
-            {errors.tipo && <p className="text-xs text-red-400">{errors.tipo.message}</p>}
+            {errors.tipo && <p className="text-xs text-red-600">{errors.tipo.message}</p>}
           </label>
 
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Producto *</span>
             {loadingProducts ? (
-              <div className="flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2">
+              <div className="flex items-center justify-center rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
                 <Spinner size="sm" />
               </div>
             ) : (
             <select
               {...register('producto')}
-              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white transition-colors hover:border-white/20 focus:border-white/30 focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary transition-colors hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
             >
                 <option value="">Selecciona un producto</option>
                 {products
@@ -108,28 +116,28 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
                   ))}
               </select>
             )}
-            {errors.producto && <p className="text-xs text-red-400">{errors.producto.message}</p>}
+            {errors.producto && <p className="text-xs text-red-600">{errors.producto.message}</p>}
           </label>
         </div>
 
         {selectedProduct && (
-          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+          <div className="rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] p-4" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
             <div className="flex items-start gap-3">
               <div className="rounded-xl bg-emerald-500/15 p-2 text-emerald-300">
                 <PackageSearch size={18} />
               </div>
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium text-white">{selectedProduct.nombre}</p>
-                <div className="grid grid-cols-2 gap-2 text-xs text-white/60">
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium text-heading">{selectedProduct.nombre}</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-tertiary">
                   <span>Stock actual: {selectedProduct.stock_actual}</span>
                   <span>Stock mínimo: {selectedProduct.stock_minimo}</span>
                   {selectedProduct.codigo_interno && <span>Código: {selectedProduct.codigo_interno}</span>}
                 </div>
                 {tipo === 'salida' && selectedProduct.stock_actual < Number(watch('cantidad') || 0) && (
-                  <p className="text-xs text-amber-400">⚠️ Stock insuficiente para esta cantidad</p>
+                  <p className="text-xs text-amber-600">⚠️ Stock insuficiente para esta cantidad</p>
                 )}
                 {tipo === 'salida' && selectedProduct.stock_actual <= selectedProduct.stock_minimo && (
-                  <p className="text-xs text-red-400">⚠️ El stock está por debajo del mínimo</p>
+                  <p className="text-xs text-red-600">⚠️ El stock está por debajo del mínimo</p>
                 )}
               </div>
             </div>
@@ -137,7 +145,7 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-white/80">
+          <label className="space-y-2 text-sm text-primary">
             <span>Cantidad *</span>
               <Input
               type="number"
@@ -150,18 +158,22 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
           </label>
         </div>
 
-        <label className="block space-y-2 text-sm text-white/80">
-          <span>Detalle (opcional)</span>
-          <textarea
-            {...register('detalle')}
-            rows={3}
-            placeholder="Describe el motivo del movimiento..."
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white transition-colors placeholder:text-white/40 hover:border-white/20 focus:border-white/30 focus:outline-none"
-          />
-        </label>
+          <label className="block space-y-2 text-sm text-primary">
+            <span>Detalle (opcional)</span>
+            <textarea
+              {...register('detalle')}
+              rows={3}
+              placeholder="Describe el motivo del movimiento..."
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary transition-colors placeholder:text-tertiary hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
+            />
+          </label>
       </div>
 
-      <div className="flex justify-end gap-3 border-t border-white/10 pt-4">
+      <div className="flex justify-end gap-3 border-t pt-4" style={{ borderColor: 'var(--border-subtle-color)', borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
         <Button type="submit" disabled={isLoading || loadingProducts} startIcon={isLoading ? <Spinner size="sm" /> : null}>
           {isLoading ? 'Registrando...' : 'Registrar movimiento'}
         </Button>
