@@ -36,8 +36,16 @@ const getErrorMessage = (error: AxiosError<any>) => {
   if (data) {
     if (typeof data.detail === 'string') return data.detail
     if (typeof data.message === 'string') return data.message
+    // Manejar errores de validación de campos específicos
+    if (typeof data === 'object') {
+      const fieldErrors = Object.entries(data)
+        .filter(([, value]) => Array.isArray(value) && value.length > 0)
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value[0] : value}`)
+        .join(', ')
+      if (fieldErrors) return fieldErrors
+    }
   }
-  return 'Ocurrió un error con mascotas.'
+  return 'Ocurrió un error al procesar la solicitud. Verifica que tengas un perfil de cliente activo.'
 }
 
 export const usePetsFilters = usePetsFiltersInternal

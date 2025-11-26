@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { useSessionStore } from '@/core/store/session-store'
 import { usePetsFilters, usePetsQuery, useSpeciesQuery } from '@/hooks/pets'
+import { formatPetSex } from './components/PetForm'
 
 export const PetsListPage = () => {
   const { filters, updateFilters } = usePetsFilters()
@@ -100,7 +101,7 @@ export const PetsListPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <dt>Sexo</dt>
-                    <dd className="capitalize">{pet.sexo ?? '—'}</dd>
+                    <dd>{formatPetSex(pet.sexo)}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt>Peso</dt>
