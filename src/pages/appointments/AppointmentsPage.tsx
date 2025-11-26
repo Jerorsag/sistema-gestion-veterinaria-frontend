@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAppointmentsQuery } from '@/hooks/appointments'
-import { useSessionStore } from '@/core/store/session-store'
 import type { AppointmentSummary } from '@/api/types/appointments'
 import { formatDateTime } from '@/utils/datetime'
+import { usePermissions } from '@/hooks/permissions'
 
 export const AppointmentsPage = () => {
   const { data, isLoading } = useAppointmentsQuery()
-  const userRoles = useSessionStore((state) => state.user?.roles ?? [])
-  const canCreate = userRoles.includes('cliente')
+  const { checkPermission } = usePermissions()
+  const canCreate = checkPermission('citas', 'canCreate')
 
   return (
     <div className="space-y-6">
