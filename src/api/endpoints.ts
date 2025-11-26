@@ -57,6 +57,14 @@ export const endpoints = {
     lastConsult: (id: number | string) => withBase(`/historias-clinicas/${id}/ultima-consulta/`)(),
     search: withBase('/historias-clinicas/buscar/'),
   },
+  consultations: {
+    base: withBase('/consultas/'),
+    detail: (id: number | string) => withBase(`/consultas/${id}/`)(),
+    byPet: (petId: number | string) => withBase(`/consultas/mascota/${petId}/`)(),
+    byVet: (vetId: number | string) => withBase(`/consultas/veterinario/${vetId}/`)(),
+    consent: (id: number | string) => withBase(`/consultas/${id}/enviar-consentimiento/`)(),
+    stats: withBase('/consultas/estadisticas/'),
+  },
 }
 
 export type EndpointGroups = typeof endpoints
