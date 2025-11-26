@@ -19,6 +19,7 @@ import { PetCreatePage } from '@/pages/pets/PetCreatePage'
 import { PetDetailPage } from '@/pages/pets/PetDetailPage'
 import { AppointmentsPage } from '@/pages/appointments/AppointmentsPage'
 import { AppointmentCreatePage } from '@/pages/appointments/AppointmentCreatePage'
+import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
       { path: 'mascotas/:id', element: <PetDetailPage /> },
       { path: 'citas', element: <AppointmentsPage /> },
       { path: 'citas/nueva', element: <AppointmentCreatePage /> },
+      { path: 'citas/:id', element: <AppointmentDetailPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

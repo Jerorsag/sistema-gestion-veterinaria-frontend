@@ -8,8 +8,12 @@ import type {
 } from '@/api/types/appointments'
 
 const list = async () => {
-  const { data } = await apiClient.get<AppointmentSummary[]>(endpoints.appointments.base())
-  return data
+  const { data } = await apiClient.get<AppointmentSummary[] | { results: AppointmentSummary[] }>(
+    endpoints.appointments.base(),
+  )
+  if (Array.isArray(data)) return data
+  if (data && Array.isArray((data as any).results)) return (data as any).results
+  return []
 }
 
 const create = async (payload: AppointmentPayload) => {
@@ -35,8 +39,19 @@ const reschedule = async (id: number | string, fecha_hora: string) => {
 }
 
 const services = async () => {
-  const { data } = await apiClient.get<ServiceItem[]>(endpoints.appointments.services())
-  return data
+  const { data } = await apiClient.get<ServiceItem[] | { results: ServiceItem[] }>(
+    endpoints.appointments.services(),
+  )
+
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  if (data && Array.isArray((data as any).results)) {
+    return (data as any).results as ServiceItem[]
+  }
+
+  return []
 }
 
 const availability = async (veterinarioId: number | string, fecha: string) => {

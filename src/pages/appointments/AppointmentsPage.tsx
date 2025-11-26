@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { CalendarDays, PlusCircle } from 'lucide-react'
-import dayjs from 'dayjs'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAppointmentsQuery } from '@/hooks/appointments'
 import { useSessionStore } from '@/core/store/session-store'
+import type { AppointmentSummary } from '@/api/types/appointments'
+import { formatDateTime } from '@/utils/datetime'
 
 export const AppointmentsPage = () => {
   const { data, isLoading } = useAppointmentsQuery()
@@ -35,7 +36,7 @@ export const AppointmentsPage = () => {
           </div>
         ) : data && data.length > 0 ? (
           <div className="space-y-3">
-            {data.map((cita) => (
+            {data.map((cita: AppointmentSummary) => (
               <Card
                 key={cita.id}
                 className="flex flex-col gap-3 border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between"
@@ -47,7 +48,7 @@ export const AppointmentsPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold">{cita.mascota_nombre}</h3>
                     <p className="text-sm text-white/70">
-                      {dayjs(cita.fecha_hora).format('DD MMM YYYY, HH:mm')} · {cita.servicio_nombre ?? '—'}
+                      {formatDateTime(cita.fecha_hora)} · {cita.servicio_nombre ?? '—'}
                     </p>
                     <p className="text-xs text-white/60">Veterinario: {cita.veterinario_nombre ?? 'Por asignar'}</p>
                   </div>

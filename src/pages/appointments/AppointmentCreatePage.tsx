@@ -4,11 +4,6 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { AppointmentForm } from '@/pages/appointments/components/AppointmentForm'
 
-const mockVets = [
-  { id: 1, nombre: 'Dra. Marcela Gómez' },
-  { id: 2, nombre: 'Dr. Andrés Díaz' },
-]
-
 export const AppointmentCreatePage = () => (
   <div className="space-y-6">
     <div className="flex items-center justify-between">
@@ -23,7 +18,7 @@ export const AppointmentCreatePage = () => (
     </div>
 
     <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-      <AppointmentForm veterinarios={mockVets} />
+      <AppointmentForm />
     </section>
   </div>
 )

@@ -4,6 +4,7 @@ import type { AxiosError } from 'axios'
 
 import type { AppointmentPayload } from '@/api/types/appointments'
 import { appointmentService } from '@/services/appointments'
+import { userService } from '@/services/users'
 
 const getErrorMessage = (error: AxiosError<any>) => {
   const data = error.response?.data
@@ -34,6 +35,7 @@ export const useAppointmentCreateMutation = () => {
     onSuccess: () => {
       toast.success('Cita agendada correctamente')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
     },
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
@@ -46,6 +48,7 @@ export const useAppointmentCancelMutation = () => {
     onSuccess: () => {
       toast.success('Cita cancelada')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
     },
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
@@ -59,6 +62,7 @@ export const useAppointmentRescheduleMutation = (id: number | string) => {
       toast.success('Cita reagendada')
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['appointments', 'detail', String(id)] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] })
     },
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
@@ -76,5 +80,19 @@ export const useAvailabilityQuery = (veterinarioId?: number | string, fecha?: st
     queryKey: ['availability', veterinarioId, fecha],
     queryFn: () => appointmentService.availability(veterinarioId!, fecha!),
     enabled: Boolean(veterinarioId && fecha),
+  })
+
+export const useVeterinariansQuery = () =>
+  useQuery({
+    queryKey: ['veterinarians'],
+    queryFn: async () => {
+      const response = await userService.list({ rol: 'veterinario', estado: 'activo' })
+      const list = response?.results ?? []
+      return list.map((usuario) => ({
+        id: usuario.id,
+        nombre: usuario.nombre && usuario.apellido ? `${usuario.nombre} ${usuario.apellido}` : usuario.username,
+      }))
+    },
+    staleTime: 5 * 60 * 1000,
   })
 

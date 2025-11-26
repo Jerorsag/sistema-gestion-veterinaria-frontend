@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { usePetsQuery } from '@/hooks/pets'
-import { useAppointmentCreateMutation, useServicesQuery } from '@/hooks/appointments'
+import {
+  useAppointmentCreateMutation,
+  useServicesQuery,
+  useVeterinariansQuery,
+} from '@/hooks/appointments'
 import { AvailabilityPicker } from '@/pages/appointments/components/AvailabilityPicker'
 import type { AppointmentPayload } from '@/api/types/appointments'
 
@@ -21,11 +25,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-interface AppointmentFormProps {
-  veterinarios: { id: number; nombre: string }[]
-}
-
-export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
+export const AppointmentForm = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -37,14 +37,20 @@ export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
     },
   })
 
-  const petsQuery = usePetsQuery({ search: '', especie: null })
+  const petsFilters = useMemo(() => ({ search: '', especie: null as number | null }), [])
+  const petsQuery = usePetsQuery(petsFilters)
   const { data: services, isLoading: servicesLoading } = useServicesQuery()
+  const { data: veterinarios, isLoading: vetsLoading } = useVeterinariansQuery()
   const mutation = useAppointmentCreateMutation()
+  const selectedMascota = form.watch('mascota_id')
+  const selectedVeterinario = form.watch('veterinario_id')
+  const selectedServicio = form.watch('servicio_id')
+  const selectedFecha = form.watch('fecha_hora')
 
   // Reset availability when vet changes
   useEffect(() => {
     form.setValue('fecha_hora', '')
-  }, [form.watch('veterinario_id')])
+  }, [selectedVeterinario, form])
 
   const onSubmit = async (values: FormValues) => {
     const payload: AppointmentPayload = {
@@ -65,7 +71,7 @@ export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
           <span>Mascota</span>
           <select
             className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
-            value={form.watch('mascota_id')}
+            value={selectedMascota}
             onChange={(event) => form.setValue('mascota_id', event.target.value)}
           >
             <option value="">Selecciona mascota</option>
@@ -82,18 +88,24 @@ export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
 
         <label className="space-y-2 text-sm text-white/80">
           <span>Veterinario</span>
-          <select
-            className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
-            value={form.watch('veterinario_id')}
-            onChange={(event) => form.setValue('veterinario_id', event.target.value)}
-          >
-            <option value="">Selecciona veterinario</option>
-            {veterinarios.map((vet) => (
-              <option key={vet.id} value={vet.id}>
-                {vet.nombre}
-              </option>
-            ))}
-          </select>
+          {vetsLoading ? (
+            <div className="flex min-h-[42px] items-center">
+              <Spinner size="sm" />
+            </div>
+          ) : (
+            <select
+              className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
+              value={selectedVeterinario}
+              onChange={(event) => form.setValue('veterinario_id', event.target.value)}
+            >
+              <option value="">Selecciona veterinario</option>
+              {(veterinarios ?? []).map((vet) => (
+                <option key={vet.id} value={vet.id}>
+                  {vet.nombre}
+                </option>
+              ))}
+            </select>
+          )}
           {form.formState.errors.veterinario_id && (
             <p className="text-xs text-red-300">{form.formState.errors.veterinario_id.message}</p>
           )}
@@ -108,11 +120,11 @@ export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
           ) : (
             <select
               className="w-full rounded-lg border border-white/10 bg-white/[0.02] px-4 py-2 text-base text-white"
-              value={form.watch('servicio_id')}
+              value={selectedServicio}
               onChange={(event) => form.setValue('servicio_id', event.target.value)}
             >
               <option value="">Selecciona servicio</option>
-              {services?.map((service) => (
+              {(services ?? []).map((service) => (
                 <option key={service.id} value={service.id}>
                   {service.nombre} (${service.costo})
                 </option>
@@ -128,8 +140,8 @@ export const AppointmentForm = ({ veterinarios }: AppointmentFormProps) => {
       <div className="rounded-2xl border border-white/10 p-4">
         <p className="text-sm font-semibold text-white">Selecciona horario disponible</p>
         <AvailabilityPicker
-          veterinarioId={form.watch('veterinario_id')}
-          value={form.watch('fecha_hora')}
+          veterinarioId={selectedVeterinario}
+          value={selectedFecha}
           onChange={(datetime) => form.setValue('fecha_hora', datetime)}
         />
         {form.formState.errors.fecha_hora && (
