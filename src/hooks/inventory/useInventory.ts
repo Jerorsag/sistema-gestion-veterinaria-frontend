@@ -4,7 +4,7 @@ import type { AxiosError } from 'axios'
 
 import { inventoryService } from '@/services/inventory'
 import type { ProductQueryParams } from '@/services/inventory/inventory.service'
-import type { InventoryProductPayload } from '@/api/types/inventory'
+import type { InventoryProductPayload, KardexMovementPayload } from '@/api/types/inventory'
 
 const getErrorMessage = (error: AxiosError<any>) => {
   const data = error.response?.data
@@ -85,4 +85,37 @@ export const useKardexQuery = (buscador?: string) =>
     queryKey: ['inventory', 'kardex', buscador],
     queryFn: () => inventoryService.listKardex(buscador),
   })
+
+export const useKardexDetailQuery = (id?: number | string) =>
+  useQuery({
+    queryKey: ['inventory', 'kardex', id],
+    queryFn: () => inventoryService.kardexDetail(id!),
+    enabled: Boolean(id),
+  })
+
+export const useKardexCreateMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: KardexMovementPayload) => inventoryService.createKardexMovement(payload),
+    onSuccess: () => {
+      toast.success('Movimiento registrado correctamente')
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'kardex'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'products'] })
+    },
+    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useKardexAnularMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number | string) => inventoryService.anularKardexMovement(id),
+    onSuccess: () => {
+      toast.success('Movimiento anulado correctamente')
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'kardex'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', 'products'] })
+    },
+    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+  })
+}
 

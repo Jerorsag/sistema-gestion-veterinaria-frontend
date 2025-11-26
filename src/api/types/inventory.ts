@@ -47,11 +47,19 @@ export interface KardexMovement {
   id: number
   producto: number
   producto_nombre: string
-  tipo_movimiento: 'entrada' | 'salida' | 'ajuste'
+  codigo_interno?: string
+  tipo: 'entrada' | 'salida'
   cantidad: number
   detalle: string
   fecha: string
   usuario?: string
+}
+
+export interface KardexMovementPayload {
+  tipo: 'entrada' | 'salida'
+  cantidad: number
+  producto: number
+  detalle?: string
 }
 
 export type ProductsResponse = PaginatedResponse<InventoryProduct> | InventoryProduct[]

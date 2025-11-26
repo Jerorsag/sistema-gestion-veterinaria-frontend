@@ -7,6 +7,8 @@ import type {
   InventoryProductPayload,
   ProductsResponse,
   KardexResponse,
+  KardexMovement,
+  KardexMovementPayload,
 } from '@/api/types/inventory'
 
 export interface ProductQueryParams {
@@ -83,6 +85,20 @@ const listKardex = async (buscador?: string) => {
   return normalizeKardex(data)
 }
 
+const kardexDetail = async (id: number | string) => {
+  const { data } = await apiClient.get<KardexMovement>(endpoints.inventory.kardexDetail(id))
+  return data
+}
+
+const createKardexMovement = async (payload: KardexMovementPayload) => {
+  const { data } = await apiClient.post<KardexMovement>(endpoints.inventory.kardex(), payload)
+  return data
+}
+
+const anularKardexMovement = async (id: number | string) => {
+  await apiClient.delete(endpoints.inventory.kardexDetail(id))
+}
+
 export const inventoryService = {
   listProducts,
   productDetail,
@@ -92,5 +108,8 @@ export const inventoryService = {
   listCategories,
   listBrands,
   listKardex,
+  kardexDetail,
+  createKardexMovement,
+  anularKardexMovement,
 }
 

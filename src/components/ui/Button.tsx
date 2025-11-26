@@ -2,7 +2,7 @@ import { Children, cloneElement, isValidElement } from 'react'
 import type { ButtonHTMLAttributes, ReactNode, ReactElement } from 'react'
 import clsx from 'clsx'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   startIcon?: ReactNode
@@ -30,6 +30,7 @@ export const Button = ({
     primary: 'bg-primary text-gray-950 hover:bg-primary/90 focus-visible:outline-primary',
     secondary: 'bg-surface-200 text-white border border-white/10 hover:border-white/30 focus-visible:outline-white',
     ghost: 'bg-transparent text-white/80 hover:text-white hover:bg-white/5 focus-visible:outline-white',
+    danger: 'bg-red-500 text-white hover:bg-red-600 focus-visible:outline-red-500',
   }
 
   const content = (

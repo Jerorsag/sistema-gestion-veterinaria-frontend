@@ -29,6 +29,7 @@ import { InventoryListPage } from '@/pages/inventory/InventoryListPage'
 import { InventoryCreatePage } from '@/pages/inventory/InventoryCreatePage'
 import { InventoryDetailPage } from '@/pages/inventory/InventoryDetailPage'
 import { InventoryKardexPage } from '@/pages/inventory/InventoryKardexPage'
+import { KardexMovementCreatePage } from '@/pages/inventory/KardexMovementCreatePage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -77,6 +78,7 @@ const router = createBrowserRouter([
       { path: 'inventario', element: <InventoryListPage /> },
       { path: 'inventario/nuevo', element: <InventoryCreatePage /> },
       { path: 'inventario/kardex', element: <InventoryKardexPage /> },
+      { path: 'inventario/movimientos/nuevo', element: <KardexMovementCreatePage /> },
       { path: 'inventario/:id', element: <InventoryDetailPage /> },
     ],
   },
