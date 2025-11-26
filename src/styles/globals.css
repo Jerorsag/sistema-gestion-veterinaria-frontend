@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: var(--color-base);
+  color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-base);
+}
+
+.dashboard-shell {
+  background: radial-gradient(circle at top, rgba(94, 234, 212, 0.08), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(167, 139, 250, 0.08), transparent 35%), var(--color-base);
+}
+
+.dashboard-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(248, 250, 252, 0.3) transparent;
+}
+
+.dashboard-content::-webkit-scrollbar {
+  width: 8px;
+}
+.dashboard-content::-webkit-scrollbar-thumb {
+  background-color: rgba(248, 250, 252, 0.3);
+  border-radius: 999px;
+}
+
+.layout-auth {
+  background: radial-gradient(circle at top right, rgba(167, 139, 250, 0.15), transparent 45%),
+    radial-gradient(circle at bottom left, rgba(94, 234, 212, 0.12), transparent 40%), var(--color-base);
+}
+
