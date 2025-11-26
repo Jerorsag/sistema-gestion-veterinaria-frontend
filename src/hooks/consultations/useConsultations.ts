@@ -1,0 +1,94 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import type { AxiosError } from 'axios'
+
+import type { ConsultationPayload } from '@/api/types/consultations'
+import { consultationService } from '@/services/consultations'
+
+const getError = (error: AxiosError<any>) => {
+  const data = error.response?.data
+  if (data) {
+    if (typeof data.detail === 'string') return data.detail
+    if (typeof data.message === 'string') return data.message
+  }
+  return 'Ocurrió un error al procesar la consulta.'
+}
+
+export const useConsultationsQuery = (params: { mascota?: number; veterinario?: number; search?: string }) =>
+  useQuery({
+    queryKey: ['consultations', params],
+    queryFn: () => consultationService.list(params),
+  })
+
+export const useConsultationDetailQuery = (id?: string) =>
+  useQuery({
+    queryKey: ['consultations', 'detail', id],
+    queryFn: () => consultationService.detail(id!),
+    enabled: Boolean(id),
+  })
+
+export const useConsultationCreateMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: ConsultationPayload) => consultationService.create(payload),
+    onSuccess: () => {
+      toast.success('Consulta registrada')
+      queryClient.invalidateQueries({ queryKey: ['consultations'] })
+    },
+    onError: (error: AxiosError) => toast.error(getError(error)),
+  })
+}
+
+export const useConsultationUpdateMutation = (id: number | string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<ConsultationPayload>) => consultationService.update(id, payload),
+    onSuccess: () => {
+      toast.success('Consulta actualizada')
+      queryClient.invalidateQueries({ queryKey: ['consultations'] })
+      queryClient.invalidateQueries({ queryKey: ['consultations', 'detail', String(id)] })
+    },
+    onError: (error: AxiosError) => toast.error(getError(error)),
+  })
+}
+
+export const useConsultationDeleteMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number | string) => consultationService.remove(id),
+    onSuccess: () => {
+      toast.success('Consulta eliminada')
+      queryClient.invalidateQueries({ queryKey: ['consultations'] })
+    },
+    onError: (error: AxiosError) => toast.error(getError(error)),
+  })
+}
+
+export const useConsultationsByPetQuery = (petId?: number | string) =>
+  useQuery({
+    queryKey: ['consultations', 'pet', petId],
+    queryFn: () => consultationService.byPet(petId!),
+    enabled: Boolean(petId),
+  })
+
+export const useConsultationsByVetQuery = (vetId?: number | string) =>
+  useQuery({
+    queryKey: ['consultations', 'vet', vetId],
+    queryFn: () => consultationService.byVet(vetId!),
+    enabled: Boolean(vetId),
+  })
+
+export const useConsultationConsentMutation = () =>
+  useMutation({
+    mutationFn: (id: number | string) => consultationService.sendConsent(id),
+    onSuccess: () => toast.success('Consentimiento enviado'),
+    onError: (error: AxiosError) => toast.error(getError(error)),
+  })
+
+export const useConsultationStatsQuery = () =>
+  useQuery({
+    queryKey: ['consultations', 'stats'],
+    queryFn: consultationService.stats,
+    staleTime: 5 * 60 * 1000,
+  })
+

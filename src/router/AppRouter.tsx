@@ -22,6 +22,9 @@ import { AppointmentCreatePage } from '@/pages/appointments/AppointmentCreatePag
 import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
 import { HistoriesListPage } from '@/pages/histories/HistoriesListPage'
 import { HistoryDetailPage } from '@/pages/histories/HistoryDetailPage'
+import { ConsultationsListPage } from '@/pages/consultations/ConsultationsListPage'
+import { ConsultationCreatePage } from '@/pages/consultations/ConsultationCreatePage'
+import { ConsultationDetailPage } from '@/pages/consultations/ConsultationDetailPage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -64,6 +67,9 @@ const router = createBrowserRouter([
       { path: 'citas/:id', element: <AppointmentDetailPage /> },
       { path: 'historias', element: <HistoriesListPage /> },
       { path: 'historias/:id', element: <HistoryDetailPage /> },
+      { path: 'consultas', element: <ConsultationsListPage /> },
+      { path: 'consultas/nueva', element: <ConsultationCreatePage /> },
+      { path: 'consultas/:id', element: <ConsultationDetailPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
