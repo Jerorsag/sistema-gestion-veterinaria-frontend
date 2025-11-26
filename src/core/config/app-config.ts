@@ -8,6 +8,7 @@ export const appConfig = {
   apiBaseUrl: sanitizedBase,
   apiVersion: API_VERSION,
   apiUrl: `${sanitizedBase}${API_VERSION}`,
+  timeZone: import.meta.env.VITE_TIME_ZONE ?? 'America/Bogota',
 }
 
 export type AppConfig = typeof appConfig
