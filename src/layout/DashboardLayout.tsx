@@ -1,5 +1,16 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { BellRing, CalendarDays, ClipboardList, LayoutDashboard, Package, Receipt, Stethoscope, Users, UserRound } from 'lucide-react'
+import {
+  BellRing,
+  CalendarDays,
+  ClipboardList,
+  LayoutDashboard,
+  NotebookTabs,
+  Package,
+  Receipt,
+  Stethoscope,
+  Users,
+  UserRound,
+} from 'lucide-react'
 
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { TopBar } from '@/components/navigation/TopBar'
@@ -14,6 +25,7 @@ const navItems = [
   { label: 'Mascotas', href: '/app/mascotas', icon: Stethoscope },
   { label: 'Citas', href: '/app/citas', icon: CalendarDays },
   { label: 'Consultas', href: '/app/consultas', icon: ClipboardList },
+  { label: 'Historias clínicas', href: '/app/historias', icon: NotebookTabs },
   { label: 'Inventario', href: '/app/inventario', icon: Package },
   { label: 'Notificaciones', href: '/app/notificaciones', icon: BellRing },
   { label: 'Facturación', href: '/app/facturacion', icon: Receipt },

@@ -50,6 +50,13 @@ export const endpoints = {
     availability: withBase('/citas/disponibilidad/'),
     services: withBase('/servicios/'),
   },
+  histories: {
+    base: withBase('/historias-clinicas/'),
+    detail: (id: number | string) => withBase(`/historias-clinicas/${id}/`)(),
+    byPet: (petId: number | string) => withBase(`/historias-clinicas/mascota/${petId}/`)(),
+    lastConsult: (id: number | string) => withBase(`/historias-clinicas/${id}/ultima-consulta/`)(),
+    search: withBase('/historias-clinicas/buscar/'),
+  },
 }
 
 export type EndpointGroups = typeof endpoints
