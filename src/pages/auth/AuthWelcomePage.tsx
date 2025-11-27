@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogIn, UserPlus, Heart, CheckCircle2 } from 'lucide-react'
 import clsx from 'clsx'
@@ -8,9 +8,42 @@ import { RegisterForm } from './components/RegisterForm'
 
 type ViewMode = 'welcome' | 'login' | 'register'
 
+interface LoginFormData {
+  username: string
+  password: string
+}
+
+interface RegisterFormData {
+  nombre: string
+  apellido: string
+  username: string
+  email: string
+  telefono: string
+  direccion: string
+  password: string
+  password_confirm: string
+}
+
 export const AuthWelcomePage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('welcome')
   const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  
+  // Guardar datos de formularios
+  const [loginFormData, setLoginFormData] = useState<LoginFormData>({
+    username: '',
+    password: '',
+  })
+  const [registerFormData, setRegisterFormData] = useState<Partial<RegisterFormData>>({
+    nombre: '',
+    apellido: '',
+    username: '',
+    email: '',
+    telefono: '',
+    direccion: '',
+    password: '',
+    password_confirm: '',
+  })
 
   // En móvil, usar toggle directo sin hover
   const [isMobile, setIsMobile] = useState(false)
@@ -23,6 +56,59 @@ export const AuthWelcomePage = () => {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleMouseEnter = (side: 'left' | 'right') => {
+    // Limpiar timeout anterior si existe
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    // Delay mínimo para transición súper fluida
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredSide(side)
+    }, 50) // 50ms - casi instantáneo pero evita cambios accidentales
+  }
+
+  const handleMouseLeave = () => {
+    // Verificar si hay algún input activo (focused) o si el mouse está sobre el formulario
+    const activeElement = document.activeElement
+    const isInputFocused = activeElement && (
+      activeElement.tagName === 'INPUT' || 
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.closest('form') !== null
+    )
+    
+    // Limpiar timeout si el mouse sale antes del delay
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    
+    // Si hay un input activo, esperar más tiempo antes de ocultar
+    const delay = isInputFocused ? 600 : 200 // 600ms si hay input activo, 200ms si no - muy rápido
+    
+    // Agregar delay antes de quitar el hover
+    hoverTimeoutRef.current = setTimeout(() => {
+      // Verificar nuevamente antes de ocultar
+      const stillActive = document.activeElement && (
+        document.activeElement.tagName === 'INPUT' || 
+        document.activeElement.tagName === 'TEXTAREA' ||
+        document.activeElement.closest('form') !== null
+      )
+      if (!stillActive) {
+        setHoveredSide(null)
+      }
+    }, delay)
+  }
 
   return (
     <div className="auth-welcome-container relative h-[calc(100vh-4rem)] w-full overflow-hidden rounded-[var(--radius-card)] bg-surface" style={{ boxShadow: 'var(--shadow-card)' }}>
@@ -70,7 +156,10 @@ export const AuthWelcomePage = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <LoginForm />
+                  <LoginForm 
+                    initialData={loginFormData}
+                    onDataChange={setLoginFormData}
+                  />
                 </motion.div>
               )}
               {viewMode === 'register' && (
@@ -81,7 +170,10 @@ export const AuthWelcomePage = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <RegisterForm />
+                  <RegisterForm 
+                    initialData={registerFormData as RegisterFormData}
+                    onDataChange={(data) => setRegisterFormData(data)}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -93,8 +185,8 @@ export const AuthWelcomePage = () => {
           {/* Panel izquierdo - Login - Colores morados */}
           <motion.div
             className="group relative flex h-full flex-col items-center justify-center overflow-hidden p-8 text-center"
-            onMouseEnter={() => setHoveredSide('left')}
-            onMouseLeave={() => setHoveredSide(null)}
+            onMouseEnter={() => handleMouseEnter('left')}
+            onMouseLeave={handleMouseLeave}
             style={{
               background: hoveredSide === 'left' 
                 ? 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-accent-lavender-light) 100%)'
@@ -105,21 +197,38 @@ export const AuthWelcomePage = () => {
               {hoveredSide === 'left' ? (
                 <motion.div
                   key="login-form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                   className="w-full max-w-md"
+                  onMouseEnter={(e) => {
+                    e.stopPropagation()
+                    // Cancelar el timeout de salida si el mouse vuelve al formulario
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current)
+                      hoverTimeoutRef.current = null
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    e.stopPropagation()
+                  }}
+                  onMouseLeave={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
-                  <LoginForm />
+                  <LoginForm 
+                    initialData={loginFormData}
+                    onDataChange={setLoginFormData}
+                  />
                 </motion.div>
               ) : (
                 <motion.div
                   key="login-welcome"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                   className="space-y-6"
                 >
                   <motion.div 
@@ -163,8 +272,8 @@ export const AuthWelcomePage = () => {
           {/* Panel derecho - Registro - Colores naranjas */}
           <motion.div
             className="group relative flex h-full flex-col items-center justify-center overflow-hidden p-8 text-center"
-            onMouseEnter={() => setHoveredSide('right')}
-            onMouseLeave={() => setHoveredSide(null)}
+            onMouseEnter={() => handleMouseEnter('right')}
+            onMouseLeave={handleMouseLeave}
             style={{
               background: hoveredSide === 'right'
                 ? 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-accent-peach) 100%)'
@@ -175,21 +284,38 @@ export const AuthWelcomePage = () => {
               {hoveredSide === 'right' ? (
                 <motion.div
                   key="register-form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                   className="w-full max-w-md"
+                  onMouseEnter={(e) => {
+                    e.stopPropagation()
+                    // Cancelar el timeout de salida si el mouse vuelve al formulario
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current)
+                      hoverTimeoutRef.current = null
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    e.stopPropagation()
+                  }}
+                  onMouseLeave={(e) => {
+                    e.stopPropagation()
+                  }}
                 >
-                  <RegisterForm />
+                  <RegisterForm 
+                    initialData={registerFormData as RegisterFormData}
+                    onDataChange={(data) => setRegisterFormData(data)}
+                  />
                 </motion.div>
               ) : (
                 <motion.div
                   key="register-welcome"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                   className="space-y-6"
                 >
                   <motion.div 

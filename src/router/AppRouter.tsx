@@ -46,7 +46,7 @@ const router = createBrowserRouter([
       { path: 'register/step', element: <RegisterStepPage /> },
       { path: 'register/verify', element: <RegisterVerifyPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
-      { path: 'reset-password/:token', element: <ResetPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
     ],
   },
   {
