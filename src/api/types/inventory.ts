@@ -12,7 +12,7 @@ export interface InventoryProduct {
     id: number
     descripcion: string
   } | null
-  stock_actual: number
+  stock: number
   stock_minimo: number
   precio_compra: string
   precio_venta: string
@@ -24,8 +24,9 @@ export interface InventoryProduct {
 export interface InventoryProductPayload {
   nombre: string
   descripcion?: string
-  categoria?: number | null
-  marca?: number | null
+  categoria_id?: number 
+  marca_id?: number      
+  stock?: number
   stock_minimo?: number
   precio_compra?: number
   precio_venta?: number

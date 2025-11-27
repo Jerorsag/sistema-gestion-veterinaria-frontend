@@ -10,8 +10,9 @@ import type { InventoryProduct, InventoryProductPayload, InventoryCategory, Inve
 const schema = z.object({
   nombre: z.string().min(3, 'El nombre es obligatorio'),
   descripcion: z.string().optional(),
-  categoria: z.string().optional(),
-  marca: z.string().optional(),
+  categoria: z.string().min(1, 'Selecciona una categoria'),
+  marca: z.string().min(1, 'Selecciona una categoria'),
+  stock: z.string().optional(),
   stock_minimo: z.string().optional(),
   precio_compra: z.string().optional(),
   precio_venta: z.string().optional(),
@@ -34,6 +35,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
       descripcion: product?.descripcion ?? '',
       categoria: product?.categoria?.id ? String(product.categoria.id) : '',
       marca: product?.marca?.id ? String(product.marca.id) : '',
+      stock: product?.stock !== undefined ? String(product.stock) : '',
       stock_minimo: product?.stock_minimo ? String(product.stock_minimo) : '',
       precio_compra: product?.precio_compra ?? '',
       precio_venta: product?.precio_venta ?? '',
@@ -53,22 +55,32 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
   const payloadFromValues = (values: FormValues): InventoryProductPayload => ({
     nombre: values.nombre,
     descripcion: values.descripcion,
-    categoria: values.categoria ? Number(values.categoria) : undefined,
-    marca: values.marca ? Number(values.marca) : undefined,
+    categoria_id: Number(values.categoria), // ✅ Usar categoria_id (no categoria)
+    marca_id: Number(values.marca), // ✅ Usar marca_id (no marca)
+    stock: values.stock ? Number(values.stock) : 0,
     stock_minimo: values.stock_minimo ? Number(values.stock_minimo) : undefined,
     precio_compra: values.precio_compra ? Number(values.precio_compra) : undefined,
     precio_venta: values.precio_venta ? Number(values.precio_venta) : undefined,
     codigo_barras: values.codigo_barras,
     codigo_interno: values.codigo_interno,
   })
+  
 
   const onSubmit = async (values: FormValues) => {
     const payload = payloadFromValues(values)
-    if (isEditing && product) {
-      await updateMutation.mutateAsync(payload)
-    } else {
-      await createMutation.mutateAsync(payload)
-      form.reset()
+    
+    // ✅ DEBUG: Ver qué se está enviando
+    console.log('🚀 Payload a enviar:', payload)
+    
+    try {
+      if (isEditing && product) {
+        await updateMutation.mutateAsync(payload)
+      } else {
+        await createMutation.mutateAsync(payload)
+        form.reset()
+      }
+    } catch (error) {
+      console.error('❌ Error al guardar:', error)
     }
   }
 
@@ -78,6 +90,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
         <Input label="Nombre" {...form.register('nombre')} error={form.formState.errors.nombre?.message} />
         <Input label="Código interno" {...form.register('codigo_interno')} />
         <Input label="Código de barras" {...form.register('codigo_barras')} />
+        <Input label="Stock inicial" type="number" min="0" {...form.register('stock')} error={form.formState.errors.stock?.message}/>
         <Input label="Stock mínimo" type="number" min="0" {...form.register('stock_minimo')} />
         <Input label="Precio compra" type="number" step="0.01" {...form.register('precio_compra')} />
         <Input label="Precio venta" type="number" step="0.01" {...form.register('precio_venta')} />
@@ -85,7 +98,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm text-primary">
-          <span>Categoría</span>
+          <span>Categoría *</span>
           <select
             className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
             style={{
@@ -95,17 +108,20 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
             value={form.watch('categoria')}
             onChange={(event) => form.setValue('categoria', event.target.value)}
           >
-            <option value="">Sin categoría</option>
+            <option value="">Selecciona categoría</option>
             {categories?.map((category: InventoryCategory) => (
               <option key={category.id} value={category.id}>
                 {category.descripcion}
               </option>
             ))}
           </select>
+          {form.formState.errors.categoria && (
+            <p className="text-xs text-red-600">{form.formState.errors.categoria.message}</p>
+          )}
         </label>
 
         <label className="space-y-2 text-sm text-primary">
-          <span>Marca</span>
+          <span>Marca *</span>
           <select
             className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
             style={{
@@ -115,13 +131,16 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
             value={form.watch('marca')}
             onChange={(event) => form.setValue('marca', event.target.value)}
           >
-            <option value="">Sin marca</option>
+            <option value="">Selecciona marca</option>
             {brands?.map((brand: InventoryBrand) => (
               <option key={brand.id} value={brand.id}>
                 {brand.descripcion}
               </option>
             ))}
           </select>
+          {form.formState.errors.marca && (
+            <p className="text-xs text-red-600">{form.formState.errors.marca.message}</p>
+          )}
         </label>
       </div>
 
