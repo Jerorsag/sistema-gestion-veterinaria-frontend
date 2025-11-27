@@ -32,7 +32,7 @@ export const UserMenu = () => {
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
-        navigate('/auth/login')
+        navigate('/auth')
       },
     })
   }

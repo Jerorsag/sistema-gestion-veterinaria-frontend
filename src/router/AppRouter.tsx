@@ -1,11 +1,10 @@
-import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 import { RequireAuth } from '@/core/auth/RequireAuth'
 import { RoleGuard } from '@/core/auth/RoleGuard'
 import { AuthLayout } from '@/layout/AuthLayout'
 import { DashboardLayout } from '@/layout/DashboardLayout'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { AuthWelcomePage } from '@/pages/auth/AuthWelcomePage'
 import { RegisterStepPage } from '@/pages/auth/RegisterStepPage'
 import { RegisterVerifyPage } from '@/pages/auth/RegisterVerifyPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
@@ -43,9 +42,7 @@ const router = createBrowserRouter([
     path: '/auth',
     element: <AuthLayout />,
     children: [
-      { index: true, element: <Navigate to="login" replace /> },
-      { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
+      { index: true, element: <AuthWelcomePage /> },
       { path: 'register/step', element: <RegisterStepPage /> },
       { path: 'register/verify', element: <RegisterVerifyPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
