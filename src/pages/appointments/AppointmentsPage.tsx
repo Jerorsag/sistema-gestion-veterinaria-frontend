@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, PlusCircle } from 'lucide-react'
+import { CalendarDays, PlusCircle, Stethoscope } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -13,6 +13,7 @@ export const AppointmentsPage = () => {
   const { data, isLoading } = useAppointmentsQuery()
   const { checkPermission } = usePermissions()
   const canCreate = checkPermission('citas', 'canCreate')
+  const canCreateConsulta = checkPermission('consultas', 'canCreate')
 
   return (
     <div className="space-y-6">
@@ -57,6 +58,23 @@ export const AppointmentsPage = () => {
                   <span className="rounded-full bg-[var(--color-surface-200)] px-3 py-1 text-xs uppercase tracking-wide text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
                     {cita.estado}
                   </span>
+
+                  {!['CANCELADA', 'COMPLETADA'].includes(cita.estado.toUpperCase()) && canCreateConsulta && (
+                    <Button 
+                      asChild 
+                      variant="ghost" 
+                      className="text-blue-600 border border-blue-200 hover:bg-blue-50"
+                      title="Generar Consulta"
+                    >
+                      <Link 
+                        to={`/app/consultas/nueva?mascota=${cita.mascota}&servicio=${cita.servicio}&cita=${cita.id}&nombre_servicio=${encodeURIComponent(cita.servicio_nombre || '')}`}
+                      >
+                        <Stethoscope size={16} className="mr-2"/>
+                        Atender
+                      </Link>
+                    </Button>
+                  )}
+              
                   <Button asChild variant="ghost">
                     <Link to={`/app/citas/${cita.id}`}>Ver detalle</Link>
                   </Button>
@@ -73,4 +91,3 @@ export const AppointmentsPage = () => {
     </div>
   )
 }
-

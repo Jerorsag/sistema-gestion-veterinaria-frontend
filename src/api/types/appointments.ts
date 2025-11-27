@@ -7,13 +7,16 @@ export type AppointmentStatus =
   | 'EN_PROGRESO'; // El nuevo estado que acordamos agregar
 
 export interface AppointmentSummary {
-  id: number;
-  mascota_nombre: string;
-  veterinario_nombre: string | null; // Puede ser null
-  servicio_nombre: string | null;
-  fecha_hora: string; // ISO 8601
-  estado: AppointmentStatus; 
-  observaciones?: string; // Campo existente en el modelo
+  id: number
+  mascota_nombre: string
+  mascota: number
+  veterinario_nombre: string | null
+  servicio_nombre: string | null
+  servicio: number
+  fecha_hora: string
+  estado: string
+  consulta_id?: number | null 
+
 }
 
 // Alineado con CrearCitaSerializer en citas/serializers/escribir.py
