@@ -65,6 +65,8 @@ export interface ConsultationPayload {
   prescripciones?: PrescripcionPayload[]
   examenes?: ExamenPayload[]
   vacunas?: VacunaPayload
+  servicio?: number | null
+  cita?: number | null
 }
 
 export interface PrescripcionPayload {

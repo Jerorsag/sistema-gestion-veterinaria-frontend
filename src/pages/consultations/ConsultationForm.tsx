@@ -1,6 +1,7 @@
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useSearchParams } from 'react-router-dom'
 
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -13,6 +14,8 @@ const schema = z.object({
   descripcion_consulta: z.string().min(10, 'Describe la consulta'),
   diagnostico: z.string().min(4, 'Ingrese un diagnóstico'),
   notas_adicionales: z.string().optional(),
+  servicio: z.string().optional(),
+  cita: z.string().optional(),
   prescripciones: z
     .array(
       z.object({
@@ -27,10 +30,19 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export const ConsultationForm = () => {
+  const [searchParams] = useSearchParams()
+
+  const preMascotaId = searchParams.get('mascota') || ''
+  const preServicioId = searchParams.get('servicio') || ''
+  const preCitaId = searchParams.get('cita') || ''
+  const preNombreServicio = searchParams.get('nombre_servicio') || ''
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      mascota: '',
+      mascota: preMascotaId,   
+      servicio: preServicioId, 
+      cita: preCitaId,         
       fecha_consulta: new Date().toISOString().slice(0, 10),
       descripcion_consulta: '',
       diagnostico: '',
@@ -58,6 +70,8 @@ export const ConsultationForm = () => {
       descripcion_consulta: values.descripcion_consulta,
       diagnostico: values.diagnostico,
       notas_adicionales: values.notas_adicionales,
+      servicio: values.servicio ? Number(values.servicio) : null,
+      cita: values.cita ? Number(values.cita) : null,
       prescripciones: values.prescripciones?.map((pres) => ({
         producto: 0,
         dosis: pres.dosis,
@@ -70,7 +84,18 @@ export const ConsultationForm = () => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+      <input type="hidden" {...form.register('cita')} />
+      <input type="hidden" {...form.register('servicio')} />
+
       <div className="grid gap-4 md:grid-cols-2">
+
+        <div className="col-span-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+             <span className="font-semibold">Atendiendo Cita:</span> 
+             Se ha seleccionado automáticamente la mascota y el servicio 
+             {preNombreServicio ? ` (${preNombreServicio})` : ''}.
+          </div>
+
         <label className="space-y-2 text-sm text-primary">
           <span>Mascota</span>
           <select
@@ -79,6 +104,7 @@ export const ConsultationForm = () => {
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
             }}
+            disabled={!!preMascotaId}
             value={form.watch('mascota')}
             onChange={(event) => form.setValue('mascota', event.target.value)}
           >

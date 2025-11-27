@@ -1,10 +1,14 @@
 export interface AppointmentSummary {
   id: number
   mascota_nombre: string
+  mascota: number
   veterinario_nombre: string | null
   servicio_nombre: string | null
+  servicio: number
   fecha_hora: string
   estado: string
+  consulta_id?: number | null 
+
 }
 
 export interface AppointmentPayload {
