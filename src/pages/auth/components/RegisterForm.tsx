@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -27,20 +27,21 @@ const registerSchema = z
 
 type RegisterFormValues = z.infer<typeof registerSchema>
 
-export const RegisterForm = () => {
+interface RegisterFormProps {
+  initialData?: RegisterFormValues
+  onDataChange?: (data: RegisterFormValues) => void
+}
+
+export const RegisterForm = ({ initialData, onDataChange }: RegisterFormProps = {}) => {
   const navigate = useNavigate()
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
   const mutation = useRegisterStepMutation()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterFormValues>({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       nombre: '',
       apellido: '',
       username: '',
@@ -52,13 +53,67 @@ export const RegisterForm = () => {
     },
   })
 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = form
+
+  // Observar cambios en los campos y guardarlos
+  const watchedValues = watch()
+  
+  // Solo resetear cuando hay valores guardados y el formulario está completamente vacío
+  useEffect(() => {
+    if (initialData) {
+      const hasInitialValues = Object.values(initialData).some(val => val && typeof val === 'string' && val.trim() !== '')
+      const isFormEmpty = !Object.values(watchedValues).some(val => val && typeof val === 'string' && val.trim() !== '')
+      
+      // Solo restaurar si hay valores guardados Y el formulario está vacío
+      if (hasInitialValues && isFormEmpty) {
+        reset(initialData, { keepDefaultValues: false })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData])
+
+  // Guardar cambios con debounce para no causar re-renders constantes
+  useEffect(() => {
+    if (onDataChange) {
+      const timeoutId = setTimeout(() => {
+        onDataChange({
+          nombre: watchedValues.nombre || '',
+          apellido: watchedValues.apellido || '',
+          username: watchedValues.username || '',
+          email: watchedValues.email || '',
+          telefono: watchedValues.telefono || '',
+          direccion: watchedValues.direccion || '',
+          password: watchedValues.password || '',
+          password_confirm: watchedValues.password_confirm || '',
+        })
+      }, 300) // Debounce de 300ms
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [watchedValues, onDataChange])
+
   const onSubmit = async (values: RegisterFormValues) => {
     await mutation.mutateAsync(values)
     navigate(`/auth/register/verify?email=${encodeURIComponent(values.email)}`)
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
+    <form 
+      onSubmit={handleSubmit(onSubmit)} 
+      className="w-full space-y-5"
+      onFocus={(e) => {
+        e.stopPropagation()
+      }}
+      onBlur={(e) => {
+        e.stopPropagation()
+      }}
+    >
       <div className="text-center">
         <h3 className="text-2xl font-bold text-[var(--color-text-heading)]">Crea tu cuenta</h3>
         <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
