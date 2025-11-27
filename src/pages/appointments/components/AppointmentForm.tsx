@@ -37,29 +37,38 @@ export const AppointmentForm = () => {
     },
   })
 
+  // Filtros memoizados para pets (opcionalmente vacío para traer todos)
   const petsFilters = useMemo(() => ({ search: '', especie: null as number | null }), [])
   const petsQuery = usePetsQuery(petsFilters)
+  
   const { data: services, isLoading: servicesLoading } = useServicesQuery()
   const { data: veterinarios, isLoading: vetsLoading } = useVeterinariansQuery()
+  
   const mutation = useAppointmentCreateMutation()
+  
+  // Watchers para estado del formulario
   const selectedMascota = form.watch('mascota_id')
   const selectedVeterinario = form.watch('veterinario_id')
   const selectedServicio = form.watch('servicio_id')
   const selectedFecha = form.watch('fecha_hora')
 
-  // Reset availability when vet changes
+  // Resetear el horario si cambia el veterinario (porque su disponibilidad es distinta)
   useEffect(() => {
     form.setValue('fecha_hora', '')
   }, [selectedVeterinario, form])
 
   const onSubmit = async (values: FormValues) => {
+    // Construimos el payload
+    // IMPORTANTE: values.fecha_hora ya viene con el formato correcto del AvailabilityPicker
+    // (Ej: "2023-11-27T08:00:00-05:00"). NO lo modificamos.
     const payload: AppointmentPayload = {
-      mascota_id: values.mascota_id,
-      veterinario_id: values.veterinario_id,
-      servicio_id: values.servicio_id,
+      mascota_id: parseInt(values.mascota_id),
+      veterinario_id: parseInt(values.veterinario_id),
+      servicio_id: parseInt(values.servicio_id),
       fecha_hora: values.fecha_hora,
       observaciones: values.observaciones,
     }
+    
     await mutation.mutateAsync(payload)
     form.reset()
   }
@@ -67,6 +76,7 @@ export const AppointmentForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Selector de Mascota */}
         <label className="space-y-2 text-sm text-primary">
           <span>Mascota</span>
           <select
@@ -90,6 +100,7 @@ export const AppointmentForm = () => {
           )}
         </label>
 
+        {/* Selector de Veterinario */}
         <label className="space-y-2 text-sm text-primary">
           <span>Veterinario</span>
           {vetsLoading ? (
@@ -119,6 +130,7 @@ export const AppointmentForm = () => {
           )}
         </label>
 
+        {/* Selector de Servicio */}
         <label className="space-y-2 text-sm text-primary md:col-span-2">
           <span>Servicio</span>
           {servicesLoading ? (
@@ -149,6 +161,7 @@ export const AppointmentForm = () => {
         </label>
       </div>
 
+      {/* Picker de Disponibilidad */}
       <div className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
         <p className="text-sm font-semibold text-heading">Selecciona horario disponible</p>
         <AvailabilityPicker
@@ -174,4 +187,3 @@ export const AppointmentForm = () => {
     </form>
   )
 }
-
