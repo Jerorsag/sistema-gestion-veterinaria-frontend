@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, ClipboardList, NotebookTabs, PawPrint, Users, PlusCircle } from 'lucide-react'
+import { CalendarDays, ClipboardList, NotebookTabs, PawPrint, Users, PlusCircle, TrendingUp, DollarSign, Clock, UserPlus } from 'lucide-react'
+import { useMemo } from 'react'
+import dayjs from 'dayjs'
 
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +13,8 @@ import { useAppointmentsQuery } from '@/hooks/appointments'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { useUsersQuery } from '@/hooks/users'
 import type { UserListResponse } from '@/api/types/users'
+import type { AppointmentSummary } from '@/api/types/appointments'
+import { formatDateTime } from '@/utils/datetime'
 
 export const DashboardHome = () => {
   const user = useSessionStore((state) => state.user)
@@ -25,7 +29,86 @@ export const DashboardHome = () => {
   // Normalizar datos de usuarios
   const users = Array.isArray(usersData) ? usersData : (usersData as UserListResponse)?.results ?? []
 
-  // Determinar el rol principal del usuario (prioridad: admin > veterinario > recepcionista > practicante > cliente)
+  // Filtrar citas de hoy
+  const todayAppointments = useMemo(() => {
+    if (!appointments || appointments.length === 0) return []
+    const today = dayjs().startOf('day')
+    return appointments.filter((app: AppointmentSummary) => {
+      const appointmentDate = dayjs(app.fecha_hora).startOf('day')
+      return appointmentDate.isSame(today)
+    })
+  }, [appointments])
+
+  // Simular datos de facturación (hasta que se implemente el módulo)
+  const billingData = useMemo(() => {
+    // Simular datos para gráficas - reemplazar cuando exista el endpoint
+    const today = new Date()
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today)
+      date.setDate(date.getDate() - (6 - i))
+      return {
+        date: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+        amount: Math.floor(Math.random() * 500000) + 100000,
+      }
+    })
+    
+    const totalBilling = last7Days.reduce((sum, day) => sum + day.amount, 0)
+    const averageBilling = Math.floor(totalBilling / 7)
+    const growth = ((last7Days[6].amount - last7Days[0].amount) / last7Days[0].amount) * 100
+
+    return {
+      last7Days,
+      total: totalBilling,
+      average: averageBilling,
+      growth: growth.toFixed(1),
+      todayBilling: last7Days[6].amount,
+    }
+  }, [])
+
+  // Generar actualizaciones recientes del sistema
+  interface UpdateItem {
+    type: string
+    icon: typeof UserPlus
+    message: string
+    time: string
+    color: string
+  }
+
+  const recentUpdates = useMemo(() => {
+    const updates: UpdateItem[] = []
+    
+    // Últimos usuarios registrados
+    if (users && users.length > 0) {
+      const recentUsers = users.slice(0, 3)
+      recentUsers.forEach((u: any) => {
+        updates.push({
+          type: 'user',
+          icon: UserPlus,
+          message: `Nuevo usuario registrado: ${u.nombre_completo || u.username}`,
+          time: 'Hace unos minutos',
+          color: 'text-blue-500',
+        })
+      })
+    }
+
+    // Últimas mascotas registradas
+    if (pets && pets.length > 0) {
+      const recentPets = pets.slice(0, 2)
+      recentPets.forEach((p: any) => {
+        updates.push({
+          type: 'pet',
+          icon: PawPrint,
+          message: `Nueva mascota registrada: ${p.nombre}`,
+          time: 'Hace unos minutos',
+          color: 'text-green-500',
+        })
+      })
+    }
+
+    return updates.slice(0, 5) // Máximo 5 actualizaciones
+  }, [users, pets])
+
+  // Determinar el rol principal del usuario
   const primaryRole = isAdmin
     ? 'administrador'
     : userRoles.includes('veterinario')
@@ -51,13 +134,18 @@ export const DashboardHome = () => {
   const stats = []
   
   if (isAdmin) {
+    // Filtrar solo usuarios activos
+    const activeUsers = users.filter((u: any) => u.estado === 'activo')
+    
     stats.push(
       {
         label: 'Usuarios activos',
-        value: users ? String(users.length) : '—',
+        value: activeUsers ? String(activeUsers.length) : '—',
         icon: Users,
         href: '/app/usuarios',
         isLoading: usersLoading,
+        color: 'text-blue-500',
+        bgColor: 'bg-blue-500/10',
       },
       {
         label: 'Mascotas registradas',
@@ -65,6 +153,8 @@ export const DashboardHome = () => {
         icon: PawPrint,
         href: '/app/mascotas',
         isLoading: petsLoading,
+        color: 'text-green-500',
+        bgColor: 'bg-green-500/10',
       },
       {
         label: 'Citas agendadas',
@@ -72,6 +162,8 @@ export const DashboardHome = () => {
         icon: CalendarDays,
         href: '/app/citas',
         isLoading: appointmentsLoading,
+        color: 'text-purple-500',
+        bgColor: 'bg-purple-500/10',
       },
       {
         label: 'Consultas realizadas',
@@ -79,10 +171,11 @@ export const DashboardHome = () => {
         icon: ClipboardList,
         href: '/app/consultas',
         isLoading: consultationsLoading,
+        color: 'text-orange-500',
+        bgColor: 'bg-orange-500/10',
       },
     )
   } else if (userRoles.includes('cliente')) {
-    // Estadísticas para cliente
     stats.push(
       {
         label: 'Mis mascotas',
@@ -90,6 +183,8 @@ export const DashboardHome = () => {
         icon: PawPrint,
         href: '/app/mascotas',
         isLoading: petsLoading,
+        color: 'text-green-500',
+        bgColor: 'bg-green-500/10',
       },
       {
         label: 'Mis citas',
@@ -97,6 +192,8 @@ export const DashboardHome = () => {
         icon: CalendarDays,
         href: '/app/citas',
         isLoading: appointmentsLoading,
+        color: 'text-purple-500',
+        bgColor: 'bg-purple-500/10',
       },
       {
         label: 'Mis consultas',
@@ -104,6 +201,8 @@ export const DashboardHome = () => {
         icon: ClipboardList,
         href: '/app/consultas',
         isLoading: consultationsLoading,
+        color: 'text-orange-500',
+        bgColor: 'bg-orange-500/10',
       },
       {
         label: 'Historias clínicas',
@@ -111,10 +210,11 @@ export const DashboardHome = () => {
         icon: NotebookTabs,
         href: '/app/historias',
         isLoading: false,
+        color: 'text-indigo-500',
+        bgColor: 'bg-indigo-500/10',
       },
     )
   } else {
-    // Estadísticas para veterinario, recepcionista, practicante
     stats.push(
       {
         label: 'Mascotas',
@@ -122,13 +222,17 @@ export const DashboardHome = () => {
         icon: PawPrint,
         href: '/app/mascotas',
         isLoading: petsLoading,
+        color: 'text-green-500',
+        bgColor: 'bg-green-500/10',
       },
       {
         label: 'Citas del día',
-        value: appointments ? String(appointments.length) : '—',
+        value: todayAppointments ? String(todayAppointments.length) : '—',
         icon: CalendarDays,
         href: '/app/citas',
         isLoading: appointmentsLoading,
+        color: 'text-purple-500',
+        bgColor: 'bg-purple-500/10',
       },
       {
         label: 'Consultas pendientes',
@@ -136,6 +240,8 @@ export const DashboardHome = () => {
         icon: ClipboardList,
         href: '/app/consultas',
         isLoading: consultationsLoading,
+        color: 'text-orange-500',
+        bgColor: 'bg-orange-500/10',
       },
       {
         label: 'Historias clínicas',
@@ -143,6 +249,8 @@ export const DashboardHome = () => {
         icon: NotebookTabs,
         href: '/app/historias',
         isLoading: false,
+        color: 'text-indigo-500',
+        bgColor: 'bg-indigo-500/10',
       },
     )
   }
@@ -153,48 +261,75 @@ export const DashboardHome = () => {
     .slice(0, 6) // Máximo 6 accesos rápidos
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Bienvenida personalizada */}
       <div>
-        <h1 className="text-3xl font-semibold">
+        <h1 className="text-3xl font-bold text-[var(--color-text-heading)]">
           Bienvenido, {user?.nombre_completo || 'Usuario'}
         </h1>
-        <p className="mt-2 text-sm text-secondary">
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
           Panel de {roleLabels[primaryRole]} • {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon, href, isLoading }) => (
-          <Link key={label} to={href}>
-              <Card
-              className="px-5 py-6 transition-all hover:scale-105 cursor-pointer"
-              header={
-                <div className="flex items-center justify-between text-sm uppercase tracking-[0.3em] text-subtle">
-                  <span>{label}</span>
-                  <Icon className="text-tertiary" size={18} />
-                </div>
-              }
+      {/* Estadísticas - Cards mejoradas y alineadas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map(({ label, value, icon: Icon, href, isLoading, color, bgColor }) => (
+          <Link key={label} to={href} className="group block">
+            <Card
+              className="h-full cursor-pointer"
+              style={{
+                transition: 'all 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+                e.currentTarget.style.setProperty('transform', 'translateY(-2px)')
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+                e.currentTarget.style.setProperty('transform', 'translateY(0)')
+              }}
             >
-              <div className="flex items-baseline justify-between">
-                {isLoading ? (
-                  <Spinner size="sm" />
-                ) : (
-                  <p className="text-4xl font-semibold text-heading">{value}</p>
-                )}
+              <div className="px-5 py-6">
+                <div className="flex items-center justify-between mb-4 gap-3">
+                  <span className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] font-medium flex-1">
+                    {label}
+                  </span>
+                  <div className={`rounded-xl ${bgColor} p-2.5 flex-shrink-0`}>
+                    <Icon className={color} size={18} />
+                  </div>
+                </div>
+                <div className="flex items-baseline">
+                  {isLoading ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <p className="text-3xl font-bold text-[var(--color-text-heading)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                      {value}
+                    </p>
+                  )}
+                </div>
               </div>
             </Card>
           </Link>
         ))}
       </div>
 
-      {/* Accesos rápidos */}
+      {/* Accesos rápidos - Hover mejorado */}
       <Card
+        className="transition-shadow duration-500"
+        style={{
+          transition: 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+        }}
         header={
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-subtle">Acceso rápido</p>
-            <h3 className="mt-2 text-xl font-semibold">Navega rápidamente</h3>
+            <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Acceso rápido</p>
+            <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Navega rápidamente</h3>
           </div>
         }
       >
@@ -203,11 +338,27 @@ export const DashboardHome = () => {
             const Icon = item.icon
             return (
               <Link key={item.href} to={item.href}>
-                <div className="group flex items-center gap-3 rounded-xl bg-surface px-4 py-3 transition-all hover:bg-[var(--color-surface-200)] cursor-pointer" style={{ boxShadow: 'var(--shadow-card)' }}>
-                  <div className="rounded-lg bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)] transition-transform group-hover:scale-110">
+                <div
+                  className="group flex items-center gap-3 rounded-xl bg-surface px-4 py-3 cursor-pointer"
+                  style={{
+                    boxShadow: 'var(--shadow-card)',
+                    transition: 'all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-soft)')
+                    e.currentTarget.style.setProperty('background-color', 'var(--color-surface-200)')
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+                    e.currentTarget.style.setProperty('background-color', 'var(--color-surface)')
+                  }}
+                >
+                  <div className="rounded-lg bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)] transition-transform duration-300 group-hover:scale-110">
                     <Icon size={20} />
                   </div>
-                  <span className="font-medium text-secondary group-hover:text-primary">{item.label}</span>
+                  <span className="font-medium text-[var(--color-text-secondary)] group-hover:text-[var(--color-primary)] transition-colors">
+                    {item.label}
+                  </span>
                 </div>
               </Link>
             )
@@ -215,25 +366,201 @@ export const DashboardHome = () => {
         </div>
       </Card>
 
-      {/* Información específica del rol */}
+      {/* Solo para administrador: Gráficas de facturación y actualizaciones */}
+      {isAdmin && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Gráficas de facturación */}
+          <Card
+            className="transition-shadow duration-500"
+            style={{
+              transition: 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+            }}
+            header={
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Facturación</p>
+                <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Resumen financiero</h3>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {/* Resumen rápido */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign size={18} className="text-green-500" />
+                    <span className="text-xs text-[var(--color-text-muted)]">Hoy</span>
+                  </div>
+                  <p className="text-2xl font-bold text-[var(--color-text-heading)]">
+                    ${billingData.todayBilling.toLocaleString('es-CO')}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp size={18} className="text-blue-500" />
+                    <span className="text-xs text-[var(--color-text-muted)]">Crecimiento</span>
+                  </div>
+                  <p className="text-2xl font-bold text-[var(--color-text-heading)]">
+                    {billingData.growth}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Gráfica simple de barras */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[var(--color-text-heading)] mb-3">Últimos 7 días</p>
+                <div className="flex items-end justify-between gap-2 h-32">
+                  {billingData.last7Days.map((day, idx) => {
+                    const maxAmount = Math.max(...billingData.last7Days.map((d) => d.amount))
+                    const height = (day.amount / maxAmount) * 100
+                    return (
+                      <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                        <div
+                          className="w-full rounded-t-lg bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-secondary)] transition-all duration-300 hover:opacity-80"
+                          style={{ height: `${height}%`, minHeight: '8px' }}
+                          title={`$${day.amount.toLocaleString('es-CO')}`}
+                        />
+                        <span className="text-xs text-[var(--color-text-muted)] rotate-45 origin-top-left whitespace-nowrap">
+                          {day.date.split(' ')[0]}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Actualizaciones recientes y agenda de hoy */}
+          <div className="space-y-6">
+            {/* Agenda de hoy */}
+            <Card
+              className="transition-shadow duration-500"
+              style={{
+                transition: 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+              }}
+              header={
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Agenda</p>
+                  <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Citas de hoy</h3>
+                </div>
+              }
+            >
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {appointmentsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Spinner size="sm" />
+                  </div>
+                ) : todayAppointments.length > 0 ? (
+                  todayAppointments.slice(0, 5).map((app: AppointmentSummary) => (
+                    <Link
+                      key={app.id}
+                      to={`/app/citas/${app.id}`}
+                      className="flex items-center gap-3 rounded-lg bg-[var(--color-surface-200)] p-3 transition-all duration-200 hover:bg-[var(--color-surface-200)]/80"
+                    >
+                      <div className="rounded-lg bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
+                        <Clock size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--color-text-heading)] truncate">
+                          {app.mascota_nombre}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                          {formatDateTime(app.fecha_hora)}
+                        </p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text-secondary)]">
+                        {app.estado}
+                      </span>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-sm text-center text-[var(--color-text-muted)] py-8">
+                    No hay citas programadas para hoy
+                  </p>
+                )}
+              </div>
+            </Card>
+
+            {/* Actualizaciones recientes */}
+            <Card
+              className="transition-shadow duration-500"
+              style={{
+                transition: 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+              }}
+              header={
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Sistema</p>
+                  <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Actualizaciones recientes</h3>
+                </div>
+              }
+            >
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {recentUpdates.length > 0 ? (
+                  recentUpdates.map((update, idx) => {
+                    const Icon = update.icon
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 rounded-lg bg-[var(--color-surface-200)] p-3"
+                      >
+                        <div className={`rounded-lg ${update.color.replace('text-', 'bg-')}/20 p-2 ${update.color}`}>
+                          <Icon size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-[var(--color-text-heading)]">{update.message}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">{update.time}</p>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <p className="text-sm text-center text-[var(--color-text-muted)] py-8">
+                    No hay actualizaciones recientes
+                  </p>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Información específica del rol - Cliente */}
       {userRoles.includes('cliente') && (
         <Card
           header={
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-subtle">Información</p>
-              <h3 className="mt-2 text-xl font-semibold">Tu información</h3>
+              <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Información</p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Tu información</h3>
             </div>
           }
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg bg-surface px-4 py-3" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="flex items-center justify-between rounded-lg bg-[var(--color-surface-200)] px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-emerald-500/20 p-2 text-emerald-400">
                   <PawPrint size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-heading">Mascotas registradas</p>
-                  <p className="text-xs text-secondary">
+                  <p className="text-sm font-medium text-[var(--color-text-heading)]">Mascotas registradas</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">
                     {petsLoading ? 'Cargando...' : pets && pets.length > 0 ? `${pets.length} mascota${pets.length !== 1 ? 's' : ''}` : 'No tienes mascotas registradas'}
                   </p>
                 </div>
@@ -246,14 +573,14 @@ export const DashboardHome = () => {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-surface px-4 py-3" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="flex items-center justify-between rounded-lg bg-[var(--color-surface-200)] px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-500/20 p-2 text-blue-400">
                   <CalendarDays size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-heading">Próximas citas</p>
-                  <p className="text-xs text-secondary">
+                  <p className="text-sm font-medium text-[var(--color-text-heading)]">Próximas citas</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">
                     {appointmentsLoading ? 'Cargando...' : appointments && appointments.length > 0 ? `${appointments.length} cita${appointments.length !== 1 ? 's' : ''} agendada${appointments.length !== 1 ? 's' : ''}` : 'No tienes citas agendadas'}
                   </p>
                 </div>
@@ -266,22 +593,6 @@ export const DashboardHome = () => {
               </Button>
             </div>
           </div>
-        </Card>
-      )}
-
-      {isAdmin && (
-        <Card
-          header={
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-subtle">Panel administrativo</p>
-              <h3 className="mt-2 text-xl font-semibold">Gestiona el sistema</h3>
-            </div>
-          }
-        >
-          <p className="text-sm text-secondary">
-            Como administrador, tienes acceso completo a todos los módulos del sistema. Usa el menú lateral para navegar entre
-            usuarios, mascotas, citas, consultas, historias clínicas, inventario y facturación.
-          </p>
         </Card>
       )}
     </div>

@@ -48,7 +48,10 @@ export const UserMenu = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-200)] px-3 py-2 transition-colors hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
+        className="flex items-center gap-2 rounded-xl bg-[var(--color-surface-200)] px-3 py-2 transition-all hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
+        style={{
+          boxShadow: 'var(--shadow-soft)',
+        }}
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold">
           {initials}
@@ -61,9 +64,19 @@ export const UserMenu = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-[var(--color-border)] bg-surface shadow-xl">
+        <div 
+          className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-surface"
+          style={{
+            boxShadow: 'var(--shadow-elevated)',
+          }}
+        >
           <div className="p-2">
-            <div className="mb-2 rounded-lg border-b border-[var(--color-border)] px-3 py-2">
+            <div 
+              className="mb-2 rounded-lg px-3 py-2"
+              style={{
+                boxShadow: '0 1px 0 rgba(139, 92, 246, 0.04)',
+              }}
+            >
               <p className="text-xs text-[var(--color-muted)]">Conectado como</p>
               <p className="text-sm font-semibold text-[#2D2D2D]">{user?.nombre_completo || 'Usuario'}</p>
               <p className="text-xs text-[var(--color-muted)]">{user?.email}</p>
