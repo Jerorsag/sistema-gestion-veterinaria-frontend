@@ -67,11 +67,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
   
 
   const onSubmit = async (values: FormValues) => {
-    const payload = payloadFromValues(values)
-    
-    // ✅ DEBUG: Ver qué se está enviando
-    console.log('🚀 Payload a enviar:', payload)
-    
+    const payload = payloadFromValues(values)    
     try {
       if (isEditing && product) {
         await updateMutation.mutateAsync(payload)
@@ -80,7 +76,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
         form.reset()
       }
     } catch (error) {
-      console.error('❌ Error al guardar:', error)
+      console.error('Error al guardar:', error)
     }
   }
 
