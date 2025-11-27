@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 interface RoleBadgeProps {
-  role: string
+  role: string | undefined | null
   className?: string
 }
 
@@ -40,6 +40,11 @@ const defaultColors = {
 }
 
 export const RoleBadge = ({ role, className }: RoleBadgeProps) => {
+  // Validación defensiva: si role es undefined, null o no es string, usar valor por defecto
+  if (!role || typeof role !== 'string') {
+    return null
+  }
+
   const roleLower = role.toLowerCase()
   const colors = roleColors[roleLower] || defaultColors
 

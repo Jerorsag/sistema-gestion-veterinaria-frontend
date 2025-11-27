@@ -26,9 +26,15 @@ export const NotificationsDropdown = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center justify-center rounded-xl bg-[var(--color-surface-200)] p-2.5 transition-all hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
+        className="relative flex items-center justify-center rounded-xl bg-[var(--color-surface-200)] p-2.5 transition-all hover:bg-[var(--color-surface)] focus:outline-none"
         style={{
           boxShadow: 'var(--shadow-soft)',
+          border: 'none',
+          outline: 'none',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.outline = 'none'
+          e.currentTarget.style.border = 'none'
         }}
         aria-label="Notificaciones"
       >
@@ -45,6 +51,8 @@ export const NotificationsDropdown = () => {
           className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl bg-surface"
           style={{
             boxShadow: 'var(--shadow-elevated)',
+            border: 'none',
+            outline: 'none',
           }}
         >
           <div className="p-4">

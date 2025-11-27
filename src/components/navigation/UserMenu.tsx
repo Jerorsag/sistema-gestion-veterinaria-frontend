@@ -48,9 +48,15 @@ export const UserMenu = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-xl bg-[var(--color-surface-200)] px-3 py-2 transition-all hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
+        className="flex items-center gap-2 rounded-xl bg-[var(--color-surface-200)] px-3 py-2 transition-all hover:bg-[var(--color-surface)] focus:outline-none"
         style={{
           boxShadow: 'var(--shadow-soft)',
+          border: 'none',
+          outline: 'none',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.outline = 'none'
+          e.currentTarget.style.border = 'none'
         }}
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold">
@@ -68,6 +74,8 @@ export const UserMenu = () => {
           className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-surface"
           style={{
             boxShadow: 'var(--shadow-elevated)',
+            border: 'none',
+            outline: 'none',
           }}
         >
           <div className="p-2">
