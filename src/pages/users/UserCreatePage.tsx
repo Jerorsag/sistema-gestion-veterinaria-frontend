@@ -19,7 +19,7 @@ export const UserCreatePage = () => {
             Completa la información y asigna roles/perfiles según corresponda.
           </p>
         </div>
-        <Button asChild variant="ghost" startIcon={<ArrowLeft size={18} />}>
+        <Button asChild variant="ghost" startIcon={<ArrowLeft size={18} className="text-black" />}>
           <Link to="/app/usuarios">Volver</Link>
         </Button>
       </div>
