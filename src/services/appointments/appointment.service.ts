@@ -7,12 +7,18 @@ import type {
   ServiceItem,
 } from '@/api/types/appointments'
 
+// Tipado para el payload de reagendar
+interface ReschedulePayload {
+  fecha_hora: string;
+}
+
 const list = async () => {
   const { data } = await apiClient.get<AppointmentSummary[] | { results: AppointmentSummary[] }>(
     endpoints.appointments.base(),
   )
+  // Verificación más segura de TS para paginación de DRF
   if (Array.isArray(data)) return data
-  if (data && Array.isArray((data as any).results)) return (data as any).results
+  if (data && 'results' in data) return data.results
   return []
 }
 
@@ -32,9 +38,9 @@ const cancel = async (id: number | string) => {
 }
 
 const reschedule = async (id: number | string, fecha_hora: string) => {
-  const { data } = await apiClient.post<AppointmentSummary>(endpoints.appointments.reschedule(id), {
-    fecha_hora,
-  })
+  // Definimos el objeto payload explícitamente para asegurar el formato JSON correcto
+  const payload: ReschedulePayload = { fecha_hora }
+  const { data } = await apiClient.post<AppointmentSummary>(endpoints.appointments.reschedule(id), payload)
   return data
 }
 
@@ -42,24 +48,14 @@ const services = async () => {
   const { data } = await apiClient.get<ServiceItem[] | { results: ServiceItem[] }>(
     endpoints.appointments.services(),
   )
-
-  if (Array.isArray(data)) {
-    return data
-  }
-
-  if (data && Array.isArray((data as any).results)) {
-    return (data as any).results as ServiceItem[]
-  }
-
+  if (Array.isArray(data)) return data
+  if (data && 'results' in data) return data.results as ServiceItem[]
   return []
 }
 
 const availability = async (veterinarioId: number | string, fecha: string) => {
   const { data } = await apiClient.get<AvailabilityResponse>(endpoints.appointments.availability(), {
-    params: {
-      veterinario_id: veterinarioId,
-      fecha,
-    },
+    params: { veterinario_id: veterinarioId, fecha },
   })
   return data.horarios_disponibles
 }
@@ -73,4 +69,3 @@ export const appointmentService = {
   services,
   availability,
 }
-
