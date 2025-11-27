@@ -19,7 +19,7 @@ export const PetsListPage = () => {
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="flex-1">
           <p className="text-label">Mascotas</p>
           <h1 className="text-3xl font-semibold text-heading">Catálogo de mascotas registradas</h1>
           <p className="text-description">
@@ -27,9 +27,11 @@ export const PetsListPage = () => {
           </p>
         </div>
         {canCreate && (
-          <Button startIcon={<PlusCircle size={18} />} asChild>
-            <Link to="/app/mascotas/nueva">Registrar mascota</Link>
-          </Button>
+          <div className="flex-shrink-0">
+            <Button startIcon={<PlusCircle size={18} />} asChild>
+              <Link to="/app/mascotas/nueva">Registrar mascota</Link>
+            </Button>
+          </div>
         )}
       </header>
 
