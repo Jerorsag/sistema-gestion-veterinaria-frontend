@@ -57,6 +57,7 @@ export const endpoints = {
     byPet: (petId: number | string) => withBase(`/historias-clinicas/mascota/${petId}/`)(),
     lastConsult: (id: number | string) => withBase(`/historias-clinicas/${id}/ultima-consulta/`)(),
     search: withBase('/historias-clinicas/buscar/'),
+    stats: withBase('/historias-clinicas/estadisticas/'),
   },
   consultations: {
     base: withBase('/consultas/'),

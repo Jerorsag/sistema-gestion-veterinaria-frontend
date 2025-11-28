@@ -53,11 +53,26 @@ const lastConsult = async (historyId: number | string) => {
   return data
 }
 
+const stats = async () => {
+  try {
+    const { data } = await apiClient.get<{ total: number }>(endpoints.histories.stats())
+    return data
+  } catch (error: any) {
+    // Si el endpoint no existe (404) o hay otro error, retornar null
+    // El dashboard usará el listado como respaldo
+    if (error?.response?.status === 404) {
+      return null
+    }
+    throw error
+  }
+}
+
 export const historyService = {
   list,
   detail,
   byPet,
   search,
   lastConsult,
+  stats,
 }
 

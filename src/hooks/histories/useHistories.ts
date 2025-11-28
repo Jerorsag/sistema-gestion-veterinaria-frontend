@@ -55,3 +55,15 @@ export const useLastConsultQuery = (historyId?: number | string) =>
     enabled: Boolean(historyId),
   })
 
+export const useHistoriesStatsQuery = () =>
+  useQuery({
+    queryKey: ['histories', 'stats'],
+    queryFn: async () => {
+      const result = await historyService.stats()
+      return result
+    },
+    retry: false, // No reintentar si el endpoint no existe
+    refetchOnWindowFocus: false,
+    throwOnError: false, // No lanzar error si el endpoint no existe
+  })
+
