@@ -30,6 +30,8 @@ import { InventoryCreatePage } from '@/pages/inventory/InventoryCreatePage'
 import { InventoryDetailPage } from '@/pages/inventory/InventoryDetailPage'
 import { InventoryKardexPage } from '@/pages/inventory/InventoryKardexPage'
 import { KardexMovementCreatePage } from '@/pages/inventory/KardexMovementCreatePage'
+import { InvoicesListPage } from '@/pages/billing/InvoicesListPage'
+import { InvoiceDetailPage } from '@/pages/billing/InvoiceDetailPage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
 
@@ -140,6 +142,14 @@ const router = createBrowserRouter([
             <InventoryDetailPage />
           </RoleGuard>
         ),
+      },
+      {
+        path: 'facturacion',
+        element: <InvoicesListPage />,
+      },
+      {
+        path: 'facturacion/:id',
+        element: <InvoiceDetailPage />,
       },
     ],
   },
