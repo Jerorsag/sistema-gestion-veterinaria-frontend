@@ -38,6 +38,24 @@ export interface InvoiceCreatePayload {
   detalles: Omit<InvoiceDetail, 'id' | 'subtotal'>[]
 }
 
+export interface InvoiceCreateFromProductsPayload {
+  cliente_id: number
+  productos: Array<{
+    producto_id: number
+    cantidad: number
+  }>
+}
+
+export interface InvoiceDuplicateError {
+  detail?: string
+  factura_existente?: {
+    id: number
+    numero_factura?: string
+    estado?: InvoiceStatus
+  }
+  mensaje?: string
+}
+
 export interface InvoiceSummary {
   id: number
   estado: InvoiceStatus

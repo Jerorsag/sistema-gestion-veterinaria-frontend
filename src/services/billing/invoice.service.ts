@@ -3,6 +3,7 @@ import { endpoints } from '@/api/endpoints'
 import type {
   Invoice,
   InvoiceCreatePayload,
+  InvoiceCreateFromProductsPayload,
   InvoiceListResponse,
   PaymentInvoicePayload,
 } from '@/api/types/billing'
@@ -83,6 +84,11 @@ const createFromConsultation = async (consultationId: number | string): Promise<
   return data
 }
 
+const createFromProducts = async (payload: InvoiceCreateFromProductsPayload): Promise<Invoice> => {
+  const { data } = await apiClient.post<Invoice>(endpoints.billing.createFromProducts(), payload)
+  return data
+}
+
 const pay = async (
   invoiceId: number | string,
   payload: PaymentInvoicePayload,
@@ -110,6 +116,7 @@ export const invoiceService = {
   create,
   createFromAppointment,
   createFromConsultation,
+  createFromProducts,
   pay,
   cancel,
   sendEmail,

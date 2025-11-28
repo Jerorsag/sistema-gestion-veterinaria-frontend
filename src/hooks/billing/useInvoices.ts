@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { invoiceService } from '@/services/billing/invoice.service'
-import type { Invoice, InvoiceCreatePayload, PaymentInvoicePayload } from '@/api/types/billing'
+import type { Invoice, InvoiceCreatePayload, InvoiceCreateFromProductsPayload, InvoiceDuplicateError, PaymentInvoicePayload } from '@/api/types/billing'
 
 interface InvoiceFilters {
   search?: string
@@ -60,7 +60,19 @@ export const useInvoiceCreateFromAppointmentMutation = () => {
       toast.success('Factura creada desde cita correctamente')
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.detail || 'Error al crear factura desde cita')
+      const errorData = error?.response?.data as InvoiceDuplicateError | undefined
+      
+      if (errorData?.factura_existente) {
+        const facturaId = errorData.factura_existente.id
+        const mensaje = errorData.detail || errorData.mensaje || 'Ya existe una factura para esta cita'
+        toast.error(`Ya existe una factura para esta cita (Factura #${facturaId}). Redirigiendo...`, { duration: 4000 })
+        // Redirigir a la factura existente después de un breve delay
+        setTimeout(() => {
+          window.location.href = `/app/facturacion/${facturaId}`
+        }, 2000)
+      } else {
+        toast.error(errorData?.detail || errorData?.mensaje || 'Error al crear factura desde cita')
+      }
     },
   })
 }
@@ -75,7 +87,36 @@ export const useInvoiceCreateFromConsultationMutation = () => {
       toast.success('Factura creada desde consulta correctamente')
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.detail || 'Error al crear factura desde consulta')
+      const errorData = error?.response?.data as InvoiceDuplicateError | undefined
+      
+      if (errorData?.factura_existente) {
+        const facturaId = errorData.factura_existente.id
+        const mensaje = errorData.detail || errorData.mensaje || 'Ya existe una factura para esta consulta'
+        toast.error(`Ya existe una factura para esta consulta (Factura #${facturaId}). Redirigiendo...`, { duration: 4000 })
+        // Redirigir a la factura existente después de un breve delay
+        setTimeout(() => {
+          window.location.href = `/app/facturacion/${facturaId}`
+        }, 2000)
+      } else {
+        toast.error(errorData?.detail || errorData?.mensaje || 'Error al crear factura desde consulta')
+      }
+    },
+  })
+}
+
+export const useInvoiceCreateFromProductsMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: InvoiceCreateFromProductsPayload) => invoiceService.createFromProducts(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() })
+      queryClient.invalidateQueries({ queryKey: ['products'] }) // Invalidar productos para actualizar stock
+      toast.success('Factura creada desde productos correctamente')
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.detail || error?.response?.data?.mensaje || 'Error al crear factura desde productos'
+      toast.error(errorMessage)
     },
   })
 }

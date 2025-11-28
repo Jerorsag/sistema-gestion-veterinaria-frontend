@@ -78,6 +78,7 @@ export const endpoints = {
     invoiceDetail: (id: number | string) => withBase(`/facturas/${id}/`)(),
     createFromAppointment: (appointmentId: number | string) => withBase(`/facturas/crear-desde-cita/${appointmentId}/`)(),
     createFromConsultation: (consultationId: number | string) => withBase(`/facturas/crear-desde-consulta/${consultationId}/`)(),
+    createFromProducts: withBase('/facturas/crear-desde-productos/'),
     payInvoice: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/pagar/`)(),
     cancelInvoice: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/anular/`)(),
     sendInvoiceEmail: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/enviar-email/`)(),
