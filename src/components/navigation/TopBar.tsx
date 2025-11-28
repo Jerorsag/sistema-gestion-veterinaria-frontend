@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react'
-import { Menu, Search } from 'lucide-react'
-import clsx from 'clsx'
+import { Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useMemo } from 'react'
 import { useSessionStore } from '@/core/store/session-store'
 
-import { NotificationsDropdown } from './NotificationsDropdown'
 import { UserMenu } from './UserMenu'
 
 interface TopBarProps {
@@ -100,16 +98,6 @@ export const TopBar = ({ title, onToggleSidebar }: TopBarProps) => {
         </div>
 
       <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="hidden items-center gap-2 rounded-2xl bg-[var(--color-surface-200)] px-3 py-2 text-[var(--color-muted)] transition md:flex" style={{ boxShadow: 'var(--shadow-soft)' }}>
-        <Search size={16} />
-          <input
-            className={clsx(
-              'bg-transparent text-sm text-[var(--color-text-heading)] placeholder:text-[var(--color-muted)] focus:outline-none w-full min-w-[150px]',
-            )}
-            placeholder="Buscar módulo..."
-          />
-      </div>
-        <NotificationsDropdown />
         <UserMenu />
       </div>
     </header>

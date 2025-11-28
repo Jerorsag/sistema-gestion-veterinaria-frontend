@@ -23,6 +23,36 @@ export const DashboardLayout = () => {
       <div className="dashboard-main flex w-full flex-col flex-1 min-w-0 md:pl-[260px]">
         <TopBar onToggleSidebar={toggle} />
 
+        {/* Banner */}
+        <div className="w-full relative bg-base px-3 py-2 md:px-4 md:py-3">
+          <div className="w-full h-32 rounded-lg overflow-hidden relative" style={{ boxShadow: 'var(--shadow-soft)' }}>
+            <img 
+              src="/banner.png" 
+              alt="Banner SGV" 
+              className="absolute inset-0 w-full h-full"
+              style={{
+                imageRendering: 'auto',
+                imageRendering: '-webkit-optimize-contrast',
+                imageRendering: 'crisp-edges',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+                margin: 0,
+                padding: 0,
+              }}
+              loading="eager"
+              decoding="async"
+              onError={(e) => {
+                // Fallback si el banner no existe
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
+            />
+          </div>
+        </div>
+
         <main className="dashboard-content flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 py-4 md:px-4 md:py-6">
           <section className="min-h-[calc(100vh-180px)] rounded-[var(--radius-card)] bg-surface px-4 py-5 md:px-6 md:py-6" style={{ boxShadow: 'var(--shadow-card)' }}>
             <Outlet />
