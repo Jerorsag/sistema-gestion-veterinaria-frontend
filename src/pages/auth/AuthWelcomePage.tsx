@@ -5,8 +5,9 @@ import clsx from 'clsx'
 
 import { LoginForm } from './components/LoginForm'
 import { RegisterForm } from './components/RegisterForm'
+import { VerifyCodeForm } from './components/VerifyCodeForm'
 
-type ViewMode = 'welcome' | 'login' | 'register'
+type ViewMode = 'welcome' | 'login' | 'register' | 'verify'
 
 interface LoginFormData {
   username: string
@@ -44,6 +45,10 @@ export const AuthWelcomePage = () => {
     password: '',
     password_confirm: '',
   })
+  
+  // Estado para verificación de código
+  const [showVerifyCode, setShowVerifyCode] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState('')
 
   // En móvil, usar toggle directo sin hover
   const [isMobile, setIsMobile] = useState(false)
@@ -131,17 +136,23 @@ export const AuthWelcomePage = () => {
               <span>Iniciar sesión</span>
             </button>
             <button
-              onClick={() => setViewMode('register')}
+              onClick={() => {
+                if (showVerifyCode) {
+                  setViewMode('verify')
+                } else {
+                  setViewMode('register')
+                }
+              }}
               className={clsx(
                 'flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300',
-                viewMode === 'register'
+                (viewMode === 'register' || viewMode === 'verify')
                   ? 'bg-[var(--color-secondary)] text-white'
                   : 'text-[var(--color-text-secondary)]',
               )}
-              style={viewMode === 'register' ? { boxShadow: 'var(--shadow-orange)' } : {}}
+              style={(viewMode === 'register' || viewMode === 'verify') ? { boxShadow: 'var(--shadow-orange)' } : {}}
             >
               <UserPlus size={18} />
-              <span>Registrarse</span>
+              <span>{showVerifyCode ? 'Verificar' : 'Registrarse'}</span>
             </button>
           </div>
 
@@ -162,7 +173,7 @@ export const AuthWelcomePage = () => {
                   />
                 </motion.div>
               )}
-              {viewMode === 'register' && (
+              {viewMode === 'register' && !showVerifyCode && (
                 <motion.div
                   key="register"
                   initial={{ opacity: 0 }}
@@ -173,6 +184,32 @@ export const AuthWelcomePage = () => {
                   <RegisterForm 
                     initialData={registerFormData as RegisterFormData}
                     onDataChange={(data) => setRegisterFormData(data)}
+                    onRegisterSuccess={(email) => {
+                      setVerificationEmail(email)
+                      setShowVerifyCode(true)
+                      setViewMode('verify')
+                    }}
+                  />
+                </motion.div>
+              )}
+              {(viewMode === 'verify' || showVerifyCode) && (
+                <motion.div
+                  key="verify"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                  <VerifyCodeForm
+                    email={verificationEmail}
+                    onBack={() => {
+                      setShowVerifyCode(false)
+                      setViewMode('register')
+                    }}
+                    onSuccess={() => {
+                      setShowVerifyCode(false)
+                      setViewMode('login')
+                    }}
                   />
                 </motion.div>
               )}
@@ -304,10 +341,30 @@ export const AuthWelcomePage = () => {
                     e.stopPropagation()
                   }}
                 >
-                  <RegisterForm 
-                    initialData={registerFormData as RegisterFormData}
-                    onDataChange={(data) => setRegisterFormData(data)}
-                  />
+                  {showVerifyCode ? (
+                    <VerifyCodeForm
+                      email={verificationEmail}
+                      onBack={() => {
+                        setShowVerifyCode(false)
+                        setHoveredSide('right')
+                      }}
+                      onSuccess={() => {
+                        setShowVerifyCode(false)
+                        setHoveredSide(null)
+                        setViewMode('login')
+                      }}
+                    />
+                  ) : (
+                    <RegisterForm 
+                      initialData={registerFormData as RegisterFormData}
+                      onDataChange={(data) => setRegisterFormData(data)}
+                      onRegisterSuccess={(email) => {
+                        setVerificationEmail(email)
+                        setShowVerifyCode(true)
+                        setHoveredSide('right')
+                      }}
+                    />
+                  )}
                 </motion.div>
               ) : (
                 <motion.div

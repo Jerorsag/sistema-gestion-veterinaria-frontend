@@ -8,6 +8,7 @@ import { UserPlus, Mail, Lock, User, Phone, MapPin, Eye, EyeOff } from 'lucide-r
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useRegisterStepMutation } from '@/hooks/auth'
+import type { RegisterStepOnePayload } from '@/api/types/auth'
 
 const registerSchema = z
   .object({
@@ -30,9 +31,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 interface RegisterFormProps {
   initialData?: RegisterFormValues
   onDataChange?: (data: RegisterFormValues) => void
+  onRegisterSuccess?: (email: string) => void
 }
 
-export const RegisterForm = ({ initialData, onDataChange }: RegisterFormProps = {}) => {
+export const RegisterForm = ({ initialData, onDataChange, onRegisterSuccess }: RegisterFormProps = {}) => {
   const navigate = useNavigate()
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -99,8 +101,34 @@ export const RegisterForm = ({ initialData, onDataChange }: RegisterFormProps = 
   }, [watchedValues, onDataChange])
 
   const onSubmit = async (values: RegisterFormValues) => {
-    await mutation.mutateAsync(values)
-    navigate(`/auth/register/verify?email=${encodeURIComponent(values.email)}`)
+    try {
+      // Preparar payload: limpiar datos y siempre incluir campos opcionales (pueden ser strings vacíos)
+      const payload: RegisterStepOnePayload = {
+        username: values.username.trim(),
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+        password_confirm: values.password_confirm,
+        nombre: values.nombre.trim(),
+        apellido: values.apellido.trim(),
+        // Siempre incluir campos opcionales (string vacío si no tienen valor)
+        telefono: values.telefono?.trim() || '',
+        direccion: values.direccion?.trim() || '',
+      }
+      
+      // Log para debug
+      console.log('Enviando payload de registro:', JSON.stringify(payload, null, 2))
+      
+      await mutation.mutateAsync(payload)
+      // Si hay callback, usarlo; si no, navegar a la página de verificación
+      if (onRegisterSuccess) {
+        onRegisterSuccess(values.email.trim().toLowerCase())
+      } else {
+        navigate(`/auth/register/verify?email=${encodeURIComponent(values.email.trim().toLowerCase())}`)
+      }
+    } catch (error) {
+      console.error('Error en registro:', error)
+      // El error ya está manejado por la mutación, pero logueamos aquí para debug
+    }
   }
 
   return (
