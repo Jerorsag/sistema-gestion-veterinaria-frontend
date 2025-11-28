@@ -27,8 +27,23 @@ export const Sidebar = ({ items, isOpen, onNavigate }: SidebarProps) => (
     }}
   >
     <div className="mb-8 flex items-center gap-3 px-2">
-      <div className="h-10 w-10 rounded-2xl bg-[var(--color-primary)] text-white flex items-center justify-center font-black tracking-tight">
-        SGV
+      <div className="h-16 w-16 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center bg-transparent">
+        <img 
+          src="/logo.png" 
+          alt="SGV Logo" 
+          className="h-full w-full object-cover object-center scale-110"
+          style={{
+            imageRendering: 'crisp-edges',
+            imageRendering: '-webkit-optimize-contrast',
+            padding: 0,
+            margin: 0,
+          }}
+          onError={(e) => {
+            // Fallback si el logo no existe
+            const target = e.target as HTMLImageElement
+            target.style.display = 'none'
+          }}
+        />
       </div>
       <div>
         <p className="text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-muted)]">Sistema</p>

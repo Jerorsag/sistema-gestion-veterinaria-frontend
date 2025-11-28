@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { TodayAppointments } from '@/components/dashboard/TodayAppointments'
 import { useSessionStore } from '@/core/store/session-store'
 import { usePermissions } from '@/hooks/permissions'
 import { usePetsQuery } from '@/hooks/pets'
@@ -31,7 +32,7 @@ export const DashboardHome = () => {
   // Normalizar datos de usuarios
   const users = Array.isArray(usersData) ? usersData : (usersData as UserListResponse)?.results ?? []
 
-  // Filtrar citas de hoy
+  // Filtrar citas de hoy (para estadísticas)
   const todayAppointments = useMemo(() => {
     if (!appointments || appointments.length === 0) return []
     const today = dayjs().startOf('day')
@@ -281,7 +282,7 @@ export const DashboardHome = () => {
           Bienvenido, {user?.nombre_completo || 'Usuario'}
         </h1>
         <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-          Panel de {roleLabels[primaryRole]} • {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
@@ -476,67 +477,17 @@ export const DashboardHome = () => {
         </>
       )}
 
-      {/* Solo para administrador: Actualizaciones recientes y agenda */}
+      {/* Citas de hoy - Para administrador, veterinario y usuario/cliente */}
+      {(isAdmin || userRoles.includes('veterinario') || userRoles.includes('cliente')) && (
+        <TodayAppointments />
+      )}
+
+      {/* Solo para administrador: Actualizaciones recientes */}
       {isAdmin && (
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Actualizaciones recientes y agenda de hoy */}
+          {/* Actualizaciones recientes */}
           <div className="space-y-6">
-            {/* Agenda de hoy */}
-            <Card
-              className="transition-shadow duration-500"
-              style={{
-                transition: 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
-              }}
-              header={
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Agenda</p>
-                  <h3 className="mt-2 text-xl font-semibold text-[var(--color-text-heading)]">Citas de hoy</h3>
-                </div>
-              }
-            >
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {appointmentsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Spinner size="sm" />
-                  </div>
-                ) : todayAppointments.length > 0 ? (
-                  todayAppointments.slice(0, 5).map((app: AppointmentSummary) => (
-                    <Link
-                      key={app.id}
-                      to={`/app/citas/${app.id}`}
-                      className="flex items-center gap-3 rounded-lg bg-[var(--color-surface-200)] p-3 transition-all duration-200 hover:bg-[var(--color-surface-200)]/80"
-                    >
-                      <div className="rounded-lg bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
-                        <Clock size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[var(--color-text-heading)] truncate">
-                          {app.mascota_nombre}
-                        </p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">
-                          {formatDateTime(app.fecha_hora)}
-                        </p>
-                      </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-surface)] text-[var(--color-text-secondary)]">
-                        {app.estado}
-                      </span>
-                    </Link>
-                  ))
-                ) : (
-                  <p className="text-sm text-center text-[var(--color-text-muted)] py-8">
-                    No hay citas programadas para hoy
-                  </p>
-                )}
-              </div>
-            </Card>
 
-            {/* Actualizaciones recientes */}
             <Card
               className="transition-shadow duration-500"
               style={{
