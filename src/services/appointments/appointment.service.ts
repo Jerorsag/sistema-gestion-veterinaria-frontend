@@ -1,18 +1,8 @@
 import { apiClient } from '@/api/httpClient'
 import { endpoints } from '@/api/endpoints'
-import type {
-  AppointmentPayload,
-  AppointmentSummary,
-  AvailabilityResponse,
-  ServiceItem,
-} from '@/api/types/appointments'
+import type { AppointmentSummary, AppointmentPayload, ReagendarPayload, AvailabilityResponse, ServiceItem } from '@/api/types/appointments'
 
-// Tipado para el payload de reagendar
-interface ReschedulePayload {
-  fecha_hora: string;
-}
-
-const list = async () => {
+const list = async (): Promise<AppointmentSummary[]> => {
   const { data } = await apiClient.get<AppointmentSummary[] | { results: AppointmentSummary[] }>(
     endpoints.appointments.base(),
   )
@@ -38,18 +28,18 @@ const cancel = async (id: number | string) => {
 }
 
 const reschedule = async (id: number | string, fecha_hora: string) => {
-  // Definimos el objeto payload explícitamente para asegurar el formato JSON correcto
   const payload: ReschedulePayload = { fecha_hora }
   const { data } = await apiClient.post<AppointmentSummary>(endpoints.appointments.reschedule(id), payload)
   return data
 }
 
-const services = async () => {
-  const { data } = await apiClient.get<ServiceItem[] | { results: ServiceItem[] }>(
-    endpoints.appointments.services(),
-  )
+const services = async (): Promise<ServiceItem[]> => {
+  const { data } = await apiClient.get<ServiceItem[] | { results: ServiceItem[] }>(endpoints.appointments.services())
+  // Normalizar respuesta: puede ser array directo o objeto con results
   if (Array.isArray(data)) return data
-  if (data && 'results' in data) return data.results as ServiceItem[]
+  if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+    return data.results
+  }
   return []
 }
 
@@ -64,7 +54,6 @@ const availableForInvoice = async () => {
   const { data } = await apiClient.get<AppointmentSummary[] | { results: AppointmentSummary[] }>(
     endpoints.appointments.availableForInvoice(),
   )
-  // Verificación más segura de TS para paginación de DRF
   if (Array.isArray(data)) return data
   if (data && 'results' in data) return data.results
   return []

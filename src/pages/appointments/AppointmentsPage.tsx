@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, PlusCircle, Stethoscope } from 'lucide-react'
+import { CalendarDays, PlusCircle, Stethoscope, Clock, User, Scissors } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { Badge } from '@/components/ui/Badge'
 import { useAppointmentsQuery } from '@/hooks/appointments'
 import type { AppointmentSummary } from '@/api/types/appointments'
 import { formatDateTime } from '@/utils/datetime'
@@ -15,12 +15,21 @@ export const AppointmentsPage = () => {
   const canCreate = checkPermission('citas', 'canCreate')
   const canCreateConsulta = checkPermission('consultas', 'canCreate')
 
+  const getStatusBadgeTone = (estado: string): 'success' | 'info' | 'danger' | 'warning' | 'neutral' => {
+    const estadoUpper = estado.toUpperCase()
+    if (estadoUpper === 'COMPLETADA') return 'success'
+    if (estadoUpper === 'AGENDADA') return 'info'
+    if (estadoUpper === 'CANCELADA') return 'danger'
+    if (estadoUpper === 'EN_PROGRESO') return 'warning'
+    return 'neutral'
+  }
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-label">Citas</p>
-          <h1 className="text-3xl font-semibold text-heading">Agenda general</h1>
+          <h1 className="text-3xl font-semibold text-[var(--color-text-heading)]">Agenda general</h1>
           <p className="text-description">Visualiza las próximas citas y accede rápidamente a su detalle.</p>
         </div>
         {canCreate && (
@@ -30,87 +39,90 @@ export const AppointmentsPage = () => {
         )}
       </header>
 
-      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
+      <section>
         {isLoading ? (
-          <div className="flex justify-center py-10">
+          <div className="flex justify-center py-12">
             <Spinner size="lg" />
           </div>
         ) : data && data.length > 0 ? (
-          <div className="space-y-3">
-            {data.map((cita: AppointmentSummary) => (
-              <Card
-                key={cita.id}
-                className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
-                    <CalendarDays size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-heading">{cita.mascota_nombre}</h3>
-                    <p className="text-sm text-secondary">
-                      {formatDateTime(cita.fecha_hora)} · {cita.servicio_nombre ?? '—'}
-                    </p>
-                    <p className="text-xs text-tertiary">Veterinario: {cita.veterinario_nombre ?? 'Por asignar'}</p>
+          <div className="rounded-xl bg-white overflow-hidden shadow">
+            <div className="divide-y divide-gray-200">
+              {data.map((cita: AppointmentSummary) => (
+                <div
+                  key={cita.id}
+                  className="p-5 hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="rounded-xl bg-[var(--color-primary)]/10 p-2.5 text-[var(--color-primary)] flex-shrink-0">
+                        <CalendarDays size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">
+                          Cita {cita.id}
+                        </p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{cita.mascota_nombre}</h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm">
+                          <span className="flex items-center gap-1.5 text-gray-600">
+                            <Clock size={14} className="text-gray-500" />
+                            {formatDateTime(cita.fecha_hora)}
+                          </span>
+                          {cita.servicio_nombre && (
+                            <span className="flex items-center gap-1.5 text-gray-600">
+                              <Scissors size={14} className="text-gray-500" />
+                              {cita.servicio_nombre}
+                            </span>
+                          )}
+                          {cita.veterinario_nombre && (
+                            <span className="flex items-center gap-1.5 text-gray-600">
+                              <User size={14} className="text-gray-500" />
+                              {cita.veterinario_nombre}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-3 md:ml-6">
+                      <Badge tone={getStatusBadgeTone(cita.estado)}>
+                        {cita.estado}
+                      </Badge>
+                      <div className="flex items-center gap-2">
+                        {!['CANCELADA', 'COMPLETADA'].includes(cita.estado.toUpperCase()) && canCreateConsulta && (
+                          <Button 
+                            asChild 
+                            size="sm"
+                            startIcon={<Stethoscope size={16} />}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                            title="Generar Consulta"
+                          >
+                            <Link 
+                              to={`/app/consultas/nueva?mascota=${cita.mascota}&servicio=${cita.servicio}&cita=${cita.id}&nombre_servicio=${encodeURIComponent(cita.servicio_nombre || '')}`}
+                            >
+                              Atender
+                            </Link>
+                          </Button>
+                        )}
+                        <Button 
+                          asChild 
+                          variant="ghost" 
+                          size="sm"
+                          startIcon={<CalendarDays size={16} className="text-gray-700" />}
+                          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        >
+                          <Link to={`/app/citas/${cita.id}`}>Ver detalle</Link>
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {cita.estado === 'COMPLETADA' && (
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs uppercase tracking-wide text-green-800 border border-green-200">
-                      {cita.estado}
-                    </span>
-                  )}
-
-                  {cita.estado === 'AGENDADA' && (
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs uppercase tracking-wide text-blue-800 border border-blue-200">
-                      {cita.estado}
-                    </span>
-                  )}
-
-                  {cita.estado === 'CANCELADA' && (
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs uppercase tracking-wide text-red-800 border border-red-200">
-                      {cita.estado}
-                    </span>
-                  )}
-
-                  {cita.estado === 'EN_PROGRESO' && (
-                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs uppercase tracking-wide text-yellow-800 border border-yellow-200">
-                      {cita.estado}
-                    </span>
-                  )}
-
-                  {!['COMPLETADA', 'AGENDADA', 'CANCELADA', 'EN_PROGRESO'].includes(cita.estado) && (
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs uppercase tracking-wide text-gray-800 border border-gray-200">
-                      {cita.estado}
-                    </span>
-                  )}
-
-                  {!['CANCELADA', 'COMPLETADA'].includes(cita.estado.toUpperCase()) && canCreateConsulta && (
-                    <Button 
-                      asChild 
-                      variant="ghost" 
-                      className="text-blue-600 border border-blue-200 hover:bg-blue-50"
-                      title="Generar Consulta"
-                    >
-                      <Link 
-                        to={`/app/consultas/nueva?mascota=${cita.mascota}&servicio=${cita.servicio}&cita=${cita.id}&nombre_servicio=${encodeURIComponent(cita.servicio_nombre || '')}`}
-                      >
-                        <Stethoscope size={16} className="mr-2"/>
-                        Atender
-                      </Link>
-                    </Button>
-                  )}
-              
-                  <Button asChild variant="ghost">
-                    <Link to={`/app/citas/${cita.id}`}>Ver detalle</Link>
-                  </Button>
-                </div>
-              </Card>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
-            No hay citas registradas por ahora.
+          <div className="rounded-xl border border-dashed border-[var(--border-subtle-color)] bg-[var(--color-surface-200)]/30 px-6 py-12 text-center">
+            <CalendarDays size={48} className="mx-auto mb-4 text-[var(--color-text-muted)] opacity-40" />
+            <p className="text-[var(--color-text-secondary)] font-medium">No hay citas registradas</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Haz clic en "Nueva cita" para agendar la primera.</p>
           </div>
         )}
       </section>
