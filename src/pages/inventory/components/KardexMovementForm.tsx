@@ -75,15 +75,11 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm text-primary">
-            <span>Tipo de movimiento *</span>
+          <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+            <span className="font-medium">Tipo de movimiento *</span>
             <select
               {...register('tipo', { valueAsNumber: false })}
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary transition-colors hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-              style={{
-                borderWidth: 'var(--border-subtle-width)',
-                borderStyle: 'var(--border-subtle-style)',
-              }}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
             >
               <option value="entrada">Entrada</option>
               <option value="salida">Salida</option>
@@ -91,20 +87,16 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
             {errors.tipo && <p className="text-xs text-red-600">{errors.tipo.message}</p>}
           </label>
 
-          <label className="space-y-2 text-sm text-primary">
-            <span>Producto *</span>
+          <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+            <span className="font-medium">Producto *</span>
             {loadingProducts ? (
-              <div className="flex items-center justify-center rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
+              <div className="flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5">
                 <Spinner size="sm" />
               </div>
             ) : (
             <select
               {...register('producto')}
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary transition-colors hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-              style={{
-                borderWidth: 'var(--border-subtle-width)',
-                borderStyle: 'var(--border-subtle-style)',
-              }}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
             >
                 <option value="">Selecciona un producto</option>
                 {products
@@ -123,12 +115,12 @@ export const KardexMovementForm = ({ onSubmit, isLoading = false, defaultValues 
         {selectedProduct && (
           <div className="rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] p-4" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-emerald-500/15 p-2 text-emerald-300">
+              <div className="rounded-xl bg-gray-100 p-2 text-gray-700">
                 <PackageSearch size={18} />
               </div>
                 <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium text-heading">{selectedProduct.nombre}</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-tertiary">
+                  <p className="text-sm font-medium text-gray-900">{selectedProduct.nombre}</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                   <span>Stock actual: {selectedProduct.stock_actual}</span>
                   <span>Stock mínimo: {selectedProduct.stock_minimo}</span>
                   {selectedProduct.codigo_interno && <span>Código: {selectedProduct.codigo_interno}</span>}

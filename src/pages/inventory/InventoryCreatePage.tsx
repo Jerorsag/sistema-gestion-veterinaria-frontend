@@ -12,7 +12,7 @@ export const InventoryCreatePage = () => (
         <h1 className="text-3xl font-semibold text-heading">Registrar producto</h1>
         <p className="text-description">Define el stock mínimo, precios y códigos de referencia.</p>
       </div>
-      <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} />}>
+      <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} className="text-gray-700" />}>
         <Link to="/app/inventario">Volver</Link>
       </Button>
     </div>
