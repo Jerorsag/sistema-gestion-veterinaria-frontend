@@ -1,16 +1,18 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, DollarSign, FileText, Mail, X, CheckCircle, Calendar, User, Package, ClipboardList, CreditCard, Clock, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, DollarSign, FileText, Mail, X, CheckCircle, Calendar, User, Package, ClipboardList, CreditCard, Clock, CheckCircle2, Receipt, Printer } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
 import {
   useInvoiceDetailQuery,
   useInvoicePayMutation,
   useInvoiceCancelMutation,
   useInvoiceSendEmailMutation,
   usePaymentMethodsQuery,
+  useInvoiceReceiptQuery,
 } from '@/hooks/billing'
 import { useUserDetailQuery } from '@/hooks/users'
 import { formatDateTime } from '@/utils/datetime'
@@ -21,6 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import type { PaymentInvoicePayload } from '@/api/types/billing'
+import { useDisclosure } from '@/hooks/useDisclosure'
 
 const paymentSchema = z.object({
   metodo_pago: z.number().min(1, 'Selecciona un método de pago'),
@@ -47,6 +50,8 @@ export const InvoiceDetailPage = () => {
   const sendEmailMutation = useInvoiceSendEmailMutation()
 
   const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const receiptModal = useDisclosure()
+  const { data: receiptData, isLoading: receiptLoading } = useInvoiceReceiptQuery(receiptModal.isOpen ? id : undefined)
 
   const {
     register,
@@ -612,7 +617,15 @@ export const InvoiceDetailPage = () => {
 
           {/* Acciones */}
           <Card>
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                variant="secondary"
+                className="px-6 py-2.5 text-sm font-medium"
+                startIcon={<Receipt size={18} className="text-black" />}
+                onClick={receiptModal.open}
+              >
+                Ver recibo
+              </Button>
               <Button
                 variant="secondary"
                 className="px-6 py-2.5 text-sm font-medium"
@@ -626,6 +639,291 @@ export const InvoiceDetailPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Modal de Recibo */}
+      <Modal isOpen={receiptModal.isOpen} onClose={receiptModal.close} title="Recibo de Factura" size="lg">
+        {receiptLoading ? (
+          <div className="flex justify-center py-10">
+            <Spinner size="lg" />
+          </div>
+        ) : receiptData ? (
+          <>
+            {/* Vista normal del recibo */}
+            <div className="space-y-6 receipt-view">
+              {/* Encabezado del recibo */}
+              <div className="text-center border-b pb-4" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                <h3 className="text-2xl font-bold text-[var(--color-text-heading)]">Recibo de Factura</h3>
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">{receiptData.numero_factura}</p>
+                <Badge tone={receiptData.estado === 'PAGADA' ? 'success' : receiptData.estado === 'ANULADA' ? 'info' : 'warning'} className="mt-2">
+                  {receiptData.estado}
+                </Badge>
+              </div>
+
+            {/* Información del cliente */}
+            <div>
+              <h4 className="font-semibold text-[var(--color-text-heading)] mb-2">Cliente</h4>
+              <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+                <p><span className="font-medium">Nombre:</span> {receiptData.cliente.nombre_completo}</p>
+                <p><span className="font-medium">Email:</span> {receiptData.cliente.email}</p>
+                <p><span className="font-medium">Usuario:</span> {receiptData.cliente.username}</p>
+              </div>
+            </div>
+
+            {/* Fecha */}
+            <div>
+              <p className="text-sm text-[var(--color-text-muted)]">
+                <span className="font-medium">Fecha de emisión:</span> {formatDateTime(receiptData.fecha_emision)}
+              </p>
+            </div>
+
+            {/* Detalles */}
+            <div>
+              <h4 className="font-semibold text-[var(--color-text-heading)] mb-3">Detalles</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)]">Descripción</th>
+                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Cantidad</th>
+                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Precio Unit.</th>
+                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {receiptData.detalles.map((detalle) => {
+                      return (
+                        <tr key={detalle.id} className="border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                          <td className="px-3 py-2 text-[var(--color-text-secondary)]">
+                            <div>{detalle.descripcion}</div>
+                            {(detalle.producto_nombre || detalle.servicio_nombre) && (
+                              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                                {detalle.producto_nombre || detalle.servicio_nombre}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right">{detalle.cantidad}</td>
+                          <td className="px-3 py-2 text-right">
+                            ${detalle.precio_unitario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium">
+                            ${detalle.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Totales */}
+            <div className="border-t pt-4 space-y-2" style={{ borderColor: 'var(--border-subtle-color)' }}>
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--color-text-secondary)]">Subtotal:</span>
+                <span className="font-semibold text-[var(--color-text-heading)]">
+                  ${receiptData.totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--color-text-secondary)]">Impuestos:</span>
+                <span className="font-semibold text-[var(--color-text-heading)]">
+                  ${receiptData.totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between text-base pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                <span className="font-bold text-[var(--color-text-heading)]">Total:</span>
+                <span className="text-xl font-bold text-[var(--color-primary)]">
+                  ${receiptData.totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            
+            {/* Total pagado */}
+            {receiptData.total_pagado > 0 && (
+              <div className="flex justify-between text-sm pt-2">
+                <span className="text-[var(--color-text-secondary)]">Total pagado:</span>
+                <span className="font-semibold text-emerald-600">
+                  ${receiptData.total_pagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            )}
+
+            {/* Vínculos */}
+            {(receiptData.vinculos.cita_id || receiptData.vinculos.consulta_id) && (
+              <div>
+                <h4 className="font-semibold text-[var(--color-text-heading)] mb-2">Vínculos</h4>
+                <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+                  {receiptData.vinculos.cita_id && (
+                    <p>
+                      <span className="font-medium">Cita:</span>{' '}
+                      <Link
+                        to={`/app/citas/${receiptData.vinculos.cita_id}`}
+                        className="text-[var(--color-primary)] hover:underline"
+                        onClick={receiptModal.close}
+                      >
+                        Ver cita #{receiptData.vinculos.cita_id}
+                      </Link>
+                    </p>
+                  )}
+                  {receiptData.vinculos.consulta_id && (
+                    <p>
+                      <span className="font-medium">Consulta:</span>{' '}
+                      <Link
+                        to={`/app/consultas/${receiptData.vinculos.consulta_id}`}
+                        className="text-[var(--color-primary)] hover:underline"
+                        onClick={receiptModal.close}
+                      >
+                        Ver consulta #{receiptData.vinculos.consulta_id}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Pagos realizados */}
+            {receiptData.pagos && receiptData.pagos.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-[var(--color-text-heading)] mb-3">Pagos realizados</h4>
+                <div className="space-y-2">
+                  {receiptData.pagos.map((pago: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center p-3 rounded-lg bg-[var(--color-surface-200)] text-sm"
+                    >
+                      <div>
+                        <p className="font-medium text-[var(--color-text-heading)]">
+                          ${(typeof pago.monto === 'number' ? pago.monto : Number(pago.monto || 0)).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        {pago.fecha && (
+                          <p className="text-xs text-[var(--color-text-muted)]">
+                            {pago.metodo_pago || 'Método de pago'} • {formatDateTime(pago.fecha)}
+                          </p>
+                        )}
+                      </div>
+                      {pago.aprobado ? (
+                        <Badge tone="success">Aprobado</Badge>
+                      ) : (
+                        <Badge tone="warning">Pendiente</Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Saldo pendiente */}
+            {receiptData.saldo_pendiente > 0 && (
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm font-medium text-amber-800">
+                  Saldo pendiente: ${receiptData.saldo_pendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+
+              {/* Botón de imprimir */}
+              <div className="flex justify-center pt-4 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                <Button
+                  variant="secondary"
+                  startIcon={<Printer size={18} className="text-black" />}
+                  onClick={() => window.print()}
+                >
+                  Imprimir recibo
+                </Button>
+              </div>
+            </div>
+
+            {/* Vista de impresión simplificada - Solo visible al imprimir */}
+            <div className="receipt-print">
+              <style>{`
+                @media print {
+                  body * {
+                    visibility: hidden !important;
+                  }
+                  .receipt-print,
+                  .receipt-print * {
+                    visibility: visible !important;
+                  }
+                  .receipt-print {
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 100% !important;
+                    padding: 40px !important;
+                    background: white !important;
+                  }
+                  .receipt-view {
+                    display: none !important;
+                  }
+                  @page {
+                    size: A4;
+                    margin: 1cm;
+                  }
+                }
+                @media screen {
+                  .receipt-print {
+                    display: none !important;
+                  }
+                }
+              `}</style>
+              <div className="max-w-2xl mx-auto">
+                {/* Encabezado */}
+                <div className="text-center mb-6 pb-4 border-b-2 border-gray-800">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">RECIBO DE FACTURA</h1>
+                  <p className="text-lg font-semibold text-gray-700">{receiptData.numero_factura}</p>
+                  <p className="text-sm text-gray-600 mt-1">{formatDateTime(receiptData.fecha_emision)}</p>
+                </div>
+
+                {/* Información del cliente */}
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">CLIENTE</h2>
+                  <div className="space-y-1 text-gray-700">
+                    <p><strong>Nombre:</strong> {receiptData.cliente.nombre_completo}</p>
+                    <p><strong>Email:</strong> {receiptData.cliente.email}</p>
+                  </div>
+                </div>
+
+                {/* Resumen de totales */}
+                <div className="border-2 border-gray-800 p-4 mb-4">
+                  <div className="flex justify-between text-lg mb-2">
+                    <span className="font-semibold">Subtotal:</span>
+                    <span className="font-bold">${receiptData.totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-lg mb-2">
+                    <span className="font-semibold">Impuestos:</span>
+                    <span className="font-bold">${receiptData.totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-2xl font-bold pt-2 border-t-2 border-gray-800">
+                    <span>TOTAL:</span>
+                    <span>${receiptData.totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+
+                {/* Estado y saldo */}
+                <div className="text-center space-y-2">
+                  <p className="text-lg font-semibold text-gray-700">
+                    Estado: <span className="font-bold">{receiptData.estado}</span>
+                  </p>
+                  {receiptData.total_pagado > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Pagado: ${receiptData.total_pagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  )}
+                  {receiptData.saldo_pendiente > 0 && (
+                    <p className="text-lg font-bold text-red-600">
+                      Saldo pendiente: ${receiptData.saldo_pendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-[var(--color-text-muted)]">No se pudo cargar el recibo</p>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
