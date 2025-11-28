@@ -2,6 +2,7 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { PlusCircle, X, Pill, FileText, Syringe, Calendar, PawPrint, Info } from 'lucide-react'
 
 import { Input } from '@/components/ui/Input'
@@ -144,6 +145,14 @@ export const ConsultationForm = () => {
 
   const mutation = useConsultationCreateMutation()
 
+  // Limpiar vacunas_descripcion cuando el estado es AL_DIA o NINGUNA
+  const estadoVacunas = form.watch('vacunas.estado')
+  useEffect(() => {
+    if (estadoVacunas === 'AL_DIA' || estadoVacunas === 'NINGUNA') {
+      form.setValue('vacunas.vacunas_descripcion', '')
+    }
+  }, [estadoVacunas, form])
+
   const onSubmit = async (values: FormValues) => {
     await mutation.mutateAsync({
       mascota: Number(values.mascota),
@@ -167,7 +176,9 @@ export const ConsultationForm = () => {
       
       vacunas: values.vacunas?.estado ? {
         estado: values.vacunas.estado,
-        vacunas_descripcion: values.vacunas.vacunas_descripcion || '',
+        vacunas_descripcion: (values.vacunas.estado === 'AL_DIA' || values.vacunas.estado === 'NINGUNA') 
+          ? '' 
+          : (values.vacunas.vacunas_descripcion || ''),
       } : undefined,
     } as any)
     
