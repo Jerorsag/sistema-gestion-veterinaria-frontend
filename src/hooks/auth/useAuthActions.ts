@@ -9,9 +9,30 @@ import { useSessionStore } from '@/core/store/session-store'
 const getErrorMessage = (error: AxiosError<any>) => {
   if (error.response?.data) {
     const data = error.response.data as Record<string, unknown>
+    
+    // Mostrar errores de campos específicos
+    const fieldErrors: string[] = []
+    Object.keys(data).forEach((key) => {
+      if (key !== 'detail' && key !== 'message' && key !== 'non_field_errors') {
+        const value = data[key]
+        if (Array.isArray(value) && value.length > 0) {
+          fieldErrors.push(`${key}: ${value[0]}`)
+        } else if (typeof value === 'string') {
+          fieldErrors.push(`${key}: ${value}`)
+        }
+      }
+    })
+    
+    if (fieldErrors.length > 0) {
+      return fieldErrors.join(', ')
+    }
+    
     if (typeof data.detail === 'string') return data.detail
     if (typeof data.message === 'string') return data.message
     if (Array.isArray(data.non_field_errors) && data.non_field_errors[0]) return String(data.non_field_errors[0])
+    
+    // Log completo del error para debug
+    console.error('Error completo del backend:', JSON.stringify(data, null, 2))
   }
   return 'Ocurrió un error inesperado.'
 }
