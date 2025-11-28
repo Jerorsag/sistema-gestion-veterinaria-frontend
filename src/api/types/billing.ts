@@ -91,3 +91,66 @@ export interface PaymentListResponse {
   results?: Payment[]
 }
 
+export interface FinancialReport {
+  resumen: {
+    total_facturas: number
+    facturas_pagadas: number
+    facturas_pendientes: number
+    facturas_anuladas: number
+    ingresos_totales: number
+    ingresos_mes_actual: number
+    ingresos_semana_actual: number
+    promedio_factura: number
+  }
+  por_estado: Array<{
+    estado: string
+    cantidad: number
+    total: number
+  }>
+  por_estado_mes_actual: Array<{
+    estado: string
+    cantidad: number
+    total: number
+  }>
+  periodo: {
+    mes_actual: string
+    fecha_consulta: string
+  }
+}
+
+export interface InvoiceReceipt {
+  factura_id: number
+  numero_factura: string
+  fecha_emision: string
+  estado: InvoiceStatus
+  cliente: {
+    id: number
+    nombre_completo: string
+    email: string
+    username: string
+  }
+  detalles: Array<{
+    id: number
+    descripcion: string
+    producto_id: number | null
+    producto_nombre: string | null
+    servicio_id: number | null
+    servicio_nombre: string | null
+    cantidad: number
+    precio_unitario: number
+    subtotal: number
+  }>
+  totales: {
+    subtotal: number
+    impuestos: number
+    total: number
+  }
+  pagos: Array<any> // Estructura específica según el backend
+  total_pagado: number
+  saldo_pendiente: number
+  vinculos: {
+    cita_id: number | null
+    consulta_id: number | null
+  }
+}
+

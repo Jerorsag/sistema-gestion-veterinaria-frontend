@@ -12,6 +12,7 @@ import { usePetsQuery } from '@/hooks/pets'
 import { useAppointmentsQuery } from '@/hooks/appointments'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { useUsersQuery } from '@/hooks/users'
+import { useFinancialReportsQuery } from '@/hooks/billing'
 import type { UserListResponse } from '@/api/types/users'
 import type { AppointmentSummary } from '@/api/types/appointments'
 import { formatDateTime } from '@/utils/datetime'
@@ -25,6 +26,7 @@ export const DashboardHome = () => {
   const { data: appointments, isLoading: appointmentsLoading } = useAppointmentsQuery()
   const { data: consultations, isLoading: consultationsLoading } = useConsultationsQuery({})
   const { data: usersData, isLoading: usersLoading } = useUsersQuery({})
+  const { data: financialReports, isLoading: reportsLoading } = useFinancialReportsQuery()
 
   // Normalizar datos de usuarios
   const users = Array.isArray(usersData) ? usersData : (usersData as UserListResponse)?.results ?? []
@@ -39,31 +41,42 @@ export const DashboardHome = () => {
     })
   }, [appointments])
 
-  // Simular datos de facturación (hasta que se implemente el módulo)
+  // Datos de facturación desde el backend
   const billingData = useMemo(() => {
-    // Simular datos para gráficas - reemplazar cuando exista el endpoint
-    const today = new Date()
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(today)
-      date.setDate(date.getDate() - (6 - i))
+    if (!financialReports?.resumen) {
       return {
-        date: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
-        amount: Math.floor(Math.random() * 500000) + 100000,
+        total: 0,
+        ingresosMes: 0,
+        ingresosSemana: 0,
+        promedio: 0,
+        growth: '0',
+        todayBilling: 0,
+        facturasPagadas: 0,
+        facturasPendientes: 0,
+        facturasAnuladas: 0,
       }
-    })
-    
-    const totalBilling = last7Days.reduce((sum, day) => sum + day.amount, 0)
-    const averageBilling = Math.floor(totalBilling / 7)
-    const growth = ((last7Days[6].amount - last7Days[0].amount) / last7Days[0].amount) * 100
+    }
+
+    const resumen = financialReports.resumen
+
+    // Calcular crecimiento (semana vs mes aproximado)
+    const crecimiento = resumen.ingresos_mes_actual > 0 
+      ? ((resumen.ingresos_semana_actual / (resumen.ingresos_mes_actual / 4)) - 1) * 100 
+      : 0
 
     return {
-      last7Days,
-      total: totalBilling,
-      average: averageBilling,
-      growth: growth.toFixed(1),
-      todayBilling: last7Days[6].amount,
+      total: resumen.ingresos_totales || 0,
+      ingresosMes: resumen.ingresos_mes_actual || 0,
+      ingresosSemana: resumen.ingresos_semana_actual || 0,
+      promedio: resumen.promedio_factura || 0,
+      growth: crecimiento.toFixed(1),
+      todayBilling: resumen.ingresos_semana_actual || 0,
+      facturasPagadas: resumen.facturas_pagadas || 0,
+      facturasPendientes: resumen.facturas_pendientes || 0,
+      facturasAnuladas: resumen.facturas_anuladas || 0,
     }
-  }, [])
+  }, [financialReports])
+
 
   // Generar actualizaciones recientes del sistema
   interface UpdateItem {
@@ -366,10 +379,10 @@ export const DashboardHome = () => {
         </div>
       </Card>
 
-      {/* Solo para administrador: Gráficas de facturación y actualizaciones */}
+      {/* Solo para administrador: Resumen financiero */}
       {isAdmin && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Gráficas de facturación */}
+        <>
+          {/* Resumen financiero */}
           <Card
             className="transition-shadow duration-500"
             style={{
@@ -388,54 +401,84 @@ export const DashboardHome = () => {
               </div>
             }
           >
-            <div className="space-y-6">
-              {/* Resumen rápido */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign size={18} className="text-green-500" />
-                    <span className="text-xs text-[var(--color-text-muted)]">Hoy</span>
-                  </div>
-                  <p className="text-2xl font-bold text-[var(--color-text-heading)]">
-                    ${billingData.todayBilling.toLocaleString('es-CO')}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp size={18} className="text-blue-500" />
-                    <span className="text-xs text-[var(--color-text-muted)]">Crecimiento</span>
-                  </div>
-                  <p className="text-2xl font-bold text-[var(--color-text-heading)]">
-                    {billingData.growth}%
-                  </p>
-                </div>
+            {reportsLoading ? (
+              <div className="flex justify-center py-10">
+                <Spinner size="lg" />
               </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Resumen rápido */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign size={18} className="text-green-500" />
+                      <span className="text-xs text-[var(--color-text-muted)]">Semana</span>
+                    </div>
+                    <p className="text-2xl font-bold text-[var(--color-text-heading)]">
+                      ${billingData.ingresosSemana.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-[var(--color-surface-200)] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp size={18} className="text-blue-500" />
+                      <span className="text-xs text-[var(--color-text-muted)]">Promedio</span>
+                    </div>
+                    <p className="text-2xl font-bold text-[var(--color-text-heading)]">
+                      ${billingData.promedio.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
 
-              {/* Gráfica simple de barras */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-[var(--color-text-heading)] mb-3">Últimos 7 días</p>
-                <div className="flex items-end justify-between gap-2 h-32">
-                  {billingData.last7Days.map((day, idx) => {
-                    const maxAmount = Math.max(...billingData.last7Days.map((d) => d.amount))
-                    const height = (day.amount / maxAmount) * 100
-                    return (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                        <div
-                          className="w-full rounded-t-lg bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-secondary)] transition-all duration-300 hover:opacity-80"
-                          style={{ height: `${height}%`, minHeight: '8px' }}
-                          title={`$${day.amount.toLocaleString('es-CO')}`}
-                        />
-                        <span className="text-xs text-[var(--color-text-muted)] rotate-45 origin-top-left whitespace-nowrap">
-                          {day.date.split(' ')[0]}
-                        </span>
-                      </div>
-                    )
-                  })}
+                {/* Estadísticas de facturas */}
+                <div className="grid grid-cols-3 gap-3 pt-3 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Pagadas</p>
+                    <p className="text-lg font-bold text-emerald-600">{billingData.facturasPagadas}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Pendientes</p>
+                    <p className="text-lg font-bold text-amber-600">{billingData.facturasPendientes}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Anuladas</p>
+                    <p className="text-lg font-bold text-red-600">{billingData.facturasAnuladas}</p>
+                  </div>
+                </div>
+
+
+                {/* Totales */}
+                <div className="pt-3 border-t space-y-2" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-[var(--color-text-secondary)]">Ingresos del mes:</span>
+                    <span className="text-base font-bold text-[var(--color-text-heading)]">
+                      ${billingData.ingresosMes.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-[var(--color-text-secondary)]">Ingresos totales:</span>
+                    <span className="text-base font-bold text-[var(--color-primary)]">
+                      ${billingData.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Link a facturación */}
+                <div className="pt-3 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                  <Button asChild variant="ghost" className="w-full">
+                    <Link to="/app/facturacion">
+                      Ver todas las facturas
+                    </Link>
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
           </Card>
+        </>
+      )}
 
+      {/* Solo para administrador: Actualizaciones recientes y agenda */}
+      {isAdmin && (
+        <div className="grid gap-6 lg:grid-cols-2">
           {/* Actualizaciones recientes y agenda de hoy */}
           <div className="space-y-6">
             {/* Agenda de hoy */}
