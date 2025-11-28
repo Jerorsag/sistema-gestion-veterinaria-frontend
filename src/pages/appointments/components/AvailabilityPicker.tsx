@@ -65,6 +65,18 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange, initialDate
     }
   }, [date, veterinarioId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Memoizar los ISO strings para cada slot para evitar recálculos innecesarios
+  const slotIsoStrings = useMemo(() => {
+    const isoMap = new Map<string, string>()
+    MORNING_SLOTS.forEach(slot => {
+      isoMap.set(slot, buildClinicISOString(date, slot))
+    })
+    AFTERNOON_SLOTS.forEach(slot => {
+      isoMap.set(slot, buildClinicISOString(date, slot))
+    })
+    return isoMap
+  }, [date])
+
   return (
     <div className="space-y-4">
       <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
@@ -109,17 +121,15 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange, initialDate
                   const normalizedSlot = slot.length > 5 ? slot.substring(0, 5) : slot
                   const isAvailable = availableSlots.has(normalizedSlot)
                   
+                  // Obtener el ISO string memoizado
+                  const currentIso = slotIsoStrings.get(slot) || ''
+                  const isActive = value === currentIso
+                  
                   // Generar el ISO string solo cuando se necesite (en el onClick)
                   const handleSlotClick = () => {
                     if (!isAvailable) return
-                    
-                    const iso = buildClinicISOString(date, slot)
-                    onChange(iso)
+                    onChange(currentIso)
                   }
-                  
-                  // Calcular si está activo comparando con el valor actual
-                  const currentIso = buildClinicISOString(date, slot)
-                  const isActive = value === currentIso
 
                   return (
                     <Button
