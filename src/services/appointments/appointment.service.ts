@@ -60,6 +60,16 @@ const availability = async (veterinarioId: number | string, fecha: string) => {
   return data.horarios_disponibles
 }
 
+const availableForInvoice = async () => {
+  const { data } = await apiClient.get<AppointmentSummary[] | { results: AppointmentSummary[] }>(
+    endpoints.appointments.availableForInvoice(),
+  )
+  // Verificación más segura de TS para paginación de DRF
+  if (Array.isArray(data)) return data
+  if (data && 'results' in data) return data.results
+  return []
+}
+
 export const appointmentService = {
   list,
   create,
@@ -68,4 +78,5 @@ export const appointmentService = {
   reschedule,
   services,
   availability,
+  availableForInvoice,
 }
