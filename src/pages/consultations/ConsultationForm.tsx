@@ -185,6 +185,14 @@ useEffect(() => {
   const mutation = useConsultationCreateMutation()
   const updateMutation = useConsultationUpdateMutation()
 
+  // Limpiar vacunas_descripcion cuando el estado es AL_DIA o NINGUNA
+  const estadoVacunas = form.watch('vacunas.estado')
+  useEffect(() => {
+    if (estadoVacunas === 'AL_DIA' || estadoVacunas === 'NINGUNA') {
+      form.setValue('vacunas.vacunas_descripcion', '')
+    }
+  }, [estadoVacunas, form])
+
   const onSubmit = async (values: FormValues) => {
     const payload = {
       mascota: Number(values.mascota),
