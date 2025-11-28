@@ -55,9 +55,35 @@ export const AppointmentsPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-[var(--color-surface-200)] px-3 py-1 text-xs uppercase tracking-wide text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
-                    {cita.estado}
-                  </span>
+                  {cita.estado === 'COMPLETADA' && (
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs uppercase tracking-wide text-green-800 border border-green-200">
+                      {cita.estado}
+                    </span>
+                  )}
+
+                  {cita.estado === 'AGENDADA' && (
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs uppercase tracking-wide text-blue-800 border border-blue-200">
+                      {cita.estado}
+                    </span>
+                  )}
+
+                  {cita.estado === 'CANCELADA' && (
+                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs uppercase tracking-wide text-red-800 border border-red-200">
+                      {cita.estado}
+                    </span>
+                  )}
+
+                  {cita.estado === 'EN_PROGRESO' && (
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs uppercase tracking-wide text-yellow-800 border border-yellow-200">
+                      {cita.estado}
+                    </span>
+                  )}
+
+                  {!['COMPLETADA', 'AGENDADA', 'CANCELADA', 'EN_PROGRESO'].includes(cita.estado) && (
+                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs uppercase tracking-wide text-gray-800 border border-gray-200">
+                      {cita.estado}
+                    </span>
+                  )}
 
                   {!['CANCELADA', 'COMPLETADA'].includes(cita.estado.toUpperCase()) && canCreateConsulta && (
                     <Button 

@@ -65,27 +65,28 @@ export interface ConsultaDetail {
 
 export interface PrescripcionDetail {
   id: number
-  producto_nombre: string
-  dosis: string
-  frecuencia: string
-  duracion_dias: number
-  instrucciones: string | null
+  consulta: number                  
+  medicamento: number
+  producto_nombre: string           
+  producto_descripcion: string      
+  cantidad: number                  
+  stock_disponible: number          
+  indicaciones: string              
+  fecha_prescripcion: string       
 }
 
 export interface ExamenDetail {
   id: number
-  tipo: string
-  resultados: string
-  fecha_programada: string | null
-  estado: string
+  tipo_examen: string    
+  descripcion: string    
 }
 
 export interface VacunaDetail {
   id: number
-  nombre_vacuna: string
-  fecha_aplicacion: string
-  proxima_fecha: string | null
-  observaciones: string | null
+  estado: string                    
+  estado_display: string            
+  vacunas_descripcion: string       
+  fecha_registro: string            
 }
 
 export interface LastConsultResponse {
@@ -94,4 +95,3 @@ export interface LastConsultResponse {
   ultima_consulta: ConsultaDetail | null
   mensaje?: string
 }
-
