@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Filter } from 'lucide-react'
+import { Filter, NotebookTabs } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Input } from '@/components/ui/Input'
@@ -35,7 +35,7 @@ export const HistoriesListPage = () => {
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-label">Historias clínicas</p>
-          <h1 className="text-3xl font-semibold text-heading">Seguimiento completo de pacientes</h1>
+          <h1 className="text-3xl font-semibold text-[var(--color-text-heading)]">Seguimiento completo de pacientes</h1>
           <p className="text-description">
             {hasRole('cliente')
               ? 'Revisa el historial clínico completo de tus mascotas.'
@@ -43,31 +43,32 @@ export const HistoriesListPage = () => {
           </p>
         </div>
         {!hasRole('cliente') && (
-          <Button asChild>
-            <Link to="/app/citas/nueva">Agendar nueva consulta</Link>
+          <Button asChild startIcon={<NotebookTabs size={18} />}>
+            <Link to="/app/consultas/nueva">Crear nueva consulta</Link>
           </Button>
         )}
       </header>
 
-      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className={`grid gap-4 ${hasRole('cliente') ? 'md:grid-cols-1' : 'md:grid-cols-3'}`}>
+      {/* Filtros */}
+      <section className="rounded-xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <div className={`grid gap-4 ${hasRole('cliente') ? 'md:grid-cols-1' : 'md:grid-cols-2'}`}>
           <Input
-            label="Buscar"
+            label="Buscar historia clínica"
             placeholder={hasRole('cliente') ? 'Buscar en historias de tus mascotas...' : 'Mascota o propietario...'}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
           {!hasRole('cliente') && (
-            <label className="space-y-2 text-sm text-primary">
-              <span>Mascota</span>
-              <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 py-2" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'var(--border-subtle-style)' }}>
-                <Filter size={16} className="text-tertiary" />
+            <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+              <span className="font-medium">Mascota</span>
+              <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5">
+                <Filter size={16} className="text-gray-600" />
                 <select
-                  className="w-full bg-transparent text-primary focus:outline-none"
+                  className="w-full bg-transparent text-gray-900 focus:outline-none"
                   value={selectedPet}
                   onChange={(event) => setSelectedPet(event.target.value)}
                 >
-                  <option value="">Todas</option>
+                  <option value="">Todas las mascotas</option>
                   {clientPets?.map((pet) => (
                     <option key={pet.id} value={pet.id}>
                       {pet.nombre}
@@ -80,24 +81,26 @@ export const HistoriesListPage = () => {
         </div>
       </section>
 
+      {/* Lista de historias */}
       <section>
         {isLoading ? (
-          <div className="flex justify-center py-10">
+          <div className="flex justify-center py-12">
             <Spinner size="lg" />
           </div>
         ) : histories && histories.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {histories.map((history) => (
               <HistoryCard key={history.id} history={history} />
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
-            No encontramos historias clínicas con esos filtros.
+          <div className="rounded-xl border border-dashed border-[var(--border-subtle-color)] bg-[var(--color-surface-200)]/30 px-6 py-12 text-center">
+            <NotebookTabs size={48} className="mx-auto mb-4 text-[var(--color-text-muted)] opacity-40" />
+            <p className="text-[var(--color-text-secondary)] font-medium">No se encontraron historias clínicas</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Intenta ajustar los filtros de búsqueda.</p>
           </div>
         )}
       </section>
     </div>
   )
 }
-
