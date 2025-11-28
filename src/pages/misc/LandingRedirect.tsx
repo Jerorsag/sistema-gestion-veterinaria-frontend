@@ -15,6 +15,6 @@ export const LandingRedirect = () => {
     )
   }
 
-  return <Navigate to={isAuthenticated ? '/app' : '/auth/login'} replace />
+  return <Navigate to={isAuthenticated ? '/app' : '/auth'} replace />
 }
 

@@ -2,17 +2,27 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import type { AxiosError } from 'axios'
 
-import type { AppointmentPayload } from '@/api/types/appointments'
+import type { AppointmentPayload, ValidationErrorResponse } from '@/api/types/appointments'
 import { appointmentService } from '@/services/appointments'
 import { userService } from '@/services/users'
 
-const getErrorMessage = (error: AxiosError<any>) => {
+// Helper mejorado para extraer errores de DRF
+const getErrorMessage = (error: AxiosError<ValidationErrorResponse>) => {
   const data = error.response?.data
-  if (data) {
-    if (typeof data.detail === 'string') return data.detail
-    if (typeof data.message === 'string') return data.message
+  
+  if (!data) return 'Ocurrió un error inesperado.'
+
+  // 1. Error general ("detail": "Horario ocupado")
+  if (data.detail) return data.detail
+
+  // 2. Errores de validación por campo (ej: fecha_hora: ["No puede ser en el pasado"])
+  // Retornamos el primer error encontrado
+  const firstErrorKey = Object.keys(data)[0]
+  if (firstErrorKey && Array.isArray(data[firstErrorKey])) {
+    return `${firstErrorKey}: ${data[firstErrorKey][0]}`
   }
-  return 'Ocurrió un error con las citas.'
+
+  return 'Error en la solicitud.'
 }
 
 export const useAppointmentsQuery = () =>
@@ -33,11 +43,14 @@ export const useAppointmentCreateMutation = () => {
   return useMutation({
     mutationFn: (payload: AppointmentPayload) => appointmentService.create(payload),
     onSuccess: () => {
-      toast.success('Cita agendada correctamente')
+      toast.success('Cita agendada correctamente') // Éxito CP-020
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
-      queryClient.invalidateQueries({ queryKey: ['availability'] })
+      queryClient.invalidateQueries({ queryKey: ['availability'] }) // Actualizar cupos
     },
-    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+    onError: (error: AxiosError<ValidationErrorResponse>) => {
+      // Maneja CP-Failure (Fecha pasada o Horario ocupado)
+      toast.error(getErrorMessage(error))
+    },
   })
 }
 
@@ -50,7 +63,9 @@ export const useAppointmentCancelMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['availability'] })
     },
-    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+    onError: (error: AxiosError<ValidationErrorResponse>) => {
+      toast.error(getErrorMessage(error))
+    },
   })
 }
 
@@ -64,7 +79,9 @@ export const useAppointmentRescheduleMutation = (id: number | string) => {
       queryClient.invalidateQueries({ queryKey: ['appointments', 'detail', String(id)] })
       queryClient.invalidateQueries({ queryKey: ['availability'] })
     },
-    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+    onError: (error: AxiosError<ValidationErrorResponse>) => {
+      toast.error(getErrorMessage(error))
+    },
   })
 }
 
@@ -95,4 +112,3 @@ export const useVeterinariansQuery = () =>
     },
     staleTime: 5 * 60 * 1000,
   })
-

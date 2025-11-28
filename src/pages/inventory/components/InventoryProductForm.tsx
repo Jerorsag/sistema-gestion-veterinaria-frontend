@@ -55,8 +55,8 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
   const payloadFromValues = (values: FormValues): InventoryProductPayload => ({
     nombre: values.nombre,
     descripcion: values.descripcion,
-    categoria_id: Number(values.categoria), // ✅ Usar categoria_id (no categoria)
-    marca_id: Number(values.marca), // ✅ Usar marca_id (no marca)
+    categoria_id: Number(values.categoria),
+    marca_id: Number(values.marca),
     stock: values.stock ? Number(values.stock) : 0,
     stock_minimo: values.stock_minimo ? Number(values.stock_minimo) : undefined,
     precio_compra: values.precio_compra ? Number(values.precio_compra) : undefined,

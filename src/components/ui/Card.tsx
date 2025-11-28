@@ -6,27 +6,35 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   footer?: ReactNode
 }
 
-export const Card = ({ header, footer, className, children, ...props }: CardProps) => (
-  <div
-    className={clsx(
-      'card-component bg-surface transition-all duration-[var(--transition-base)]',
-      className,
-    )}
-    style={{
-      borderRadius: 'var(--radius-card)',
-      boxShadow: 'var(--shadow-card)',
-      border: 'none',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
-      e.currentTarget.style.setProperty('transform', 'translateY(-2px)')
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
-      e.currentTarget.style.setProperty('transform', 'translateY(0)')
-    }}
-    {...props}
-  >
+export const Card = ({ header, footer, className, children, style, ...props }: CardProps) => {
+  // Si ya hay handlers personalizados, no aplicar el hover por defecto
+  const hasCustomHover = props.onMouseEnter || props.onMouseLeave
+  
+  return (
+    <div
+      className={clsx(
+        'card-component bg-surface',
+        className,
+      )}
+      style={{
+        borderRadius: 'var(--radius-card)',
+        boxShadow: 'var(--shadow-card)',
+        borderWidth: 'var(--border-subtle-width)',
+        borderStyle: 'var(--border-subtle-style)',
+        borderColor: 'var(--border-subtle-color)',
+        transition: hasCustomHover 
+          ? undefined 
+          : 'box-shadow 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
+        ...style,
+      }}
+      onMouseEnter={hasCustomHover ? props.onMouseEnter : (e) => {
+        e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card-hover)')
+      }}
+      onMouseLeave={hasCustomHover ? props.onMouseLeave : (e) => {
+        e.currentTarget.style.setProperty('box-shadow', 'var(--shadow-card)')
+      }}
+      {...props}
+    >
     {header && (
       <div 
         className="px-5 py-4"
@@ -51,5 +59,5 @@ export const Card = ({ header, footer, className, children, ...props }: CardProp
       </div>
     )}
   </div>
-)
-
+  )
+}

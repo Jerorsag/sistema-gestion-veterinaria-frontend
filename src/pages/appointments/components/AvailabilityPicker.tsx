@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAvailabilityQuery } from '@/hooks/appointments'
+import { buildClinicISOString } from '@/utils/datetime' // <--- IMPORTANTE: La nueva utilidad
 
 interface AvailabilityPickerProps {
   veterinarioId?: number | string
@@ -17,6 +18,7 @@ const MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11
 const AFTERNOON_SLOTS = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30']
 
 export const AvailabilityPicker = ({ veterinarioId, value, onChange }: AvailabilityPickerProps) => {
+  // Mantenemos la fecha seleccionada en formato simple YYYY-MM-DD
   const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
   const { data: slots, isFetching } = useAvailabilityQuery(veterinarioId, date)
   const availableSlots = useMemo(() => new Set(slots ?? []), [slots])
@@ -55,8 +57,17 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
               </div>
               <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                 {section.slots.map((slot) => {
-                  const iso = dayjs(`${date}T${slot}`).format('YYYY-MM-DDTHH:mm:ss')
+                  // SSOT FIX: Construimos el ISO string manualmente con el offset fijo (-05:00)
+                  // Esto garantiza que "08:00" sea "08:00 AM Colombia" y no "08:00 AM Browser Local Time"
+                  const iso = buildClinicISOString(date, slot)
+                  
+                  // Verificamos disponibilidad
+                  // Nota: El backend debe devolver los slots disponibles en formato 'HH:mm' o similar
+                  // Si slots trae strings completos ISO, ajusta esta línea.
+                  // Asumiendo que slots es array de horas ['08:00', '09:00']
                   const isAvailable = availableSlots.has(slot)
+                  
+                  // Comparamos el valor actual seleccionado
                   const isActive = value === iso
 
                   return (
@@ -67,15 +78,17 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
                         'border transition-all',
                         isAvailable
                           ? 'border-[var(--border-subtle-color)] hover:border-[var(--color-primary)]/50'
-                          : 'border-red-300 bg-red-50 text-red-600 line-through',
+                          : 'border-red-300 bg-red-50 text-red-600 line-through opacity-60',
                       )}
                       style={{
                         borderWidth: isAvailable ? 'var(--border-subtle-width)' : '1px',
                         borderStyle: 'var(--border-subtle-style)',
-                        boxShadow: isAvailable ? 'var(--shadow-soft)' : 'none',
+                        boxShadow: isActive ? 'var(--shadow-soft)' : 'none',
                       }}
                       disabled={!isAvailable}
+                      // Al hacer click, enviamos el ISO string ya formateado correctamente
                       onClick={() => isAvailable && onChange(iso)}
+                      type="button" // Importante para no enviar formulario si está dentro de uno
                     >
                       {slot}
                     </Button>
@@ -99,4 +112,3 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
     </div>
   )
 }
-

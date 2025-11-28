@@ -17,14 +17,28 @@ type MessageResponse = {
 }
 
 const list = async (params: UserQueryParams) => {
+  const queryParams: Record<string, unknown> = {
+    search: params.search,
+    estado: params.estado && params.estado !== 'todos' ? params.estado : undefined,
+    ordering: params.ordering,
+    page: params.page,
+  }
+
+  // Solo agregar el filtro de rol si está definido, no es undefined, y no es vacío
+  // NO enviar el parámetro si es undefined, null, o cadena vacía
+  if (params.rol !== undefined && params.rol !== null && params.rol.trim() !== '') {
+    queryParams['usuario_roles__rol__nombre'] = params.rol.trim()
+  }
+
+  // Limpiar parámetros undefined para no enviarlos al backend
+  Object.keys(queryParams).forEach((key) => {
+    if (queryParams[key] === undefined || queryParams[key] === '') {
+      delete queryParams[key]
+    }
+  })
+
   const { data } = await apiClient.get<UserListResponse>(endpoints.users.base(), {
-    params: {
-      search: params.search,
-      estado: params.estado && params.estado !== 'todos' ? params.estado : undefined,
-      ordering: params.ordering,
-      page: params.page,
-      'usuario_roles__rol__nombre': params.rol,
-    },
+    params: queryParams,
   })
   return data
 }

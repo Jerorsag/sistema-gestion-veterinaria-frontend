@@ -21,7 +21,10 @@ const useUsersFiltersInternal = () => {
     page: Number(params.get('page') ?? 1),
     search: params.get('q') ?? '',
     estado: (params.get('estado') as UserQueryParams['estado']) ?? 'todos',
-    rol: params.get('rol') ?? undefined,
+    rol: (() => {
+      const rolParam = params.get('rol')
+      return rolParam && rolParam !== 'todos' ? rolParam : undefined
+    })(),
     ordering: params.get('ordering') ?? undefined,
   }
 
@@ -31,8 +34,11 @@ const useUsersFiltersInternal = () => {
     if (next.search !== undefined) newParams.set('q', next.search)
     if (next.estado !== undefined) newParams.set('estado', next.estado)
     if (next.rol !== undefined) {
-      if (next.rol) newParams.set('rol', next.rol)
-      else newParams.delete('rol')
+      if (next.rol && next.rol.trim() !== '') {
+        newParams.set('rol', next.rol)
+      } else {
+        newParams.delete('rol')
+      }
     }
     if (next.ordering !== undefined) newParams.set('ordering', next.ordering)
     setParams(newParams, { replace: true })

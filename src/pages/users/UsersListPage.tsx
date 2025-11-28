@@ -7,8 +7,9 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { RoleBadge } from '@/components/ui/RoleBadge'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useUsersFilters, useUsersQuery, useUserStatsQuery } from '@/hooks/users'
+import { useUsersFilters, useUsersQuery, useUserStatsQuery, useRolesQuery } from '@/hooks/users'
 
 const estados = [
   { label: 'Todos', value: 'todos' },
@@ -32,9 +33,24 @@ export const UsersListPage = () => {
 
   const { data, isLoading, isFetching } = useUsersQuery(queryFilters)
   const { data: stats } = useUserStatsQuery()
+  const { data: rolesData } = useRolesQuery()
+
+  const roles = useMemo(() => {
+    if (!rolesData || !Array.isArray(rolesData)) return []
+    return rolesData.map((rol) => rol.nombre)
+  }, [rolesData])
 
   const handleEstadoChange = (estado: string) => {
     updateFilters({ estado: estado as any, page: 1 })
+  }
+
+  const handleRolChange = (rol: string) => {
+    if (rol === 'todos' || !rol || rol.trim() === '') {
+      // Eliminar completamente el filtro de rol enviando undefined
+      updateFilters({ rol: undefined, page: 1 })
+    } else {
+      updateFilters({ rol: rol.trim(), page: 1 })
+    }
   }
 
   const handlePageChange = (page: number) => {
@@ -53,7 +69,7 @@ export const UsersListPage = () => {
           <p className="text-description">CRUD completo alineado al backend (roles, estados y perfiles).</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => updateFilters({})} startIcon={<RefreshCw size={16} />}>
+          <Button variant="ghost" onClick={() => updateFilters({})} startIcon={<RefreshCw size={16} className="text-black" />}>
             Refrescar
           </Button>
           <Button asChild startIcon={<PlusCircle size={18} />}>
@@ -84,16 +100,35 @@ export const UsersListPage = () => {
       </section>
 
       <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
+        <div className="grid gap-4 md:grid-cols-[2fr_1fr_1fr_1fr]">
           <Input
             label="Buscar"
-            placeholder="Nombre, email, usuario..."
+            placeholder="Nombre, email, usuario, rol..."
             value={searchValue}
             onChange={(event) => {
               setSearchValue(event.target.value)
               updateFilters({ search: event.target.value, page: 1 })
             }}
           />
+          <label className="space-y-2 text-sm text-primary">
+            <span>Rol</span>
+            <select
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              style={{
+                borderWidth: 'var(--border-subtle-width)',
+                borderStyle: 'var(--border-subtle-style)',
+              }}
+              value={filters.rol || 'todos'}
+              onChange={(event) => handleRolChange(event.target.value)}
+            >
+              <option value="todos">Todos los roles</option>
+              {roles.map((rol: string) => (
+                <option key={rol} value={rol}>
+                  {rol.charAt(0).toUpperCase() + rol.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="space-y-2 text-sm text-primary">
             <span>Estado</span>
             <select
@@ -159,11 +194,9 @@ export const UsersListPage = () => {
                       </td>
                       <td className="px-4 py-3 text-primary">{usuario.email}</td>
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1 text-xs">
+                        <div className="flex flex-wrap gap-1.5">
                           {usuario.roles.map((rol) => (
-                            <span key={rol} className="rounded-full bg-[var(--color-surface-200)] px-2 py-0.5 capitalize text-secondary border border-[var(--border-subtle-color)]" style={{ borderWidth: 'var(--border-subtle-width)' }}>
-                              {rol}
-                            </span>
+                            <RoleBadge key={rol} role={rol} />
                           ))}
                         </div>
                       </td>
@@ -171,9 +204,11 @@ export const UsersListPage = () => {
                         <StatusBadge status={usuario.estado} />
                       </td>
                       <td className="px-4 py-3">
-                        <Button asChild variant="ghost" startIcon={<ChevronRight size={16} />}>
-                          <Link to={`/app/usuarios/${usuario.id}`}>Ver detalle</Link>
-                        </Button>
+                        <div className="flex items-center justify-end">
+                          <Button asChild variant="ghost" startIcon={<ChevronRight size={16} className="text-[var(--color-text-heading)]" />}>
+                            <Link to={`/app/usuarios/${usuario.id}`}>Ver detalle</Link>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

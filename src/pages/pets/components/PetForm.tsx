@@ -111,14 +111,19 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
   })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <Input label="Nombre" {...form.register('nombre')} error={form.formState.errors.nombre?.message} />
+        <Input 
+          label="Nombre de la mascota" 
+          placeholder="Ej: Max, Luna, Rocky..."
+          {...form.register('nombre')} 
+          error={form.formState.errors.nombre?.message} 
+        />
 
         <label className="space-y-2 text-sm text-primary">
           <span>Sexo</span>
           <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2.5 text-base text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             style={{
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
@@ -141,7 +146,7 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
             </div>
           ) : (
             <select
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2.5 text-base text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
               style={{
                 borderWidth: 'var(--border-subtle-width)',
                 borderStyle: 'var(--border-subtle-style)',
@@ -170,7 +175,7 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
             </div>
           ) : (
             <select
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2.5 text-base text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 borderWidth: 'var(--border-subtle-width)',
                 borderStyle: 'var(--border-subtle-style)',
@@ -182,7 +187,7 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
               }}
               disabled={!speciesIdNumber}
             >
-              <option value="">Selecciona raza</option>
+              <option value="">{speciesIdNumber ? 'Selecciona raza' : 'Primero selecciona una especie'}</option>
               {(breeds ?? []).map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.nombre}
@@ -195,6 +200,7 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
         <Input
           type="date"
           label="Fecha de nacimiento"
+          placeholder="Selecciona la fecha"
           {...form.register('fecha_nacimiento')}
           error={form.formState.errors.fecha_nacimiento?.message}
         />
@@ -202,19 +208,23 @@ export const PetForm = ({ mode, initialData, onSubmit, isSubmitting }: PetFormPr
         <Input
           type="number"
           step="0.1"
+          min="0"
           label="Peso (kg)"
+          placeholder="Ej: 5.5"
           {...form.register('peso')}
           error={form.formState.errors.peso?.message}
         />
       </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting || isSubmitting}>
-        {form.formState.isSubmitting || isSubmitting
-          ? 'Guardando mascota...'
-          : mode === 'create'
-            ? 'Registrar mascota'
-            : 'Guardar cambios'}
-      </Button>
+      <div className="flex justify-end pt-2">
+        <Button type="submit" disabled={form.formState.isSubmitting || isSubmitting} className="min-w-[160px]">
+          {form.formState.isSubmitting || isSubmitting
+            ? 'Guardando...'
+            : mode === 'create'
+              ? 'Registrar mascota'
+              : 'Guardar cambios'}
+        </Button>
+      </div>
     </form>
   )
 }

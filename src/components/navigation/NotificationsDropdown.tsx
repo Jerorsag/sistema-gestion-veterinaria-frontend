@@ -26,7 +26,16 @@ export const NotificationsDropdown = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-200)] p-2.5 transition-colors hover:bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
+        className="relative flex items-center justify-center rounded-xl bg-[var(--color-surface-200)] p-2.5 transition-all hover:bg-[var(--color-surface)] focus:outline-none"
+        style={{
+          boxShadow: 'var(--shadow-soft)',
+          border: 'none',
+          outline: 'none',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.outline = 'none'
+          e.currentTarget.style.border = 'none'
+        }}
         aria-label="Notificaciones"
       >
         <Bell size={20} className="text-[var(--color-muted)]" />
@@ -38,7 +47,14 @@ export const NotificationsDropdown = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-[var(--color-border)] bg-surface shadow-xl">
+        <div 
+          className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl bg-surface"
+          style={{
+            boxShadow: 'var(--shadow-elevated)',
+            border: 'none',
+            outline: 'none',
+          }}
+        >
           <div className="p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[#2D2D2D]">Notificaciones</h3>
@@ -63,7 +79,12 @@ export const NotificationsDropdown = () => {
             </div>
 
             {unreadCount > 0 && (
-              <button className="mt-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-200)] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface)]">
+              <button 
+                className="mt-3 w-full rounded-lg bg-[var(--color-surface-200)] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition-all hover:bg-[var(--color-surface)]"
+                style={{
+                  boxShadow: 'var(--shadow-soft)',
+                }}
+              >
                 Ver todas las notificaciones
               </button>
             )}

@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { z, type ZodType } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Lock, CheckCircle2, AlertCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -64,6 +65,9 @@ interface UserFormProps {
 }
 
 export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFormProps) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+
   const schema = buildSchema(mode)
   const resolver = zodResolver(schema as any) as Resolver<FormValues>
   const form = useForm<FormValues>({
@@ -84,6 +88,26 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
   })
 
   const { data: roles, isLoading: rolesLoading } = useRolesQuery()
+
+  // Indicador de fortaleza de contraseña
+  const password = form.watch('password')
+  const passwordConfirm = form.watch('password_confirm')
+
+  const passwordStrength = useMemo(() => {
+    if (!password) return 0
+    let strength = 0
+    if (password.length >= 6) strength += 1
+    if (password.length >= 10) strength += 1
+    if (/[A-Z]/.test(password)) strength += 1
+    if (/[0-9]/.test(password)) strength += 1
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1
+    return strength
+  }, [password])
+
+  const passwordsMatch = useMemo(() => {
+    if (!password || !passwordConfirm) return null
+    return password === passwordConfirm
+  }, [password, passwordConfirm])
 
   useEffect(() => {
     if (initialValues) {
@@ -118,16 +142,37 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
   })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <Input label="Nombre" {...form.register('nombre')} error={form.formState.errors.nombre?.message} />
-        <Input label="Apellido" {...form.register('apellido')} error={form.formState.errors.apellido?.message} />
-        <Input label="Nombre de usuario" {...form.register('username')} error={form.formState.errors.username?.message} />
-        <Input type="email" label="Correo" {...form.register('email')} error={form.formState.errors.email?.message} />
-        <label className="space-y-2 text-sm text-primary">
-          <span>Estado</span>
+        <Input 
+          label="Nombre" 
+          placeholder="Nombre del usuario"
+          {...form.register('nombre')} 
+          error={form.formState.errors.nombre?.message} 
+        />
+        <Input 
+          label="Apellido" 
+          placeholder="Apellido del usuario"
+          {...form.register('apellido')} 
+          error={form.formState.errors.apellido?.message} 
+        />
+        <Input 
+          label="Nombre de usuario" 
+          placeholder="username"
+          {...form.register('username')} 
+          error={form.formState.errors.username?.message} 
+        />
+        <Input 
+          type="email" 
+          label="Correo electrónico" 
+          placeholder="usuario@correo.com"
+          {...form.register('email')} 
+          error={form.formState.errors.email?.message} 
+        />
+        <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+          <span className="font-medium">Estado</span>
           <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             style={{
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
@@ -139,10 +184,13 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
             <option value="suspendido">Suspendido</option>
           </select>
         </label>
-        <div className="space-y-2">
-          <p className="text-sm text-primary font-medium">Roles</p>
+        <div className="space-y-2 md:col-span-2">
+          <p className="text-sm font-medium text-[var(--color-text-heading)]">Roles</p>
           {rolesLoading ? (
-            <Spinner size="sm" />
+            <div className="flex items-center gap-2 py-2">
+              <Spinner size="sm" />
+              <span className="text-sm text-[var(--color-text-secondary)]">Cargando roles...</span>
+            </div>
           ) : (
             <div className="flex flex-wrap gap-2">
               {(Array.isArray(roles) ? roles : []).map((rol) => {
@@ -150,12 +198,15 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                 return (
                   <label
                     key={rol.id}
-                    className={`cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors ${
+                    className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
                       checked 
-                        ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] border-[var(--color-primary)]/30' 
-                        : 'text-secondary border-[var(--border-subtle-color)] hover:border-[var(--color-primary)]/30'
+                        ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] border-[var(--color-primary)]/40 shadow-sm' 
+                        : 'text-[var(--color-text-secondary)] border-[var(--border-subtle-color)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-200)]'
                     }`}
-                    style={{ borderWidth: 'var(--border-subtle-width)' }}
+                    style={{ 
+                      borderWidth: 'var(--border-subtle-width)',
+                      borderStyle: 'var(--border-subtle-style)',
+                    }}
                   >
                     <input
                       type="checkbox"
@@ -175,46 +226,134 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                         }
                       }}
                     />
-                    {rol.nombre}
+                    {rol.nombre.charAt(0).toUpperCase() + rol.nombre.slice(1)}
                   </label>
                 )
               })}
             </div>
           )}
           {form.formState.errors.roles && (
-            <p className="text-xs text-red-300">{form.formState.errors.roles.message as string}</p>
+            <p className="text-xs text-red-600 mt-1">{form.formState.errors.roles.message as string}</p>
           )}
         </div>
-        <Input label="Teléfono" {...form.register('telefono')} error={form.formState.errors.telefono?.message} />
-        <Input label="Dirección" {...form.register('direccion')} error={form.formState.errors.direccion?.message} />
+        <Input 
+          label="Teléfono" 
+          placeholder="+57 300 000 0000"
+          {...form.register('telefono')} 
+          error={form.formState.errors.telefono?.message} 
+        />
+        <Input 
+          label="Dirección" 
+          placeholder="Dirección completa"
+          {...form.register('direccion')} 
+          error={form.formState.errors.direccion?.message} 
+        />
       </div>
 
       {mode === 'create' && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            type="password"
-            label="Contraseña"
-            {...form.register('password')}
-            error={form.formState.errors.password?.message}
-          />
-          <Input
-            type="password"
-            label="Confirmar contraseña"
-            {...form.register('password_confirm')}
-            error={form.formState.errors.password_confirm?.message}
-          />
+        <div className="space-y-4 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+          <div>
+            <label className="block space-y-2 text-sm" htmlFor="password">
+              <span className="font-medium text-[var(--color-text-heading)]">Contraseña</span>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                  <Lock size={18} />
+                </div>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="pl-10 pr-10"
+                  placeholder="Mínimo 6 caracteres"
+                  {...form.register('password')}
+                  error={form.formState.errors.password?.message}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </label>
+            {password && (
+              <div className="mt-2 space-y-2">
+                <div className="w-full bg-[var(--color-surface-200)] rounded-full h-2.5">
+                  <div
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      passwordStrength <= 2
+                        ? 'w-1/3 bg-red-500'
+                        : passwordStrength === 3
+                          ? 'w-2/3 bg-yellow-500'
+                          : 'w-full bg-emerald-500'
+                    }`}
+                  ></div>
+                </div>
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {passwordStrength <= 2 && 'Contraseña débil'}
+                  {passwordStrength === 3 && 'Contraseña moderada'}
+                  {passwordStrength >= 4 && 'Contraseña fuerte'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block space-y-2 text-sm" htmlFor="password_confirm">
+              <span className="font-medium text-[var(--color-text-heading)]">Confirmar contraseña</span>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                  <Lock size={18} />
+                </div>
+                <Input
+                  id="password_confirm"
+                  type={showPasswordConfirm ? 'text' : 'password'}
+                  className="pl-10 pr-10"
+                  placeholder="Repite la contraseña"
+                  {...form.register('password_confirm')}
+                  error={form.formState.errors.password_confirm?.message}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  aria-label={showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </label>
+            {passwordConfirm && passwordsMatch !== null && (
+              <div className={`mt-2 flex items-center gap-2 text-xs ${passwordsMatch ? 'text-emerald-600' : 'text-red-600'}`}>
+                {passwordsMatch ? (
+                  <>
+                    <CheckCircle2 size={16} />
+                    <span>Las contraseñas coinciden</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle size={16} />
+                    <span>Las contraseñas no coinciden</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {initialValues?.estado && (
-        <div className="text-sm text-secondary">
-          Estado actual: <StatusBadge status={initialValues.estado as 'activo' | 'inactivo' | 'suspendido'} />
+        <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+          <span>Estado actual:</span> <StatusBadge status={initialValues.estado as 'activo' | 'inactivo' | 'suspendido'} />
         </div>
       )}
 
-      <Button type="submit" disabled={form.formState.isSubmitting || Boolean(isSubmitting)}>
-        {form.formState.isSubmitting || isSubmitting ? 'Guardando...' : mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
-      </Button>
+      <div className="flex justify-end pt-4 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+        <Button type="submit" disabled={form.formState.isSubmitting || Boolean(isSubmitting)} className="min-w-[160px]">
+          {form.formState.isSubmitting || isSubmitting ? 'Guardando...' : mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
+        </Button>
+      </div>
     </form>
   )
 }
