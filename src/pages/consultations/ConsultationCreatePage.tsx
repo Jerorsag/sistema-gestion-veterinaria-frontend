@@ -6,18 +6,18 @@ import { ConsultationForm } from '@/pages/consultations/ConsultationForm'
 
 export const ConsultationCreatePage = () => (
   <div className="space-y-6">
-    <div className="flex items-center justify-between">
+    <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
-        <p className="text-label">Registrar consulta</p>
-        <h1 className="text-3xl font-semibold text-heading">Nueva consulta</h1>
+        <p className="text-label">Consultas</p>
+        <h1 className="text-3xl font-semibold text-[var(--color-text-heading)]">Nueva consulta</h1>
         <p className="text-description">Completa el formulario con la información del paciente y diagnóstico.</p>
       </div>
-      <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} />}>
+      <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} className="text-gray-700" />}>
         <Link to="/app/consultas">Volver</Link>
       </Button>
-    </div>
+    </header>
 
-    <section className="rounded-3xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
+    <section className="rounded-xl bg-surface p-6" style={{ boxShadow: 'var(--shadow-card)' }}>
       <ConsultationForm />
     </section>
   </div>
