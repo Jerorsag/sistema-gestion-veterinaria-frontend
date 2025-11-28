@@ -33,11 +33,12 @@ export interface ConsultationDetail {
 
 export interface PrescripcionDetail {
   id: number
-  producto_nombre: string
-  dosis: string
-  frecuencia: string
-  duracion_dias: number
-  instrucciones: string | null
+  medicamento: number
+  producto_nombre: string      // Nombre del producto
+  producto_descripcion: string // Descripción detallada
+  cantidad: number             // Backend usa 'cantidad'
+  indicaciones: string         // Backend usa 'indicaciones'
+  stock_disponible: number
 }
 
 export interface ExamenDetail {
@@ -64,31 +65,25 @@ export interface ConsultationPayload {
   notas_adicionales?: string
   prescripciones?: PrescripcionPayload[]
   examenes?: ExamenPayload[]
-  vacunas?: VacunaPayload
+  vacunas?: VacunaPayload 
   servicio?: number | null
   cita?: number | null
 }
 
 export interface PrescripcionPayload {
-  producto: number
-  dosis: string
-  frecuencia: string
-  duracion_dias: number
-  instrucciones?: string
+  medicamento: number
+  cantidad: string
+  indicaciones: string
 }
 
 export interface ExamenPayload {
-  tipo: string
-  resultados?: string
-  fecha_programada?: string | null
-  estado?: string
+  tipo_examen: string  
+  descripcion?: string  
 }
 
 export interface VacunaPayload {
-  nombre_vacuna: string
-  fecha_aplicacion: string
-  proxima_fecha?: string | null
-  observaciones?: string
+  estado: string
+  vacunas_descripcion?: string
 }
 
 export interface ConsultationStats {
