@@ -49,6 +49,7 @@ export const endpoints = {
     reschedule: (id: number | string) => withBase(`/citas/${id}/reagendar/`)(),
     availability: withBase('/citas/disponibilidad/'),
     services: withBase('/servicios/'),
+    availableForInvoice: withBase('/citas/disponibles-para-facturar/'),
   },
   histories: {
     base: withBase('/historias-clinicas/'),
@@ -64,6 +65,7 @@ export const endpoints = {
     byVet: (vetId: number | string) => withBase(`/consultas/veterinario/${vetId}/`)(),
     consent: (id: number | string) => withBase(`/consultas/${id}/enviar-consentimiento/`)(),
     stats: withBase('/consultas/estadisticas/'),
+    availableForInvoice: withBase('/consultas/disponibles-para-facturar/'),
   },
   inventory: {
     products: withBase('/productos/'),

@@ -65,6 +65,8 @@ export const useInvoiceCreateFromAppointmentMutation = () => {
     mutationFn: (appointmentId: number | string) => invoiceService.createFromAppointment(appointmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() })
+      // Invalidar la lista de citas disponibles para facturar
+      queryClient.invalidateQueries({ queryKey: ['appointments', 'available-for-invoice'] })
       toast.success('Factura creada desde cita correctamente')
     },
     onError: (error: any) => {
@@ -92,6 +94,8 @@ export const useInvoiceCreateFromConsultationMutation = () => {
     mutationFn: (consultationId: number | string) => invoiceService.createFromConsultation(consultationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() })
+      // Invalidar la lista de consultas disponibles para facturar
+      queryClient.invalidateQueries({ queryKey: ['consultations', 'available-for-invoice'] })
       toast.success('Factura creada desde consulta correctamente')
     },
     onError: (error: any) => {

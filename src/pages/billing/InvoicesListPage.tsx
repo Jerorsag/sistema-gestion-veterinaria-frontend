@@ -14,8 +14,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useInvoicesQuery, useInvoiceCreateFromConsultationMutation, useInvoiceCreateFromAppointmentMutation, useInvoiceCreateFromProductsMutation } from '@/hooks/billing'
-import { useConsultationsQuery } from '@/hooks/consultations'
-import { useAppointmentsQuery } from '@/hooks/appointments'
+import { useConsultationsAvailableForInvoiceQuery } from '@/hooks/consultations'
+import { useAppointmentsAvailableForInvoiceQuery } from '@/hooks/appointments'
 import { useProductsQuery } from '@/hooks/inventory'
 import { useUsersQuery } from '@/hooks/users'
 import { formatDateTime } from '@/utils/datetime'
@@ -57,9 +57,20 @@ export const InvoicesListPage = () => {
   const user = useSessionStore((state) => state.user)
   const isClient = user?.roles?.includes('cliente') ?? false
 
-  // Queries para consultas y citas
-  const { data: consultations, isLoading: consultationsLoading } = useConsultationsQuery({})
-  const { data: appointments, isLoading: appointmentsLoading } = useAppointmentsQuery()
+  // Queries para consultas y citas disponibles para facturar (solo cuando el modal está abierto)
+  const { data: consultations, isLoading: consultationsLoading, error: consultationsError } = useConsultationsAvailableForInvoiceQuery(generateInvoiceModal.isOpen)
+  const { data: appointments, isLoading: appointmentsLoading, error: appointmentsError } = useAppointmentsAvailableForInvoiceQuery(generateInvoiceModal.isOpen)
+  
+  // Normalizar las listas para asegurar que sean arrays
+  const consultationsList = useMemo(() => {
+    if (!consultations) return []
+    return Array.isArray(consultations) ? consultations : []
+  }, [consultations])
+  
+  const appointmentsList = useMemo(() => {
+    if (!appointments) return []
+    return Array.isArray(appointments) ? appointments : []
+  }, [appointments])
   
   // Query para productos (solo activos)
   const { data: products, isLoading: productsLoading } = useProductsQuery({})
@@ -214,19 +225,6 @@ export const InvoicesListPage = () => {
       productsForm.setValue('productos', newProducts)
     }
   }
-
-
-  // Normalizar appointments a array (el servicio ya lo normaliza, pero por seguridad)
-  const appointmentsList = useMemo(() => {
-    if (!appointments) return []
-    return appointments
-  }, [appointments])
-
-  // Normalizar consultations a array (el servicio ya lo normaliza, pero por seguridad)
-  const consultationsList = useMemo(() => {
-    if (!consultations) return []
-    return consultations
-  }, [consultations])
 
   return (
     <div className="space-y-6">
@@ -436,10 +434,16 @@ export const InvoicesListPage = () => {
                 <div className="flex justify-center py-10">
                   <Spinner size="lg" />
                 </div>
+              ) : consultationsError ? (
+                <div className="text-center py-10 text-red-600">
+                  <Stethoscope size={48} className="mx-auto mb-4 opacity-40" />
+                  <p>Error al cargar consultas disponibles</p>
+                  <p className="text-sm mt-2">Por favor, intenta nuevamente</p>
+                </div>
               ) : consultationsList.length === 0 ? (
                 <div className="text-center py-10 text-[var(--color-text-muted)]">
                   <Stethoscope size={48} className="mx-auto mb-4 opacity-40" />
-                  <p>No hay consultas disponibles</p>
+                  <p>No hay consultas disponibles para facturar</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -501,10 +505,16 @@ export const InvoicesListPage = () => {
                 <div className="flex justify-center py-10">
                   <Spinner size="lg" />
                 </div>
+              ) : appointmentsError ? (
+                <div className="text-center py-10 text-red-600">
+                  <Calendar size={48} className="mx-auto mb-4 opacity-40" />
+                  <p>Error al cargar citas disponibles</p>
+                  <p className="text-sm mt-2">Por favor, intenta nuevamente</p>
+                </div>
               ) : appointmentsList.length === 0 ? (
                 <div className="text-center py-10 text-[var(--color-text-muted)]">
                   <Calendar size={48} className="mx-auto mb-4 opacity-40" />
-                  <p>No hay citas disponibles</p>
+                  <p>No hay citas disponibles para facturar</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">

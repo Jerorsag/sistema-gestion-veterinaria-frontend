@@ -112,3 +112,15 @@ export const useVeterinariansQuery = () =>
     },
     staleTime: 5 * 60 * 1000,
   })
+
+export const useAppointmentsAvailableForInvoiceQuery = (enabled = true) =>
+  useQuery({
+    queryKey: ['appointments', 'available-for-invoice'],
+    queryFn: appointmentService.availableForInvoice,
+    enabled,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 segundos
+    onError: (error) => {
+      console.error('Error al cargar citas disponibles para facturar:', error)
+    },
+  })
