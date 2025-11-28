@@ -1,17 +1,21 @@
-import { useState, useMemo, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { FileText, PlusCircle, RefreshCw, Eye, ChevronRight } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { FileText, PlusCircle, RefreshCw, ChevronRight, Stethoscope, Calendar } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useInvoicesQuery } from '@/hooks/billing'
+import { useInvoicesQuery, useInvoiceCreateFromConsultationMutation, useInvoiceCreateFromAppointmentMutation } from '@/hooks/billing'
+import { useConsultationsQuery } from '@/hooks/consultations'
+import { useAppointmentsQuery } from '@/hooks/appointments'
 import { formatDateTime } from '@/utils/datetime'
 import type { Invoice } from '@/api/types/billing'
 import { useSessionStore } from '@/core/store/session-store'
+import { useDisclosure } from '@/hooks/useDisclosure'
 
 const statusMap: Record<string, { tone: 'success' | 'warning' | 'info' | 'neutral'; label: string }> = {
   PENDIENTE: { tone: 'warning', label: 'Pendiente' },
@@ -20,12 +24,23 @@ const statusMap: Record<string, { tone: 'success' | 'warning' | 'info' | 'neutra
 }
 
 export const InvoicesListPage = () => {
+  const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('todos')
   const debouncedSearch = useDebouncedValue(searchValue, 500)
+  const generateInvoiceModal = useDisclosure()
+  const [invoiceSourceType, setInvoiceSourceType] = useState<'consulta' | 'cita'>('consulta')
 
   const user = useSessionStore((state) => state.user)
   const isClient = user?.roles?.includes('cliente') ?? false
+
+  // Queries para consultas y citas
+  const { data: consultations, isLoading: consultationsLoading } = useConsultationsQuery({})
+  const { data: appointments, isLoading: appointmentsLoading } = useAppointmentsQuery()
+  
+  // Mutations para crear facturas
+  const createFromConsultationMutation = useInvoiceCreateFromConsultationMutation()
+  const createFromAppointmentMutation = useInvoiceCreateFromAppointmentMutation()
 
   const filters = useMemo(
     () => ({
@@ -46,6 +61,38 @@ export const InvoicesListPage = () => {
     setStatusFilter(status)
   }
 
+  const handleGenerateFromConsultation = async (consultationId: number) => {
+    try {
+      const invoice = await createFromConsultationMutation.mutateAsync(consultationId)
+      generateInvoiceModal.close()
+      navigate(`/app/facturacion/${invoice.id}`)
+    } catch (error) {
+      // El error ya se maneja en el hook con toast
+    }
+  }
+
+  const handleGenerateFromAppointment = async (appointmentId: number) => {
+    try {
+      const invoice = await createFromAppointmentMutation.mutateAsync(appointmentId)
+      generateInvoiceModal.close()
+      navigate(`/app/facturacion/${invoice.id}`)
+    } catch (error) {
+      // El error ya se maneja en el hook con toast
+    }
+  }
+
+  // Normalizar appointments a array (el servicio ya lo normaliza, pero por seguridad)
+  const appointmentsList = useMemo(() => {
+    if (!appointments) return []
+    return appointments
+  }, [appointments])
+
+  // Normalizar consultations a array (el servicio ya lo normaliza, pero por seguridad)
+  const consultationsList = useMemo(() => {
+    if (!consultations) return []
+    return consultations
+  }, [consultations])
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -59,6 +106,15 @@ export const InvoicesListPage = () => {
           </p>
         </div>
         <div className="flex gap-3">
+          {!isClient && (
+            <Button
+              variant="primary"
+              onClick={generateInvoiceModal.open}
+              startIcon={<PlusCircle size={18} />}
+            >
+              Generar factura
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => refetch()} startIcon={<RefreshCw size={16} className="text-black" />}>
             Refrescar
           </Button>
@@ -177,6 +233,181 @@ export const InvoicesListPage = () => {
           </div>
         )}
       </section>
+
+      {/* Modal para generar factura */}
+      <Modal
+        isOpen={generateInvoiceModal.isOpen}
+        onClose={generateInvoiceModal.close}
+        title="Generar factura"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Selector de tipo */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text-heading)] mb-2">
+              Seleccionar origen
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant={invoiceSourceType === 'consulta' ? 'primary' : 'ghost'}
+                onClick={() => setInvoiceSourceType('consulta')}
+                startIcon={<Stethoscope size={16} />}
+                className="w-full"
+              >
+                Desde consulta
+              </Button>
+              <Button
+                variant={invoiceSourceType === 'cita' ? 'primary' : 'ghost'}
+                onClick={() => setInvoiceSourceType('cita')}
+                startIcon={<Calendar size={16} />}
+                className="w-full"
+              >
+                Desde cita
+              </Button>
+            </div>
+          </div>
+
+          {/* Lista de consultas */}
+          {invoiceSourceType === 'consulta' && (
+            <div>
+              <h3 className="text-lg font-semibold text-[var(--color-text-heading)] mb-4">
+                Selecciona una consulta
+              </h3>
+              {consultationsLoading ? (
+                <div className="flex justify-center py-10">
+                  <Spinner size="lg" />
+                </div>
+              ) : consultationsList.length === 0 ? (
+                <div className="text-center py-10 text-[var(--color-text-muted)]">
+                  <Stethoscope size={48} className="mx-auto mb-4 opacity-40" />
+                  <p>No hay consultas disponibles</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {consultationsList.map((consultation) => (
+                    <Card
+                      key={consultation.id}
+                      className="p-4 hover:bg-[var(--color-surface-200)] transition-colors cursor-pointer"
+                      onClick={() => handleGenerateFromConsultation(consultation.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-[var(--color-text-heading)]">
+                              Consulta #{consultation.id}
+                            </h4>
+                            <Badge tone="info">{consultation.total_prescripciones} prescripción(es)</Badge>
+                          </div>
+                          <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                            <span className="font-medium">Mascota:</span> {consultation.mascota_nombre}
+                          </p>
+                          <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                            <span className="font-medium">Veterinario:</span> {consultation.veterinario_nombre}
+                          </p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">
+                            <span className="font-medium">Fecha:</span> {formatDateTime(consultation.fecha_consulta)}
+                          </p>
+                          {consultation.diagnostico && (
+                            <p className="text-sm text-[var(--color-text-muted)] mt-2">
+                              <span className="font-medium">Diagnóstico:</span> {consultation.diagnostico}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleGenerateFromConsultation(consultation.id)
+                          }}
+                          disabled={createFromConsultationMutation.isPending}
+                        >
+                          {createFromConsultationMutation.isPending ? 'Generando...' : 'Generar'}
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lista de citas */}
+          {invoiceSourceType === 'cita' && (
+            <div>
+              <h3 className="text-lg font-semibold text-[var(--color-text-heading)] mb-4">
+                Selecciona una cita
+              </h3>
+              {appointmentsLoading ? (
+                <div className="flex justify-center py-10">
+                  <Spinner size="lg" />
+                </div>
+              ) : appointmentsList.length === 0 ? (
+                <div className="text-center py-10 text-[var(--color-text-muted)]">
+                  <Calendar size={48} className="mx-auto mb-4 opacity-40" />
+                  <p>No hay citas disponibles</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {appointmentsList.map((appointment) => (
+                    <Card
+                      key={appointment.id}
+                      className="p-4 hover:bg-[var(--color-surface-200)] transition-colors cursor-pointer"
+                      onClick={() => handleGenerateFromAppointment(appointment.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-[var(--color-text-heading)]">
+                              Cita #{appointment.id}
+                            </h4>
+                            <Badge
+                              tone={
+                                appointment.estado === 'COMPLETADA'
+                                  ? 'success'
+                                  : appointment.estado === 'CANCELADA'
+                                  ? 'info'
+                                  : 'warning'
+                              }
+                            >
+                              {appointment.estado}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                            <span className="font-medium">Mascota:</span> {appointment.mascota_nombre}
+                          </p>
+                          <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                            <span className="font-medium">Servicio:</span> {appointment.servicio_nombre || 'Sin servicio'}
+                          </p>
+                          {appointment.veterinario_nombre && (
+                            <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                              <span className="font-medium">Veterinario:</span> {appointment.veterinario_nombre}
+                            </p>
+                          )}
+                          <p className="text-sm text-[var(--color-text-secondary)]">
+                            <span className="font-medium">Fecha:</span> {formatDateTime(appointment.fecha_hora)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleGenerateFromAppointment(appointment.id)
+                          }}
+                          disabled={createFromAppointmentMutation.isPending || !appointment.servicio_nombre}
+                        >
+                          {createFromAppointmentMutation.isPending ? 'Generando...' : 'Generar'}
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   )
 }
