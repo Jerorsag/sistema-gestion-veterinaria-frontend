@@ -73,6 +73,19 @@ export const endpoints = {
     kardex: withBase('/kardex/'),
     kardexDetail: (id: number | string) => withBase(`/kardex/${id}/`)(),
   },
+  billing: {
+    invoices: withBase('/facturas/'),
+    invoiceDetail: (id: number | string) => withBase(`/facturas/${id}/`)(),
+    createFromAppointment: (appointmentId: number | string) => withBase(`/facturas/crear-desde-cita/${appointmentId}/`)(),
+    createFromConsultation: (consultationId: number | string) => withBase(`/facturas/crear-desde-consulta/${consultationId}/`)(),
+    payInvoice: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/pagar/`)(),
+    cancelInvoice: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/anular/`)(),
+    sendInvoiceEmail: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/enviar-email/`)(),
+    invoiceReceipt: (invoiceId: number | string) => withBase(`/facturas/${invoiceId}/recibo/`)(),
+    payments: withBase('/pagos/'),
+    paymentMethods: withBase('/metodos-pago/'),
+    financialReports: withBase('/reportes-financieros/'),
+  },
 }
 
 export type EndpointGroups = typeof endpoints

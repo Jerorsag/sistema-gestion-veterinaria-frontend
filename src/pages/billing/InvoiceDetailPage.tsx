@@ -1,0 +1,632 @@
+import { useParams, Link } from 'react-router-dom'
+import { ArrowLeft, DollarSign, FileText, Mail, X, CheckCircle, Calendar, User, Package, ClipboardList, CreditCard, Clock, CheckCircle2 } from 'lucide-react'
+
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Spinner } from '@/components/ui/Spinner'
+import { Badge } from '@/components/ui/Badge'
+import {
+  useInvoiceDetailQuery,
+  useInvoicePayMutation,
+  useInvoiceCancelMutation,
+  useInvoiceSendEmailMutation,
+  usePaymentMethodsQuery,
+} from '@/hooks/billing'
+import { useUserDetailQuery } from '@/hooks/users'
+import { formatDateTime } from '@/utils/datetime'
+import { useState, useEffect, useMemo } from 'react'
+import { Input } from '@/components/ui/Input'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import toast from 'react-hot-toast'
+import type { PaymentInvoicePayload } from '@/api/types/billing'
+
+const paymentSchema = z.object({
+  metodo_pago: z.number().min(1, 'Selecciona un método de pago'),
+  monto: z.string().min(1, 'El monto es requerido').refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: 'El monto debe ser un número válido mayor a 0',
+  }),
+  referencia: z.string().optional(),
+})
+
+type PaymentFormValues = z.infer<typeof paymentSchema>
+
+const statusMap: Record<string, { tone: 'success' | 'warning' | 'info' | 'neutral'; label: string }> = {
+  PENDIENTE: { tone: 'warning', label: 'Pendiente' },
+  PAGADA: { tone: 'success', label: 'Pagada' },
+  ANULADA: { tone: 'info', label: 'Anulada' },
+}
+
+export const InvoiceDetailPage = () => {
+  const { id } = useParams<{ id: string }>()
+  const { data, isLoading, error, refetch } = useInvoiceDetailQuery(id)
+  const { data: paymentMethods } = usePaymentMethodsQuery()
+  const payMutation = useInvoicePayMutation()
+  const cancelMutation = useInvoiceCancelMutation()
+  const sendEmailMutation = useInvoiceSendEmailMutation()
+
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PaymentFormValues>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      metodo_pago: 0,
+      monto: '',
+      referencia: '',
+    },
+  })
+
+  // Intentar obtener el nombre del cliente si no viene en la factura
+  const clienteId = useMemo(() => {
+    if (!data?.cliente) return null
+    const clienteIdValue = typeof data.cliente === 'number' ? data.cliente : Number(data.cliente)
+    return isNaN(clienteIdValue) ? null : clienteIdValue
+  }, [data?.cliente])
+
+  // Siempre llamar el hook con el mismo parámetro (puede ser undefined)
+  const clienteQueryId = useMemo(() => {
+    if (clienteId === null || data?.cliente_nombre || isLoading) return undefined
+    return String(clienteId)
+  }, [clienteId, data?.cliente_nombre, isLoading])
+
+  const { data: clienteData } = useUserDetailQuery(clienteQueryId)
+
+  // Obtener el nombre completo del cliente
+  const clienteNombre = useMemo(() => {
+    if (data?.cliente_nombre) return data.cliente_nombre
+    if (clienteData) {
+      return `${clienteData.nombre} ${clienteData.apellido}`.trim()
+    }
+    return null
+  }, [data?.cliente_nombre, clienteData])
+
+  // Calcular total pagado y saldo pendiente
+  const totalPagado = useMemo(() => {
+    if (!data?.pagos || data.pagos.length === 0) return 0
+    return data.pagos
+      .filter(p => p.aprobado)
+      .reduce((sum, p) => sum + (typeof p.monto === 'number' ? p.monto : Number(p.monto || 0)), 0)
+  }, [data?.pagos])
+
+  const remainingBalance = useMemo(() => {
+    return typeof data?.total === 'number' ? data.total : Number(data?.total || 0)
+  }, [data?.total])
+
+  const saldoPendiente = useMemo(() => {
+    return Math.max(0, remainingBalance - totalPagado)
+  }, [remainingBalance, totalPagado])
+
+  // Actualizar monto cuando cambie el total de la factura
+  useEffect(() => {
+    if (data?.total) {
+      reset({
+        metodo_pago: 0,
+        monto: String(data.total),
+        referencia: '',
+      })
+    }
+  }, [data?.total, reset])
+
+  const status = data?.estado ? statusMap[data.estado] : { tone: 'neutral' as const, label: data?.estado || '' }
+
+  const handlePay = async (values: PaymentFormValues) => {
+    if (!id) return
+
+    const payload: PaymentInvoicePayload = {
+      metodo_pago: values.metodo_pago,
+      monto: Number(values.monto),
+      referencia: values.referencia || undefined,
+    }
+
+    try {
+      await payMutation.mutateAsync({ invoiceId: id, payload })
+      toast.success('Factura pagada correctamente')
+      setShowPaymentForm(false)
+      reset()
+      refetch()
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Error al procesar el pago')
+    }
+  }
+
+  const handleCancel = async () => {
+    if (!id) return
+    if (!confirm('¿Estás seguro de que deseas anular esta factura?')) return
+
+    try {
+      await cancelMutation.mutateAsync(id)
+      toast.success('Factura anulada correctamente')
+      refetch()
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Error al anular la factura')
+    }
+  }
+
+  const handleSendEmail = async () => {
+    if (!id) return
+
+    try {
+      await sendEmailMutation.mutateAsync(id)
+      toast.success('Factura enviada por correo electrónico')
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || 'Error al enviar el correo')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
+        <div className="rounded-lg bg-red-50 p-6 text-center">
+          <p className="text-lg font-medium text-red-800">Error al cargar la factura</p>
+          <p className="mt-2 text-sm text-red-600">
+            {error instanceof Error ? error.message : 'Error desconocido'}
+          </p>
+          {error && typeof error === 'object' && 'response' in error && (
+            <pre className="mt-4 text-left text-xs overflow-auto bg-red-100 p-3 rounded">
+              {JSON.stringify((error as any).response?.data, null, 2)}
+            </pre>
+          )}
+        </div>
+        <Button asChild variant="ghost" startIcon={<ArrowLeft size={18} className="text-black" />}>
+          <Link to="/app/facturacion">Volver a facturas</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
+        <p className="text-lg font-medium text-[var(--color-text-heading)]">Factura no encontrada</p>
+        <Button asChild variant="ghost" startIcon={<ArrowLeft size={18} className="text-black" />}>
+          <Link to="/app/facturacion">Volver a facturas</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  const canPay = data?.estado === 'PENDIENTE'
+  const canCancel = data?.estado === 'PENDIENTE' || data?.estado === 'PAGADA'
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-label">Factura</p>
+          <h1 className="text-3xl font-semibold text-heading">Factura #{data.id}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-secondary">
+            <span>{formatDateTime(data.fecha)}</span>
+            <span>•</span>
+            <Badge tone={status.tone}>{status.label}</Badge>
+            {data.pagada && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-emerald-600">
+                  <CheckCircle size={14} />
+                  Pagada
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            asChild 
+            variant="ghost" 
+            className="px-3 py-1.5 text-sm"
+            startIcon={<ArrowLeft size={16} className="text-black" />}
+          >
+            <Link to="/app/facturacion">Volver</Link>
+          </Button>
+          {canPay && (
+            <Button
+              className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 px-3 py-1.5 text-sm font-medium whitespace-nowrap"
+              style={{ boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' }}
+              startIcon={<CheckCircle2 size={16} />}
+              onClick={() => setShowPaymentForm(!showPaymentForm)}
+            >
+              {showPaymentForm ? 'Cancelar' : 'Pagar'}
+            </Button>
+          )}
+          {canCancel && (
+            <Button 
+              variant="danger" 
+              className="px-3 py-1.5 text-sm"
+              startIcon={<X size={16} />} 
+              onClick={handleCancel} 
+              disabled={cancelMutation.isPending}
+            >
+              {cancelMutation.isPending ? 'Anulando...' : 'Anular'}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Formulario de pago */}
+      {showPaymentForm && canPay && (
+        <Card
+          header={
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-emerald-500/20 p-2.5 text-emerald-600">
+                <DollarSign size={18} />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pago</p>
+                <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Registrar pago</h3>
+              </div>
+            </div>
+          }
+        >
+          <form onSubmit={handleSubmit(handlePay)} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+                <span className="font-medium">Método de pago</span>
+                <select
+                  className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                  style={{
+                    borderWidth: 'var(--border-subtle-width)',
+                    borderStyle: 'var(--border-subtle-style)',
+                  }}
+                  {...register('metodo_pago', { valueAsNumber: true })}
+                >
+                  <option value="0">Selecciona un método</option>
+                  {paymentMethods && Array.isArray(paymentMethods) && paymentMethods.map((method) => (
+                    <option key={method.id} value={method.id}>
+                      {method.nombre}
+                    </option>
+                  ))}
+                </select>
+                {errors.metodo_pago && <p className="text-xs text-red-600">{errors.metodo_pago.message}</p>}
+              </label>
+
+              <Input
+                label="Monto"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                {...register('monto')}
+                error={errors.monto?.message}
+              />
+
+              <div className="md:col-span-2">
+                <Input
+                  label="Referencia (opcional)"
+                  placeholder="Número de referencia del pago"
+                  {...register('referencia')}
+                  error={errors.referencia?.message}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+              <Button type="button" variant="ghost" onClick={() => setShowPaymentForm(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={payMutation.isPending} className="min-w-[120px]">
+                {payMutation.isPending ? 'Procesando...' : 'Registrar pago'}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {/* Información de la factura */}
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        {/* Columna principal - Detalles */}
+        <div className="space-y-6">
+          {/* Información del cliente */}
+          <Card
+            header={
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-[var(--color-primary)]/20 p-2.5 text-[var(--color-primary)]">
+                  <User size={18} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Cliente</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">
+                    {clienteNombre || (typeof data.cliente === 'string' ? data.cliente : `Cliente #${data.cliente}`)}
+                  </h3>
+                </div>
+              </div>
+            }
+          >
+            <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
+              {clienteNombre && (
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-[var(--color-text-heading)]">Nombre completo:</span>
+                  <span>{clienteNombre}</span>
+                </div>
+              )}
+              {clienteData?.email && (
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-[var(--color-text-heading)]">Email:</span>
+                  <span>{clienteData.email}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Detalles de la factura */}
+          <Card
+            header={
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-[var(--color-secondary)]/20 p-2.5 text-[var(--color-secondary)]">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Detalles</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Items de la factura</h3>
+                </div>
+              </div>
+            }
+          >
+            {data.detalles && data.detalles.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                      <th className="px-4 py-3">Descripción</th>
+                      <th className="px-4 py-3 text-right">Cantidad</th>
+                      <th className="px-4 py-3 text-right">Precio Unit.</th>
+                      <th className="px-4 py-3 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                    {data.detalles.map((detalle) => {
+                      const precioUnit = typeof detalle.precio_unitario === 'number' ? detalle.precio_unitario : Number(detalle.precio_unitario || 0)
+                      const subtotal = typeof detalle.subtotal === 'number' ? detalle.subtotal : Number(detalle.subtotal || precioUnit * detalle.cantidad)
+                      const isProduct = !!detalle.producto
+                      const isService = !!detalle.servicio
+                      
+                      return (
+                        <tr key={detalle.id || Math.random()} className="text-sm text-[var(--color-text-secondary)]">
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-[var(--color-text-heading)]">
+                              {detalle.descripcion || 'Sin descripción'}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {isProduct && detalle.producto_nombre && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                                  <Package size={12} />
+                                  {detalle.producto_nombre}
+                                </span>
+                              )}
+                              {isService && detalle.servicio_nombre && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
+                                  <ClipboardList size={12} />
+                                  {detalle.servicio_nombre}
+                                </span>
+                              )}
+                              {isProduct && !detalle.producto_nombre && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                                  <Package size={12} />
+                                  Producto #{detalle.producto}
+                                </span>
+                              )}
+                              {isService && !detalle.servicio_nombre && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
+                                  <ClipboardList size={12} />
+                                  Servicio #{detalle.servicio}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-medium">{detalle.cantidad}</td>
+                          <td className="px-4 py-3 text-right">
+                            ${precioUnit.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-[var(--color-text-heading)]">
+                            ${subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="py-8 text-center text-sm text-[var(--color-text-muted)]">No hay detalles en esta factura</p>
+            )}
+          </Card>
+        </div>
+
+        {/* Columna lateral - Resumen */}
+        <div className="space-y-6">
+          {/* Resumen financiero */}
+          <Card
+            header={
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-[var(--color-accent-pink)]/20 p-2.5 text-[var(--color-accent-pink)]">
+                  <DollarSign size={18} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Resumen</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Totales</h3>
+                </div>
+              </div>
+            }
+          >
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--color-text-secondary)]">Subtotal:</span>
+                <span className="font-semibold text-[var(--color-text-heading)]">
+                  ${typeof data.subtotal === 'number' ? data.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Number(data.subtotal || 0).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-[var(--color-text-secondary)]">Impuestos:</span>
+                <span className="font-semibold text-[var(--color-text-heading)]">
+                  ${typeof data.impuestos === 'number' ? data.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Number(data.impuestos || 0).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="border-t pt-4" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                <div className="flex justify-between text-base">
+                  <span className="font-semibold text-[var(--color-text-heading)]">Total:</span>
+                  <span className="text-xl font-bold text-[var(--color-primary)]">
+                    ${remainingBalance.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Información adicional */}
+          <Card
+            header={
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-[var(--color-accent-lavender)]/20 p-2.5 text-[var(--color-accent-lavender)]">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Información</p>
+                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Datos adicionales</h3>
+                </div>
+              </div>
+            }
+          >
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Fecha de emisión</p>
+                <p className="font-semibold text-[var(--color-text-heading)]">{formatDateTime(data.fecha)}</p>
+              </div>
+              {data.cita && (
+                <div>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">Cita relacionada</p>
+                  <Link
+                    to={`/app/citas/${data.cita}`}
+                    className="font-semibold text-[var(--color-primary)] hover:underline"
+                  >
+                    Ver cita
+                  </Link>
+                </div>
+              )}
+              {data.consulta && (
+                <div>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">Consulta relacionada</p>
+                  <Link
+                    to={`/app/consultas/${data.consulta}`}
+                    className="font-semibold text-[var(--color-primary)] hover:underline"
+                  >
+                    Ver consulta
+                  </Link>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Pagos realizados */}
+          {data.pagos && data.pagos.length > 0 && (
+            <Card
+              header={
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-emerald-500/20 p-2.5 text-emerald-600">
+                    <CreditCard size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pagos</p>
+                    <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Historial de pagos</h3>
+                  </div>
+                </div>
+              }
+            >
+              <div className="space-y-3">
+                {data.pagos.map((pago) => {
+                  const monto = typeof pago.monto === 'number' ? pago.monto : Number(pago.monto || 0)
+                  const metodoNombre = pago.metodo_nombre || (typeof pago.metodo === 'object' ? pago.metodo.nombre : `Método #${typeof pago.metodo === 'number' ? pago.metodo : 'N/A'}`)
+                  
+                  return (
+                    <div
+                      key={pago.id}
+                      className="rounded-xl border p-4 transition-all hover:shadow-md"
+                      style={{ 
+                        borderColor: pago.aprobado ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-subtle-color)',
+                        backgroundColor: pago.aprobado ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-semibold text-[var(--color-text-heading)]">
+                              ${monto.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            {pago.aprobado ? (
+                              <Badge tone="success" className="text-xs">Aprobado</Badge>
+                            ) : (
+                              <Badge tone="warning" className="text-xs">Pendiente</Badge>
+                            )}
+                          </div>
+                          <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+                            <div className="flex items-center gap-2">
+                              <CreditCard size={14} className="text-[var(--color-text-muted)]" />
+                              <span>{metodoNombre}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock size={14} className="text-[var(--color-text-muted)]" />
+                              <span>{formatDateTime(pago.fecha)}</span>
+                            </div>
+                            {pago.referencia && (
+                              <div className="text-xs text-[var(--color-text-muted)]">
+                                Referencia: {pago.referencia}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          )}
+
+          {/* Saldo pendiente */}
+          {data.estado === 'PENDIENTE' && saldoPendiente > 0 && (
+            <Card>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[var(--color-text-heading)]">Saldo pendiente</p>
+                <p className="text-2xl font-bold text-[var(--color-primary)]">
+                  ${saldoPendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                {totalPagado > 0 && (
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Pagado: ${totalPagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Acciones */}
+          <Card>
+            <div className="flex justify-center">
+              <Button
+                variant="secondary"
+                className="px-6 py-2.5 text-sm font-medium"
+                startIcon={<Mail size={18} className="text-black" />}
+                onClick={handleSendEmail}
+                disabled={sendEmailMutation.isPending}
+              >
+                {sendEmailMutation.isPending ? 'Enviando...' : 'Enviar factura por email'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
