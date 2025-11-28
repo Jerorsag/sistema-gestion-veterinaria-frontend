@@ -8,16 +8,14 @@ import { Button } from '@/components/ui/Button'
 
 import { useConsultationCreateMutation } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
-import { useProductsQuery } from '@/hooks/inventory' // ✅ Importación solicitada
+import { useProductsQuery } from '@/hooks/inventory'
 
-// Definimos la interfaz localmente para evitar errores si no está en types
 interface Product {
   id: number
   nombre: string
   stock?: number
 }
 
-// --- ESQUEMA ACTUALIZADO ---
 const schema = z.object({
   mascota: z.string().min(1, 'Selecciona una mascota'),
   fecha_consulta: z.string().min(1, 'Selecciona una fecha'),
@@ -26,13 +24,12 @@ const schema = z.object({
   notas_adicionales: z.string().optional(),
   servicio: z.string().optional(),
   cita: z.string().optional(),
-  
-  // ✅ Estructura corregida según el backend
+
   prescripciones: z
     .array(
       z.object({
-        medicamento: z.string().min(1, 'Selecciona un medicamento'), // Se captura como string del select
-        cantidad: z.string().min(1, 'Indique la cantidad'),          // Se captura como string del input
+        medicamento: z.string().min(1, 'Selecciona un medicamento'),
+        cantidad: z.string().min(1, 'Indique la cantidad'),        
         indicaciones: z.string().min(1, 'Escriba las indicaciones'),
       }),
     )
@@ -130,11 +127,9 @@ export const ConsultationForm = () => {
   })
 
   const { data: pets } = usePetsQuery({ search: '', especie: null })
-  
-  // Hook de productos
+
   const { data: productsData, isLoading: isLoadingProducts } = useProductsQuery()
 
-  // Manejo seguro del array de productos
   const productos: Product[] = Array.isArray(productsData)
     ? productsData
     : (productsData as any)?.results || []
@@ -166,7 +161,7 @@ export const ConsultationForm = () => {
         estado: values.vacunas.estado,
         vacunas_descripcion: values.vacunas.vacunas_descripcion || '',
       } : undefined,
-    } as any) // 'as any' temporal para evitar error de tipos si no has actualizado types.ts
+    } as any) 
     
     form.reset()
     navigate('/app/historias')
@@ -236,7 +231,6 @@ export const ConsultationForm = () => {
         error={form.formState.errors.notas_adicionales?.message}
       />
 
-      {/* --- SECCIÓN PRESCRIPCIONES CORREGIDA --- */}
       <section className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-semibold text-heading">Prescripciones</h3>
@@ -259,7 +253,7 @@ export const ConsultationForm = () => {
                     <div className="mt-1 text-xs text-secondary">Cargando productos...</div>
                   ) : (
                     <select
-                      className="mt-1 w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface)] px-3 py-2 text-base text-primary focus:border-blue-500 focus:outline-none"
+                      className="mt-1 w-full rounded-lg b|color)] bg-[var(--color-surface)] px-3 py-2 text-base text-primary focus:border-blue-500 focus:outline-none"
                       style={{ borderWidth: 'var(--border-subtle-width)' }}
                       {...form.register(`prescripciones.${index}.medicamento`)}
                     >

@@ -65,8 +65,8 @@ export const ConsultationDetailPage = () => {
           {data.prescripciones.map((pres) => (
             <Card key={pres.id}>
               <p className="text-sm font-semibold text-heading">{pres.producto_nombre}</p>
-              <p className="text-xs text-tertiary">{pres.dosis}</p>
-              <p className="text-xs text-tertiary">{pres.frecuencia}</p>
+              <p className="text-xs text-tertiary">{pres.cantidad}</p>
+              <p className="text-xs text-tertiary">{pres.indicaciones}</p>
             </Card>
           ))}
           {data.prescripciones.length === 0 && <p className="text-sm text-secondary">Sin prescripciones registradas.</p>}
