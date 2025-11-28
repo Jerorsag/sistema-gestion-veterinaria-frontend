@@ -1,27 +1,26 @@
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
-import { PlusCircle, X, Pill, FileText, Syringe, Calendar, PawPrint, Info } from 'lucide-react'
 
+import { PlusCircle, X, Pill, FileText, Syringe, PawPrint, Info } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Spinner } from '@/components/ui/Spinner'
+import { Spinner } from '@/components/ui/Spinner' 
 import { Card } from '@/components/ui/Card'
 
-import { useConsultationCreateMutation } from '@/hooks/consultations'
+import { 
+  useConsultationCreateMutation, useConsultationUpdateMutation,useConsultationDetailQuery  } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
 import { useProductsQuery } from '@/hooks/inventory'
 
-// Definimos la interfaz localmente para evitar errores si no está en types
 interface Product {
   id: number
   nombre: string
   stock?: number
 }
 
-// --- ESQUEMA ACTUALIZADO ---
 const schema = z.object({
   mascota: z.string().min(1, 'Selecciona una mascota'),
   fecha_consulta: z.string().min(1, 'Selecciona una fecha'),
@@ -30,13 +29,12 @@ const schema = z.object({
   notas_adicionales: z.string().optional(),
   servicio: z.string().optional(),
   cita: z.string().optional(),
-  
-  // ✅ Estructura corregida según el backend
+
   prescripciones: z
     .array(
       z.object({
         medicamento: z.string().min(1, 'Selecciona un medicamento'),
-        cantidad: z.string().min(1, 'Indique la cantidad'),
+        cantidad: z.string().min(1, 'Indique la cantidad'),        
         indicaciones: z.string().min(1, 'Escriba las indicaciones'),
       }),
     )
@@ -90,6 +88,13 @@ const ESTADOS_VACUNACION = [
 export const ConsultationForm = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const isEditing = !!id
+
+  const { data: consultationData, isLoading: isLoadingConsultation } = useConsultationDetailQuery(
+  id || '',  // ← Aseguramos que siempre sea string
+  { enabled: isEditing }
+)
 
   const preMascotaId = searchParams.get('mascota') || ''
   const preServicioId = searchParams.get('servicio') || ''
@@ -115,6 +120,42 @@ export const ConsultationForm = () => {
     },
   })
 
+useEffect(() => {
+  if (isEditing && consultationData) {
+    const data = consultationData as any; // Cast temporal
+    
+    form.reset({
+      mascota: data?.mascota ? String(data.mascota) : '',
+      servicio: data?.servicio_id ? String(data.servicio_id) : '',
+      cita: data?.cita_id ? String(data.cita_id) : '',
+      fecha_consulta: data?.fecha_consulta 
+        ? data.fecha_consulta.split('T')[0]
+        : new Date().toISOString().slice(0, 10),
+      descripcion_consulta: data?.descripcion_consulta || '',
+      diagnostico: data?.diagnostico || '',
+      notas_adicionales: data?.notas_adicionales || '',
+      prescripciones: Array.isArray(data?.prescripciones)
+        ? data.prescripciones.map((p: any) => ({
+            medicamento: p?.producto_id ? String(p.producto_id) : (p?.medicamento ? String(p.medicamento) : ''),
+            cantidad: p?.cantidad ? String(p.cantidad) : '',
+            indicaciones: p?.indicaciones || '',
+          }))
+        : [],
+      examenes: Array.isArray(data?.examenes)
+        ? data.examenes.map((e: any) => ({
+            tipo_examen: e?.tipo_examen || '',
+            descripcion: e?.descripcion || '',
+          }))
+        : [],
+      vacunas: {
+        estado: data?.vacunas?.estado || '',
+        vacunas_descripcion: data?.vacunas?.vacunas_descripcion || '',
+      },
+    })
+  }
+}, [isEditing, consultationData, form])
+
+
   const {
     fields: prescriptionFields,
     append: addPrescription,
@@ -134,16 +175,15 @@ export const ConsultationForm = () => {
   })
 
   const { data: pets } = usePetsQuery({ search: '', especie: null })
-  
-  // Hook de productos
+
   const { data: productsData, isLoading: isLoadingProducts } = useProductsQuery()
 
-  // Manejo seguro del array de productos
   const productos: Product[] = Array.isArray(productsData)
     ? productsData
     : (productsData as any)?.results || []
 
   const mutation = useConsultationCreateMutation()
+  const updateMutation = useConsultationUpdateMutation()
 
   // Limpiar vacunas_descripcion cuando el estado es AL_DIA o NINGUNA
   const estadoVacunas = form.watch('vacunas.estado')
@@ -154,9 +194,11 @@ export const ConsultationForm = () => {
   }, [estadoVacunas, form])
 
   const onSubmit = async (values: FormValues) => {
-    await mutation.mutateAsync({
+    const payload = {
       mascota: Number(values.mascota),
-      fecha_consulta: values.fecha_consulta,
+      fecha_consulta: values.fecha_consulta.includes('T')
+      ? values.fecha_consulta.split('T')[0]
+      : values.fecha_consulta, 
       descripcion_consulta: values.descripcion_consulta,
       diagnostico: values.diagnostico,
       notas_adicionales: values.notas_adicionales,
@@ -176,15 +218,24 @@ export const ConsultationForm = () => {
       
       vacunas: values.vacunas?.estado ? {
         estado: values.vacunas.estado,
-        vacunas_descripcion: (values.vacunas.estado === 'AL_DIA' || values.vacunas.estado === 'NINGUNA') 
-          ? '' 
-          : (values.vacunas.vacunas_descripcion || ''),
-      } : undefined,
-    } as any)
+        vacunas_descripcion: values.vacunas.vacunas_descripcion || '',
+      } : undefined
+    }  
+
+try {
+    if (isEditing && id) {
+      await updateMutation.mutateAsync({ id: Number(id), data: payload as any })
+    } else {
+      await mutation.mutateAsync(payload as any)
+    }
     
     form.reset()
     navigate('/app/historias')
+  } catch (error: any) {
+    console.error('Error:', error)
+    console.error('Respuesta del servidor:', error.response?.data)
   }
+}
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -192,8 +243,8 @@ export const ConsultationForm = () => {
       <input type="hidden" {...form.register('cita')} />
       <input type="hidden" {...form.register('servicio')} />
 
-      {/* Notificación de cita */}
-      {preCitaId && (
+      {/* --- SECCIÓN DATOS GENERALES --- */}
+{preCitaId && (
         <Card className="border-blue-200 bg-blue-50 p-4">
           <div className="flex items-start gap-3">
             <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
@@ -208,7 +259,6 @@ export const ConsultationForm = () => {
         </Card>
       )}
 
-      {/* SECCIÓN DATOS GENERALES */}
       <div className="flex items-center gap-3 mb-6">
         <div className="rounded-xl bg-[var(--color-primary)]/10 p-2 text-[var(--color-primary)]">
           <PawPrint size={18} />
@@ -263,19 +313,70 @@ export const ConsultationForm = () => {
         />
       </div>
 
-      <div className="mt-4">
-        <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
-          <span className="font-medium">Notas adicionales</span>
-          <textarea
-            className="min-h-[100px] w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-            {...form.register('notas_adicionales')}
-            placeholder="Tratamiento recomendado, observaciones adicionales..."
-          />
-        </label>
+            {/* --- SECCIÓN VACUNAS --- */}
+      <div className="flex items-center gap-3 mb-6 pt-6 border-t border-gray-100">
+        <div className="rounded-xl bg-emerald-100 p-2 text-emerald-600">
+          <Syringe size={18} />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900">Estado de Vacunación</h3>
+      </div>
+      
+      <div className="space-y-6">
+        <div>
+          <label className="mb-3 block text-sm font-medium text-gray-900">Estado *</label>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {ESTADOS_VACUNACION.map((estado) => (
+              <label
+                key={estado.value}
+                className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all ${
+                  form.watch('vacunas.estado') === estado.value
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-[var(--color-primary)]/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  value={estado.value}
+                  {...form.register('vacunas.estado')}
+                  className="sr-only"
+                />
+                {estado.label}
+              </label>
+            ))}
+          </div>
+          {form.formState.errors.vacunas?.estado && (
+            <p className="mt-2 text-xs text-red-600">{form.formState.errors.vacunas.estado.message}</p>
+          )}
+        </div>
+
+        {(form.watch('vacunas.estado') === 'PENDIENTE' || form.watch('vacunas.estado') === 'EN_PROCESO') && (
+          <div>
+            <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+              <span className="font-medium">Descripción de vacunas *</span>
+              <textarea
+                className="min-h-[100px] w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                {...form.register('vacunas.vacunas_descripcion')}
+                placeholder="Especifique las vacunas pendientes o en proceso..."
+              />
+              {form.formState.errors.vacunas?.vacunas_descripcion && (
+                <p className="text-xs text-red-600">{form.formState.errors.vacunas.vacunas_descripcion.message}</p>
+              )}
+            </label>
+          </div>
+        )}
+
+        {(form.watch('vacunas.estado') === 'AL_DIA' || form.watch('vacunas.estado') === 'NINGUNA') && (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <p className="text-sm text-gray-700">
+              {form.watch('vacunas.estado') === 'AL_DIA' 
+                ? '✓ La mascota tiene sus vacunas al día.' 
+                : 'No se han aplicado vacunas.'}
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* SECCIÓN PRESCRIPCIONES */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 pt-6 border-t border-gray-100">
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-blue-100 p-2 text-blue-600">
             <Pill size={18} />
@@ -365,8 +466,8 @@ export const ConsultationForm = () => {
         </div>
       )}
 
-      {/* SECCIÓN EXÁMENES */}
-      <div className="flex items-center justify-between mb-6">
+      {/* --- SECCIÓN EXÁMENES --- */}
+      <div className="flex items-center justify-between mb-6 pt-6 border-t border-gray-100">
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-purple-100 p-2 text-purple-600">
             <FileText size={18} />
@@ -439,71 +540,18 @@ export const ConsultationForm = () => {
         </div>
       )}
 
-      {/* SECCIÓN VACUNAS */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="rounded-xl bg-emerald-100 p-2 text-emerald-600">
-          <Syringe size={18} />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900">Estado de Vacunación</h3>
-      </div>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="mb-3 block text-sm font-medium text-gray-900">Estado *</label>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {ESTADOS_VACUNACION.map((estado) => (
-              <label
-                key={estado.value}
-                className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all ${
-                  form.watch('vacunas.estado') === estado.value
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-[var(--color-primary)]/50'
-                }`}
-              >
-                <input
-                  type="radio"
-                  value={estado.value}
-                  {...form.register('vacunas.estado')}
-                  className="sr-only"
-                />
-                {estado.label}
-              </label>
-            ))}
-          </div>
-          {form.formState.errors.vacunas?.estado && (
-            <p className="mt-2 text-xs text-red-600">{form.formState.errors.vacunas.estado.message}</p>
-          )}
-        </div>
-
-        {(form.watch('vacunas.estado') === 'PENDIENTE' || form.watch('vacunas.estado') === 'EN_PROCESO') && (
-          <div>
-            <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
-              <span className="font-medium">Descripción de vacunas *</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
-                {...form.register('vacunas.vacunas_descripcion')}
-                placeholder="Especifique las vacunas pendientes o en proceso..."
-              />
-              {form.formState.errors.vacunas?.vacunas_descripcion && (
-                <p className="text-xs text-red-600">{form.formState.errors.vacunas.vacunas_descripcion.message}</p>
-              )}
-            </label>
-          </div>
-        )}
-
-        {(form.watch('vacunas.estado') === 'AL_DIA' || form.watch('vacunas.estado') === 'NINGUNA') && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <p className="text-sm text-gray-700">
-              {form.watch('vacunas.estado') === 'AL_DIA' 
-                ? '✓ La mascota tiene sus vacunas al día.' 
-                : 'No se han aplicado vacunas.'}
-            </p>
-          </div>
-        )}
+            <div className="mt-4">
+        <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+          <span className="font-medium">Notas adicionales</span>
+          <textarea
+            className="min-h-[100px] w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+            {...form.register('notas_adicionales')}
+            placeholder="Tratamiento recomendado, observaciones adicionales..."
+          />
+        </label>
       </div>
 
-      {/* Botón de envío */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
         <Button 
           type="button" 
           variant="ghost" 
@@ -515,7 +563,11 @@ export const ConsultationForm = () => {
           type="submit" 
           disabled={form.formState.isSubmitting || mutation.isPending}
         >
-          {form.formState.isSubmitting || mutation.isPending ? 'Guardando...' : 'Registrar consulta'}
+          {form.formState.isSubmitting || mutation.isPending || updateMutation.isPending
+          ? 'Guardando...' 
+          : isEditing 
+            ? 'Actualizar consulta' 
+            : 'Registrar consulta'}
         </Button>
       </div>
     </form>

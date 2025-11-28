@@ -20,12 +20,16 @@ export const useConsultationsQuery = (params: { mascota?: number; veterinario?: 
     queryFn: () => consultationService.list(params),
   })
 
-export const useConsultationDetailQuery = (id?: string) =>
-  useQuery({
+export const useConsultationDetailQuery = (
+  id: string | undefined,
+  options?: { enabled?: boolean }
+) => {
+  return useQuery({
     queryKey: ['consultations', 'detail', id],
-    queryFn: () => consultationService.detail(id!),
-    enabled: Boolean(id),
+    queryFn: () => consultationService.detail(id!), // o .get(id!)
+    enabled: options?.enabled !== false && !!id,
   })
+}
 
 export const useConsultationCreateMutation = () => {
   const queryClient = useQueryClient()
@@ -39,14 +43,15 @@ export const useConsultationCreateMutation = () => {
   })
 }
 
-export const useConsultationUpdateMutation = (id: number | string) => {
+export const useConsultationUpdateMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<ConsultationPayload>) => consultationService.update(id, payload),
-    onSuccess: () => {
+    mutationFn: ({ id, data }: { id: number | string, data: Partial<ConsultationPayload> }) => 
+      consultationService.update(id, data),
+    onSuccess: (_, variables) => {
       toast.success('Consulta actualizada')
       queryClient.invalidateQueries({ queryKey: ['consultations'] })
-      queryClient.invalidateQueries({ queryKey: ['consultations', 'detail', String(id)] })
+      queryClient.invalidateQueries({ queryKey: ['consultations', 'detail', String(variables.id)] })
     },
     onError: (error: AxiosError) => toast.error(getError(error)),
   })
