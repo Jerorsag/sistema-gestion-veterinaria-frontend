@@ -4,6 +4,7 @@ import { FileText, PlusCircle, RefreshCw, ChevronRight, Stethoscope, Calendar, P
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import toast from 'react-hot-toast'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -185,12 +186,21 @@ export const InvoicesListPage = () => {
           cantidad: Number(p.cantidad),
         })),
       }
-      const invoice = await createFromProductsMutation.mutateAsync(payload)
-      productsForm.reset()
+      
+      await createFromProductsMutation.mutateAsync(payload)
+      
+      // Mostrar mensaje de éxito
+      toast.success('Factura creada correctamente')
+      
+      // Cerrar modal y resetear formulario
       generateInvoiceModal.close()
-      navigate(`/app/facturacion/${invoice.id}`)
-    } catch (error) {
+      productsForm.reset()
+      
+      // Redireccionar a la lista de facturas
+      navigate('/app/facturacion')
+    } catch (error: any) {
       // El error ya se maneja en el hook con toast
+      console.error('Error al crear factura desde productos:', error)
     }
   }
 

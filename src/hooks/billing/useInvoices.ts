@@ -31,7 +31,15 @@ export const useInvoiceDetailQuery = (id: number | string | undefined) => {
     queryKey: QUERY_KEYS.detail(id!),
     queryFn: () => invoiceService.detail(id!),
     enabled: !!id,
-    retry: 1,
+    retry: (failureCount, error: any) => {
+      // Reintentar hasta 3 veces si es error 404 (factura aún no disponible)
+      if (error?.response?.status === 404 && failureCount < 3) {
+        return true
+      }
+      // Para otros errores, solo reintentar una vez
+      return failureCount < 1
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // Retry con delay exponencial
   })
 }
 
@@ -109,10 +117,17 @@ export const useInvoiceCreateFromProductsMutation = () => {
 
   return useMutation({
     mutationFn: (payload: InvoiceCreateFromProductsPayload) => invoiceService.createFromProducts(payload),
-    onSuccess: () => {
+    onSuccess: (invoice) => {
+      // Invalidar queries para refrescar datos
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.lists() })
       queryClient.invalidateQueries({ queryKey: ['products'] }) // Invalidar productos para actualizar stock
-      toast.success('Factura creada desde productos correctamente')
+      
+      // Pre-cargar la factura en caché si tenemos el ID
+      if (invoice?.id) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.detail(invoice.id) })
+      }
+      
+      // No mostrar toast aquí, se maneja en el componente
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.detail || error?.response?.data?.mensaje || 'Error al crear factura desde productos'
