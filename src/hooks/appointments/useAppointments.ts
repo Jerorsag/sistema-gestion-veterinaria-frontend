@@ -46,6 +46,8 @@ export const useAppointmentCreateMutation = () => {
       toast.success('Cita agendada correctamente') // Éxito CP-020
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['availability'] }) // Actualizar cupos
+      // Forzar refetch inmediato de disponibilidad
+      queryClient.refetchQueries({ queryKey: ['availability'] })
     },
     onError: (error: AxiosError<ValidationErrorResponse>) => {
       // Maneja CP-Failure (Fecha pasada o Horario ocupado)
@@ -75,9 +77,12 @@ export const useAppointmentRescheduleMutation = (id: number | string) => {
     mutationFn: (fecha_hora: string) => appointmentService.reschedule(id, fecha_hora),
     onSuccess: () => {
       toast.success('Cita reagendada')
+      // Invalidar todas las queries relacionadas para forzar refresh
       queryClient.invalidateQueries({ queryKey: ['appointments'] })
       queryClient.invalidateQueries({ queryKey: ['appointments', 'detail', String(id)] })
       queryClient.invalidateQueries({ queryKey: ['availability'] })
+      // Forzar refetch inmediato de disponibilidad
+      queryClient.refetchQueries({ queryKey: ['availability'] })
     },
     onError: (error: AxiosError<ValidationErrorResponse>) => {
       toast.error(getErrorMessage(error))
@@ -111,4 +116,16 @@ export const useVeterinariansQuery = () =>
       }))
     },
     staleTime: 5 * 60 * 1000,
+  })
+
+export const useAppointmentsAvailableForInvoiceQuery = (enabled = true) =>
+  useQuery({
+    queryKey: ['appointments', 'available-for-invoice'],
+    queryFn: appointmentService.availableForInvoice,
+    enabled,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 segundos
+    onError: (error) => {
+      console.error('Error al cargar citas disponibles para facturar:', error)
+    },
   })

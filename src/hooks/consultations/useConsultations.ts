@@ -92,3 +92,15 @@ export const useConsultationStatsQuery = () =>
     staleTime: 5 * 60 * 1000,
   })
 
+export const useConsultationsAvailableForInvoiceQuery = (enabled = true) =>
+  useQuery({
+    queryKey: ['consultations', 'available-for-invoice'],
+    queryFn: consultationService.availableForInvoice,
+    enabled,
+    retry: 1,
+    staleTime: 30 * 1000, // 30 segundos
+    onError: (error) => {
+      console.error('Error al cargar consultas disponibles para facturar:', error)
+    },
+  })
+

@@ -25,7 +25,7 @@ export const KardexMovementCreatePage = () => {
           <h1 className="text-3xl font-semibold text-heading">Registrar movimiento</h1>
           <p className="text-description">Registra una entrada o salida de inventario manualmente.</p>
         </div>
-        <Button variant="ghost" startIcon={<ArrowLeft size={16} />} onClick={() => navigate('/app/inventario')}>
+        <Button variant="ghost" startIcon={<ArrowLeft size={16} className="text-gray-700" />} onClick={() => navigate('/app/inventario')}>
           Volver
         </Button>
       </div>

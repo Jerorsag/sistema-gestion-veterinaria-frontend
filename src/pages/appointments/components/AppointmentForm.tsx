@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { PawPrint, User, Scissors, Clock, FileText } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -58,9 +59,6 @@ export const AppointmentForm = () => {
   }, [selectedVeterinario, form])
 
   const onSubmit = async (values: FormValues) => {
-    // Construimos el payload
-    // IMPORTANTE: values.fecha_hora ya viene con el formato correcto del AvailabilityPicker
-    // (Ej: "2023-11-27T08:00:00-05:00"). NO lo modificamos.
     const payload: AppointmentPayload = {
       mascota_id: parseInt(values.mascota_id),
       veterinario_id: parseInt(values.veterinario_id),
@@ -73,117 +71,164 @@ export const AppointmentForm = () => {
     form.reset()
   }
 
+  const selectedService = Array.isArray(services) ? services.find((s) => s.id === Number(selectedServicio)) : undefined
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Selector de Mascota */}
-        <label className="space-y-2 text-sm text-primary">
-          <span>Mascota</span>
-          <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
-            style={{
-              borderWidth: 'var(--border-subtle-width)',
-              borderStyle: 'var(--border-subtle-style)',
-            }}
-            value={selectedMascota}
-            onChange={(event) => form.setValue('mascota_id', event.target.value)}
-          >
-            <option value="">Selecciona mascota</option>
-            {petsQuery.data?.map((pet) => (
-              <option key={pet.id} value={pet.id}>
-                {pet.nombre}
-              </option>
-            ))}
-          </select>
-          {form.formState.errors.mascota_id && (
-            <p className="text-xs text-red-600">{form.formState.errors.mascota_id.message}</p>
-          )}
-        </label>
+      {/* SECCIÓN INFORMACIÓN BÁSICA */}
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="rounded-xl bg-[var(--color-primary)]/10 p-2 text-[var(--color-primary)]">
+            <PawPrint size={18} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Información básica</h3>
+        </div>
 
-        {/* Selector de Veterinario */}
-        <label className="space-y-2 text-sm text-primary">
-          <span>Veterinario</span>
-          {vetsLoading ? (
-            <div className="flex min-h-[42px] items-center">
-              <Spinner size="sm" />
-            </div>
-          ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Selector de Mascota */}
+          <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+            <span className="font-medium">Mascota *</span>
             <select
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
-              style={{
-                borderWidth: 'var(--border-subtle-width)',
-                borderStyle: 'var(--border-subtle-style)',
-              }}
-              value={selectedVeterinario}
-              onChange={(event) => form.setValue('veterinario_id', event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
+              value={selectedMascota}
+              onChange={(event) => form.setValue('mascota_id', event.target.value)}
             >
-              <option value="">Selecciona veterinario</option>
-              {(veterinarios ?? []).map((vet) => (
-                <option key={vet.id} value={vet.id}>
-                  {vet.nombre}
+              <option value="">Selecciona una mascota</option>
+              {petsQuery.data?.map((pet) => (
+                <option key={pet.id} value={pet.id}>
+                  {pet.nombre}
                 </option>
               ))}
             </select>
-          )}
-          {form.formState.errors.veterinario_id && (
-            <p className="text-xs text-red-600">{form.formState.errors.veterinario_id.message}</p>
-          )}
-        </label>
+            {form.formState.errors.mascota_id && (
+              <p className="text-xs text-red-600">{form.formState.errors.mascota_id.message}</p>
+            )}
+          </label>
+
+          {/* Selector de Veterinario */}
+          <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+            <span className="font-medium">Veterinario *</span>
+            {vetsLoading ? (
+              <div className="flex min-h-[42px] items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5">
+                <Spinner size="sm" />
+              </div>
+            ) : (
+              <select
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                value={selectedVeterinario}
+                onChange={(event) => form.setValue('veterinario_id', event.target.value)}
+              >
+                <option value="">Selecciona un veterinario</option>
+                {(veterinarios ?? []).map((vet) => (
+                  <option key={vet.id} value={vet.id}>
+                    {vet.nombre}
+                  </option>
+                ))}
+              </select>
+            )}
+            {form.formState.errors.veterinario_id && (
+              <p className="text-xs text-red-600">{form.formState.errors.veterinario_id.message}</p>
+            )}
+          </label>
+        </div>
 
         {/* Selector de Servicio */}
-        <label className="space-y-2 text-sm text-primary md:col-span-2">
-          <span>Servicio</span>
-          {servicesLoading ? (
-            <div className="flex min-h-[42px] items-center">
-              <Spinner size="sm" />
+        <div className="mt-4">
+          <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+            <span className="font-medium">Servicio *</span>
+            {servicesLoading ? (
+              <div className="flex min-h-[42px] items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5">
+                <Spinner size="sm" />
+              </div>
+            ) : (
+              <select
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                value={selectedServicio}
+                onChange={(event) => form.setValue('servicio_id', event.target.value)}
+              >
+                <option value="">Selecciona un servicio</option>
+                {(Array.isArray(services) ? services : []).map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.nombre} - ${Number(service.costo).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </option>
+                ))}
+              </select>
+            )}
+            {form.formState.errors.servicio_id && (
+              <p className="text-xs text-red-600">{form.formState.errors.servicio_id.message}</p>
+            )}
+          </label>
+          
+          {selectedService && (
+            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <div className="flex items-center gap-2">
+                <Scissors size={16} className="text-emerald-600" />
+                <p className="text-sm font-semibold text-emerald-900">Costo del servicio:</p>
+                <p className="text-base font-bold text-emerald-700">
+                  ${Number(selectedService.costo).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
             </div>
-          ) : (
-            <select
-              className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-primary"
-              style={{
-                borderWidth: 'var(--border-subtle-width)',
-                borderStyle: 'var(--border-subtle-style)',
-              }}
-              value={selectedServicio}
-              onChange={(event) => form.setValue('servicio_id', event.target.value)}
-            >
-              <option value="">Selecciona servicio</option>
-              {(services ?? []).map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.nombre} (${service.costo})
-                </option>
-              ))}
-            </select>
           )}
-          {form.formState.errors.servicio_id && (
-            <p className="text-xs text-red-600">{form.formState.errors.servicio_id.message}</p>
-          )}
-        </label>
+        </div>
       </div>
 
-      {/* Picker de Disponibilidad */}
-      <div className="rounded-2xl bg-surface p-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <p className="text-sm font-semibold text-heading">Selecciona horario disponible</p>
-        <AvailabilityPicker
-          veterinarioId={selectedVeterinario}
-          value={selectedFecha}
-          onChange={(datetime) => form.setValue('fecha_hora', datetime)}
-        />
-        {form.formState.errors.fecha_hora && (
-          <p className="text-xs text-red-600">{form.formState.errors.fecha_hora.message}</p>
+      {/* SECCIÓN HORARIO */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="rounded-xl bg-blue-100 p-2 text-blue-600">
+            <Clock size={18} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Horario disponible</h3>
+        </div>
+        
+        {!selectedVeterinario ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center">
+            <Clock size={32} className="mx-auto mb-3 text-gray-400" />
+            <p className="text-sm text-gray-600">Selecciona un veterinario para ver horarios disponibles</p>
+          </div>
+        ) : (
+          <div className="rounded-xl bg-[var(--color-surface-200)] p-4 border border-gray-200">
+            <AvailabilityPicker
+              veterinarioId={selectedVeterinario}
+              value={selectedFecha}
+              onChange={(datetime) => form.setValue('fecha_hora', datetime)}
+            />
+            {form.formState.errors.fecha_hora && (
+              <p className="mt-3 text-xs text-red-600">{form.formState.errors.fecha_hora.message}</p>
+            )}
+          </div>
         )}
       </div>
 
-      <Input
-        label="Observaciones"
-        placeholder="Motivo, información adicional"
-        {...form.register('observaciones')}
-        error={form.formState.errors.observaciones?.message}
-      />
+      {/* SECCIÓN OBSERVACIONES */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="rounded-xl bg-purple-100 p-2 text-purple-600">
+            <FileText size={18} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Observaciones (opcional)</h3>
+        </div>
+        <Input
+          placeholder="Motivo de la consulta, información adicional para el veterinario..."
+          {...form.register('observaciones')}
+          error={form.formState.errors.observaciones?.message}
+        />
+      </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting || mutation.isPending}>
-        {form.formState.isSubmitting || mutation.isPending ? 'Agendando...' : 'Agendar cita'}
-      </Button>
+      {/* Botones de acción */}
+      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          onClick={() => form.reset()}
+        >
+          Limpiar formulario
+        </Button>
+        <Button type="submit" disabled={form.formState.isSubmitting || mutation.isPending}>
+          {form.formState.isSubmitting || mutation.isPending ? 'Agendando...' : 'Agendar cita'}
+        </Button>
+      </div>
     </form>
   )
 }

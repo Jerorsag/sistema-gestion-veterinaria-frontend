@@ -112,10 +112,35 @@ export const useSpeciesQuery = () =>
     staleTime: 5 * 60 * 1000,
   })
 
+export const useSpeciesCreateMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: { nombre: string }) => speciesService.create(payload),
+    onSuccess: () => {
+      toast.success('Especie creada correctamente')
+      queryClient.invalidateQueries({ queryKey: ['species'] })
+    },
+    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+  })
+}
+
 export const useBreedsQuery = (speciesId?: number | null) =>
   useQuery({
     queryKey: ['breeds', speciesId],
     queryFn: () => breedService.listBySpecies(speciesId!),
     enabled: Boolean(speciesId),
   })
+
+export const useBreedCreateMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: { nombre: string; especie: number }) => breedService.create(payload),
+    onSuccess: (_, variables) => {
+      toast.success('Raza creada correctamente')
+      queryClient.invalidateQueries({ queryKey: ['breeds', variables.especie] })
+      queryClient.invalidateQueries({ queryKey: ['breeds'] })
+    },
+    onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
+  })
+}
 

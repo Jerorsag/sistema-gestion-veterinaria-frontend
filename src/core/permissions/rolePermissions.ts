@@ -8,6 +8,7 @@ import {
   NotebookTabs,
   Package,
   Receipt,
+  Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -70,6 +71,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     href: '/app/facturacion',
     icon: Receipt,
     allowedRoles: ['administrador', 'recepcionista', 'cliente'],
+  },
+  {
+    label: 'Configuración',
+    href: '/app/configuracion',
+    icon: Settings,
+    allowedRoles: ['administrador'],
   },
 ]
 
@@ -134,6 +141,14 @@ export const ROLE_PERMISSIONS: Record<string, Record<string, ModulePermissions>>
   },
   // Permisos de Usuarios
   usuarios: {
+    cliente: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    administrador: { canView: true, canCreate: true, canEdit: true, canDelete: true },
+    veterinario: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    practicante: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+    recepcionista: { canView: false, canCreate: false, canEdit: false, canDelete: false },
+  },
+  // Permisos de Configuración
+  configuracion: {
     cliente: { canView: false, canCreate: false, canEdit: false, canDelete: false },
     administrador: { canView: true, canCreate: true, canEdit: true, canDelete: true },
     veterinario: { canView: false, canCreate: false, canEdit: false, canDelete: false },

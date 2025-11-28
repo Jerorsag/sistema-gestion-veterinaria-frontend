@@ -164,6 +164,387 @@ export const InvoiceDetailPage = () => {
     }
   }
 
+  const handlePrintReceipt = () => {
+    if (!receiptData) return
+
+    // Crear un elemento temporal para el contenido de impresión
+    const printContent = document.createElement('div')
+    printContent.id = 'receipt-print-temp'
+    printContent.innerHTML = `
+      <style>
+        @media screen {
+          #receipt-print-temp {
+            display: none !important;
+          }
+        }
+        @media print {
+          @page {
+            size: A4;
+            margin: 0.3cm;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            overflow: hidden !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #receipt-print-temp,
+          #receipt-print-temp * {
+            visibility: visible !important;
+          }
+          #receipt-print-temp {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+            page-break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          button, [role="dialog"], .fixed, header, nav, aside, footer, .receipt-view {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          .receipt-print {
+            max-height: calc(100vh - 0.6cm) !important;
+            overflow: hidden !important;
+            page-break-inside: avoid !important;
+          }
+        }
+        .receipt-print {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          max-width: 100%;
+          padding: 12px;
+          color: #1f2937;
+          page-break-inside: avoid;
+        }
+        .receipt-header {
+          text-align: center;
+          border-bottom: 2px solid #e5e7eb;
+          padding-bottom: 10px;
+          margin-bottom: 14px;
+          page-break-after: avoid;
+        }
+        .receipt-header h1 {
+          font-size: 22px;
+          font-weight: 700;
+          margin: 0 0 4px 0;
+          color: #111827;
+          letter-spacing: -0.3px;
+        }
+        .receipt-header .invoice-number {
+          font-size: 12px;
+          color: #6b7280;
+          margin: 2px 0;
+        }
+        .receipt-header .invoice-date {
+          font-size: 11px;
+          color: #9ca3af;
+          margin: 2px 0 4px 0;
+        }
+        .receipt-badge {
+          display: inline-block;
+          padding: 4px 10px;
+          border-radius: 4px;
+          font-size: 10px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          margin-top: 4px;
+        }
+        .receipt-section {
+          margin-bottom: 12px;
+          page-break-inside: avoid;
+        }
+        .receipt-section-title {
+          font-size: 13px;
+          font-weight: 600;
+          margin: 0 0 8px 0;
+          color: #111827;
+        }
+        .receipt-section-content {
+          font-size: 11px;
+          color: #4b5563;
+          line-height: 1.4;
+        }
+        .receipt-section-content p {
+          margin: 2px 0;
+        }
+        .receipt-section-content strong {
+          font-weight: 600;
+          color: #111827;
+        }
+        .receipt-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 4px;
+          font-size: 10px;
+          page-break-inside: avoid;
+        }
+        .receipt-table thead {
+          background-color: #f9fafb;
+        }
+        .receipt-table th {
+          padding: 8px 6px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 10px;
+          color: #374151;
+          border-bottom: 2px solid #e5e7eb;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .receipt-table th.text-right {
+          text-align: right;
+        }
+        .receipt-table th.text-center {
+          text-align: center;
+        }
+        .receipt-table td {
+          padding: 8px 6px;
+          font-size: 10px;
+          color: #4b5563;
+          border-bottom: 1px solid #f3f4f6;
+        }
+        .receipt-table td.text-right {
+          text-align: right;
+        }
+        .receipt-table td.text-center {
+          text-align: center;
+        }
+        .receipt-table tbody tr:last-child td {
+          border-bottom: none;
+        }
+        .item-desc {
+          font-weight: 500;
+          color: #111827;
+          font-size: 10px;
+        }
+        .item-sub {
+          font-size: 9px;
+          color: #6b7280;
+          margin-top: 2px;
+        }
+        .receipt-totals {
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px solid #e5e7eb;
+          page-break-inside: avoid;
+        }
+        .receipt-totals-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+          margin-bottom: 4px;
+        }
+        .receipt-totals-row-label {
+          color: #6b7280;
+        }
+        .receipt-totals-row-value {
+          font-weight: 600;
+          color: #111827;
+        }
+        .receipt-totals-final {
+          display: flex;
+          justify-content: space-between;
+          font-size: 15px;
+          font-weight: 700;
+          padding-top: 8px;
+          margin-top: 8px;
+          border-top: 2px solid #d1d5db;
+          color: #111827;
+        }
+        .receipt-totals-final-value {
+          color: #3b82f6;
+        }
+        .receipt-payments {
+          margin-top: 12px;
+        }
+        .receipt-payment-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          padding: 8px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          margin-bottom: 6px;
+          background-color: #ffffff;
+          page-break-inside: avoid;
+        }
+        .receipt-payment-info {
+          flex: 1;
+        }
+        .receipt-payment-amount {
+          font-weight: 600;
+          font-size: 12px;
+          color: #111827;
+          margin-bottom: 2px;
+        }
+        .receipt-payment-details {
+          font-size: 9px;
+          color: #6b7280;
+          margin-top: 2px;
+        }
+        .receipt-payment-badge {
+          font-size: 9px;
+          font-weight: 600;
+          padding: 3px 6px;
+          border-radius: 3px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .receipt-warning {
+          padding: 8px;
+          border: 1px solid #fbbf24;
+          border-radius: 6px;
+          background-color: #fef3c7;
+          margin-top: 12px;
+          page-break-inside: avoid;
+        }
+        .receipt-warning p {
+          margin: 0;
+          font-size: 11px;
+          font-weight: 600;
+          color: #92400e;
+        }
+        .receipt-footer {
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px solid #e5e7eb;
+          font-size: 10px;
+          color: #6b7280;
+        }
+        .receipt-footer strong {
+          color: #111827;
+        }
+      </style>
+      <div class="receipt-print">
+        <div class="receipt-header">
+          <h1>Recibo de Factura</h1>
+          <div class="invoice-number">${receiptData.numero_factura}</div>
+          <div class="invoice-date">${formatDateTime(receiptData.fecha_emision)}</div>
+          <span class="receipt-badge" style="background-color: ${receiptData.estado === 'PAGADA' ? '#d1fae5' : receiptData.estado === 'ANULADA' ? '#e0e7ff' : '#fef3c7'}; color: ${receiptData.estado === 'PAGADA' ? '#065f46' : receiptData.estado === 'ANULADA' ? '#3730a3' : '#92400e'};">${receiptData.estado}</span>
+        </div>
+
+        <div class="receipt-section">
+          <h3 class="receipt-section-title">Cliente</h3>
+          <div class="receipt-section-content">
+            <p><strong>Nombre:</strong> ${receiptData.cliente.nombre_completo}</p>
+            <p><strong>Email:</strong> ${receiptData.cliente.email}</p>
+            ${receiptData.cliente.username ? `<p><strong>Usuario:</strong> ${receiptData.cliente.username}</p>` : ''}
+          </div>
+        </div>
+
+        <div class="receipt-section">
+          <h3 class="receipt-section-title">Detalles</h3>
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-right">Precio Unit.</th>
+                <th class="text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${receiptData.detalles.map((detalle: any) => `
+                <tr>
+                  <td>
+                    <div class="item-desc">${detalle.descripcion}</div>
+                    ${(detalle.producto_nombre || detalle.servicio_nombre) ? `<div class="item-sub">${detalle.producto_nombre || detalle.servicio_nombre}</div>` : ''}
+                  </td>
+                  <td class="text-center">${detalle.cantidad}</td>
+                  <td class="text-right">$${detalle.precio_unitario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="text-right" style="font-weight: 600;">$${detalle.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="receipt-totals">
+          <div class="receipt-totals-row">
+            <span class="receipt-totals-row-label">Subtotal:</span>
+            <span class="receipt-totals-row-value">$${receiptData.totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+          <div class="receipt-totals-row">
+            <span class="receipt-totals-row-label">Impuestos:</span>
+            <span class="receipt-totals-row-value">$${receiptData.totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+          <div class="receipt-totals-final">
+            <span>Total:</span>
+            <span class="receipt-totals-final-value">$${receiptData.totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+          ${receiptData.total_pagado > 0 ? `
+            <div class="receipt-totals-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+              <span class="receipt-totals-row-label">Total pagado:</span>
+              <span class="receipt-totals-row-value" style="color: #10b981;">$${receiptData.total_pagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        ${receiptData.pagos && receiptData.pagos.length > 0 ? `
+          <div class="receipt-payments">
+            <h3 class="receipt-section-title">Pagos realizados</h3>
+            ${receiptData.pagos.map((pago: any) => `
+              <div class="receipt-payment-item" style="border-color: ${pago.aprobado ? 'rgba(16, 185, 129, 0.3)' : '#e5e7eb'}; background-color: ${pago.aprobado ? 'rgba(16, 185, 129, 0.05)' : '#ffffff'};">
+                <div class="receipt-payment-info">
+                  <div class="receipt-payment-amount">$${(typeof pago.monto === 'number' ? pago.monto : Number(pago.monto || 0)).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  ${pago.fecha ? `<div class="receipt-payment-details">${pago.metodo_pago || 'Método de pago'} • ${formatDateTime(pago.fecha)}</div>` : ''}
+                  ${pago.referencia ? `<div class="receipt-payment-details">Referencia: ${pago.referencia}</div>` : ''}
+                </div>
+                <span class="receipt-payment-badge" style="background-color: ${pago.aprobado ? '#d1fae5' : '#fef3c7'}; color: ${pago.aprobado ? '#065f46' : '#92400e'};">
+                  ${pago.aprobado ? 'Aprobado' : 'Pendiente'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${receiptData.saldo_pendiente > 0 ? `
+          <div class="receipt-warning">
+            <p>Saldo pendiente: $${receiptData.saldo_pendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+        ` : ''}
+
+        ${(receiptData.vinculos.cita_id || receiptData.vinculos.consulta_id) ? `
+          <div class="receipt-footer">
+            <strong>Vínculos:</strong>
+            ${receiptData.vinculos.cita_id ? ` Cita #${receiptData.vinculos.cita_id}` : ''}
+            ${receiptData.vinculos.cita_id && receiptData.vinculos.consulta_id ? ' •' : ''}
+            ${receiptData.vinculos.consulta_id ? ` Consulta #${receiptData.vinculos.consulta_id}` : ''}
+          </div>
+        ` : ''}
+      </div>
+    `
+
+    // Agregar al body
+    document.body.appendChild(printContent)
+
+    // Esperar un momento para que se renderice y luego imprimir
+    setTimeout(() => {
+      window.print()
+      
+      // Limpiar después de imprimir
+      setTimeout(() => {
+        const element = document.getElementById('receipt-print-temp')
+        if (element) {
+          element.remove()
+        }
+      }, 500)
+    }, 100)
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
@@ -640,6 +1021,7 @@ export const InvoiceDetailPage = () => {
         </div>
       </div>
 
+
       {/* Modal de Recibo */}
       <Modal isOpen={receiptModal.isOpen} onClose={receiptModal.close} title="Recibo de Factura" size="lg">
         {receiptLoading ? (
@@ -826,95 +1208,10 @@ export const InvoiceDetailPage = () => {
                 <Button
                   variant="secondary"
                   startIcon={<Printer size={18} className="text-black" />}
-                  onClick={() => window.print()}
+                  onClick={handlePrintReceipt}
                 >
                   Imprimir recibo
                 </Button>
-              </div>
-            </div>
-
-            {/* Vista de impresión simplificada - Solo visible al imprimir */}
-            <div className="receipt-print">
-              <style>{`
-                @media print {
-                  body * {
-                    visibility: hidden !important;
-                  }
-                  .receipt-print,
-                  .receipt-print * {
-                    visibility: visible !important;
-                  }
-                  .receipt-print {
-                    position: absolute !important;
-                    left: 0 !important;
-                    top: 0 !important;
-                    width: 100% !important;
-                    padding: 40px !important;
-                    background: white !important;
-                  }
-                  .receipt-view {
-                    display: none !important;
-                  }
-                  @page {
-                    size: A4;
-                    margin: 1cm;
-                  }
-                }
-                @media screen {
-                  .receipt-print {
-                    display: none !important;
-                  }
-                }
-              `}</style>
-              <div className="max-w-2xl mx-auto">
-                {/* Encabezado */}
-                <div className="text-center mb-6 pb-4 border-b-2 border-gray-800">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">RECIBO DE FACTURA</h1>
-                  <p className="text-lg font-semibold text-gray-700">{receiptData.numero_factura}</p>
-                  <p className="text-sm text-gray-600 mt-1">{formatDateTime(receiptData.fecha_emision)}</p>
-                </div>
-
-                {/* Información del cliente */}
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">CLIENTE</h2>
-                  <div className="space-y-1 text-gray-700">
-                    <p><strong>Nombre:</strong> {receiptData.cliente.nombre_completo}</p>
-                    <p><strong>Email:</strong> {receiptData.cliente.email}</p>
-                  </div>
-                </div>
-
-                {/* Resumen de totales */}
-                <div className="border-2 border-gray-800 p-4 mb-4">
-                  <div className="flex justify-between text-lg mb-2">
-                    <span className="font-semibold">Subtotal:</span>
-                    <span className="font-bold">${receiptData.totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-lg mb-2">
-                    <span className="font-semibold">Impuestos:</span>
-                    <span className="font-bold">${receiptData.totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-2xl font-bold pt-2 border-t-2 border-gray-800">
-                    <span>TOTAL:</span>
-                    <span>${receiptData.totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                </div>
-
-                {/* Estado y saldo */}
-                <div className="text-center space-y-2">
-                  <p className="text-lg font-semibold text-gray-700">
-                    Estado: <span className="font-bold">{receiptData.estado}</span>
-                  </p>
-                  {receiptData.total_pagado > 0 && (
-                    <p className="text-sm text-gray-600">
-                      Pagado: ${receiptData.total_pagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  )}
-                  {receiptData.saldo_pendiente > 0 && (
-                    <p className="text-lg font-bold text-red-600">
-                      Saldo pendiente: ${receiptData.saldo_pendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
           </>
@@ -927,4 +1224,3 @@ export const InvoiceDetailPage = () => {
     </div>
   )
 }
-

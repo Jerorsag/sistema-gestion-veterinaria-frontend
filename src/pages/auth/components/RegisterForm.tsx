@@ -115,9 +115,6 @@ export const RegisterForm = ({ initialData, onDataChange, onRegisterSuccess }: R
         direccion: values.direccion?.trim() || '',
       }
       
-      // Log para debug
-      console.log('Enviando payload de registro:', JSON.stringify(payload, null, 2))
-      
       await mutation.mutateAsync(payload)
       // Si hay callback, usarlo; si no, navegar a la página de verificación
       if (onRegisterSuccess) {

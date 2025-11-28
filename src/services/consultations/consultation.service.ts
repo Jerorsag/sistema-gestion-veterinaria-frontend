@@ -72,6 +72,11 @@ const stats = async () => {
   return data
 }
 
+const availableForInvoice = async () => {
+  const { data } = await apiClient.get<ConsultationListResponse>(endpoints.consultations.availableForInvoice())
+  return normalizeList(data)
+}
+
 export const consultationService = {
   list,
   detail,
@@ -82,5 +87,6 @@ export const consultationService = {
   byVet,
   sendConsent,
   stats,
+  availableForInvoice,
 }
 
