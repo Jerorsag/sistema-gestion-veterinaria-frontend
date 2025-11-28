@@ -89,6 +89,29 @@ export const endpoints = {
     paymentMethods: withBase('/metodos-pago/'),
     financialReports: withBase('/reportes-financieros/'),
   },
+  clinicConfig: {
+    services: {
+      base: withBase('/servicios/'),
+      detail: (id: number | string) => withBase(`/servicios/${id}/`)(),
+    },
+    categories: {
+      base: withBase('/categorias/'),
+      detail: (id: number | string) => withBase(`/categorias/${id}/`)(),
+    },
+    brands: {
+      base: withBase('/marcas/'),
+      detail: (id: number | string) => withBase(`/marcas/${id}/`)(),
+    },
+    species: {
+      base: withBase('/mascotas/especies/'),
+    },
+    breeds: {
+      base: withBase('/mascotas/razas/'),
+    },
+    paymentMethods: {
+      base: withBase('/metodos-pago/'),
+    },
+  },
 }
 
 export type EndpointGroups = typeof endpoints

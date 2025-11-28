@@ -12,7 +12,13 @@ const listBySpecies = async (speciesId: number): Promise<Breed[]> => {
   return []
 }
 
+const create = async (payload: { nombre: string; especie: number }): Promise<Breed> => {
+  const { data } = await apiClient.post<Breed>(endpoints.pets.breeds(), payload)
+  return data
+}
+
 export const breedService = {
   listBySpecies,
+  create,
 }
 
