@@ -103,6 +103,14 @@ const router = createBrowserRouter([
           </RoleGuard>
         ),
       },
+      {
+        path: 'consultas/:id/editar',
+        element: (
+          <RoleGuard allowedRoles={['administrador', 'veterinario', 'practicante']}>
+            <ConsultationCreatePage />
+          </RoleGuard>
+        ),
+      },
       { path: 'consultas/:id', element: <ConsultationDetailPage /> },
       {
         path: 'inventario',

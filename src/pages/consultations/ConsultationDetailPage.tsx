@@ -1,10 +1,9 @@
-import { ArrowLeft, Stethoscope, Calendar, User, FileText, Pill, Syringe, ClipboardList, Mail, Phone, MapPin } from 'lucide-react'
+import { ArrowLeft, Stethoscope, Calendar, User, FileText, Pill, Syringe, ClipboardList, Mail, Phone, MapPin,Send,Activity } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { Badge } from '@/components/ui/Badge'
 import { useConsultationConsentMutation, useConsultationDetailQuery } from '@/hooks/consultations'
 import { formatDateTime } from '@/utils/datetime'
 
@@ -21,246 +20,146 @@ export const ConsultationDetailPage = () => {
     )
   }
 
-  // Helper para obtener el nombre de la mascota
-  // El backend puede devolver mascota como número (ID) o como string (nombre)
-  const mascotaNombre = typeof data.mascota === 'string' 
-    ? data.mascota 
-    : typeof data.mascota === 'object' && data.mascota?.nombre
-    ? data.mascota.nombre
-    : data.datos_personales?.nombre?.split(' ')[0] || 'Mascota'
-
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-8">
+      {/* --- HEADER --- */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-label">Consultas</p>
-          <h1 className="text-3xl font-semibold text-[var(--color-text-heading)]">{mascotaNombre}</h1>
-          <div className="flex items-center gap-4 mt-2">
-            <p className="text-sm text-[var(--color-text-secondary)]">{formatDateTime(data.fecha_consulta)}</p>
-            {data.veterinario_nombre && (
-              <p className="text-sm text-[var(--color-text-secondary)]">Por: {data.veterinario_nombre}</p>
-            )}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+              Consulta #{data.id}
+            </span>
+            <div className="flex items-center text-sm text-secondary">
+              <Calendar size={14} className="mr-1" />
+              {formatDateTime(data.fecha_consulta)}
+            </div>
           </div>
+          <h1 className="text-3xl font-bold text-heading flex items-center gap-2">
+            {data.mascota}
+          </h1>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex gap-3">
           <Button 
             variant="ghost" 
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
             onClick={() => consentMutation.mutate(data.id)}
+            startIcon={<Send size={16} />}
             disabled={consentMutation.isPending}
           >
             {consentMutation.isPending ? 'Enviando...' : 'Enviar consentimiento'}
           </Button>
-          <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} className="text-gray-700" />}>
+          <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} />}>
             <Link to="/app/consultas">Volver</Link>
           </Button>
         </div>
-      </header>
+      </div>
 
-      {/* Información principal */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-blue-100 p-2.5 text-blue-600">
+      {/* --- SECCIÓN PRINCIPAL DE DATOS --- */}
+      <section className="grid gap-6 md:grid-cols-3">
+        {/* Diagnóstico */}
+        <Card className="relative overflow-hidden border-l-4 border-l-[var(--color-primary)]">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-[var(--color-primary)]/10 p-2 text-[var(--color-primary)]">
+              <Activity size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-label">Diagnóstico</p>
+              <p className="mt-1 text-lg font-semibold text-heading leading-tight">
+                {data.diagnostico}
+              </p>
+            </div>
+          </div>
+          {data.notas_adicionales && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <p className="text-xs font-medium text-label mb-1">Notas adicionales</p>
+              <p className="text-sm text-secondary leading-relaxed">
+                {data.notas_adicionales}
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {/* Descripción */}
+        <Card>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-gray-100 p-2 text-gray-600">
               <FileText size={20} />
             </div>
-            <p className="text-label font-medium">Diagnóstico</p>
-          </div>
-          <p className="text-base font-semibold text-gray-900">{data.diagnostico}</p>
-          {data.notas_adicionales && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-2">Notas adicionales</p>
-              <p className="text-sm text-gray-700">{data.notas_adicionales}</p>
+            <div>
+              <p className="text-sm font-medium text-label">Descripción del caso</p>
+              <p className="mt-1 text-sm text-secondary leading-relaxed">
+                {data.descripcion_consulta}
+              </p>
             </div>
-          )}
+          </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-purple-100 p-2.5 text-purple-600">
-              <ClipboardList size={20} />
-            </div>
-            <p className="text-label font-medium">Descripción</p>
-          </div>
-          <p className="text-sm text-gray-700 leading-relaxed">{data.descripcion_consulta}</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-600">
+        {/* Veterinario */}
+        <Card>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-purple-100 p-2 text-purple-600">
               <User size={20} />
             </div>
-            <p className="text-label font-medium">Veterinario</p>
-          </div>
-          <p className="text-base font-semibold text-gray-900">{data.veterinario_nombre}</p>
-          {data.datos_personales && (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
-              <p className="text-xs text-gray-500 mb-2">Datos de contacto</p>
-              {data.datos_personales.nombre && (
-                <p className="text-sm text-gray-700">{data.datos_personales.nombre}</p>
-              )}
-              {data.datos_personales.telefono && (
-                <p className="text-sm text-gray-700 flex items-center gap-1.5">
-                  <Phone size={14} className="text-gray-500" />
-                  {data.datos_personales.telefono}
-                </p>
-              )}
-              {data.datos_personales.direccion && (
-                <p className="text-sm text-gray-700 flex items-center gap-1.5">
-                  <MapPin size={14} className="text-gray-500" />
-                  {data.datos_personales.direccion}
-                </p>
-              )}
+            <div>
+              <p className="text-sm font-medium text-label">Veterinario tratante</p>
+              <p className="mt-1 text-base font-semibold text-heading">
+                {data.veterinario_nombre}
+              </p>
+              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs text-purple-700">
+                <Stethoscope size={12} />
+                <span>Profesional</span>
+              </div>
             </div>
-          )}
+          </div>
         </Card>
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-heading">Prescripciones</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {data.prescripciones.map((pres) => (
-            <Card key={pres.id}>
-              <p className="text-sm font-semibold text-heading">{pres.producto_nombre}</p>
-              <p className="text-xs text-tertiary">{pres.cantidad}</p>
-              <p className="text-xs text-tertiary">{pres.indicaciones}</p>
-            </Card>
-          ))}
-          {data.prescripciones.length === 0 && <p className="text-sm text-secondary">Sin prescripciones registradas.</p>}
+      {/* --- SECCIÓN PRESCRIPCIONES --- */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="rounded-xl bg-blue-100 p-2 text-blue-600">
+            <Pill size={18} />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900">Prescripciones Médicas</h2>
         </div>
-        {data.prescripciones && data.prescripciones.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
+
+        {data.prescripciones.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 py-10 text-center">
+            <ClipboardList size={32} className="text-gray-400 mb-2" />
+            <p className="text-sm font-medium text-gray-600">Sin prescripciones registradas</p>
+            <p className="text-xs text-gray-400">No se recetaron medicamentos en esta consulta.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {data.prescripciones.map((pres) => (
-              <Card key={pres.id} className="p-5">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-blue-100 p-2 text-blue-600 flex-shrink-0">
-                    <Pill size={16} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">{pres.producto_nombre}</h3>
-                    {pres.producto_descripcion && (
-                      <p className="text-xs text-gray-500 mb-2">{pres.producto_descripcion}</p>
-                    )}
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Cantidad:</span> {pres.cantidad} unidades
-                      </p>
-                      {pres.indicaciones && (
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Indicaciones:</span> {pres.indicaciones}
-                        </p>
-                      )}
-                      {pres.stock_disponible !== undefined && (
-                        <p className={`text-xs ${pres.stock_disponible < pres.cantidad ? 'text-red-600' : 'text-gray-500'}`}>
-                          Stock disponible: {pres.stock_disponible}
-                        </p>
-                      )}
+              <Card key={pres.id} className="transition-all hover:shadow-md">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-heading text-lg">
+                      {pres.producto_nombre}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                        Cant: {pres.cantidad}
+                      </span>
                     </div>
                   </div>
+                  <div className="rounded-full bg-blue-50 p-1.5 text-blue-600">
+                    <Pill size={16} />
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-gray-100 pt-3">
+                  <p className="text-xs text-label uppercase tracking-wider font-semibold">Indicaciones</p>
+                  <p className="mt-1 text-sm text-secondary italic">
+                    "{pres.indicaciones}"
+                  </p>
                 </div>
               </Card>
             ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-[var(--border-subtle-color)] bg-[var(--color-surface-200)]/30 px-6 py-8 text-center">
-            <Pill size={32} className="mx-auto mb-3 text-[var(--color-text-muted)] opacity-40" />
-            <p className="text-sm text-[var(--color-text-secondary)]">Sin prescripciones registradas</p>
           </div>
         )}
       </section>
-
-      {/* Exámenes */}
-      {data.examenes && data.examenes.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-[var(--color-primary)]/10 p-2 text-[var(--color-primary)]">
-              <ClipboardList size={18} />
-            </div>
-            <h2 className="text-xl font-semibold text-[var(--color-text-heading)]">Exámenes</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {data.examenes.map((exam) => (
-              <Card key={exam.id} className="p-5">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-purple-100 p-2 text-purple-600 flex-shrink-0">
-                    <FileText size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">
-                      {exam.tipo_examen || exam.tipo || 'Examen'}
-                    </h3>
-                    {exam.descripcion && (
-                      <p className="text-sm text-gray-700">{exam.descripcion}</p>
-                    )}
-                    {exam.resultados && (
-                      <p className="text-sm text-gray-700 mt-2">
-                        <span className="font-medium">Resultados:</span> {exam.resultados}
-                      </p>
-                    )}
-                    {exam.fecha_programada && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        Fecha programada: {formatDateTime(exam.fecha_programada)}
-                      </p>
-                    )}
-                    {exam.estado && (
-                      <Badge tone={exam.estado === 'COMPLETADO' ? 'success' : exam.estado === 'PENDIENTE' ? 'warning' : 'neutral'} className="mt-2">
-                        {exam.estado}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Vacunas */}
-      {data.vacunas && data.vacunas.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-xl bg-[var(--color-primary)]/10 p-2 text-[var(--color-primary)]">
-              <Syringe size={18} />
-            </div>
-            <h2 className="text-xl font-semibold text-[var(--color-text-heading)]">Vacunas</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {data.vacunas.map((vac) => (
-              <Card key={vac.id} className="p-5">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600 flex-shrink-0">
-                    <Syringe size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">
-                      {vac.nombre_vacuna || vac.estado_display || vac.estado || 'Vacuna'}
-                    </h3>
-                    <div className="space-y-1">
-                      {vac.fecha_aplicacion && (
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Fecha de aplicación:</span> {formatDateTime(vac.fecha_aplicacion)}
-                        </p>
-                      )}
-                      {vac.proxima_fecha && (
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Próxima fecha:</span> {formatDateTime(vac.proxima_fecha)}
-                        </p>
-                      )}
-                      {vac.observaciones && (
-                        <p className="text-sm text-gray-700 mt-2">
-                          <span className="font-medium">Observaciones:</span> {vac.observaciones}
-                        </p>
-                      )}
-                      {vac.vacunas_descripcion && (
-                        <p className="text-sm text-gray-700 mt-2">{vac.vacunas_descripcion}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }
