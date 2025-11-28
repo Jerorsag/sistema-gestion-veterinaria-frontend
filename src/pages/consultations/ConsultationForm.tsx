@@ -1,7 +1,7 @@
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -85,6 +85,7 @@ const ESTADOS_VACUNACION = [
 
 export const ConsultationForm = () => {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   const preMascotaId = searchParams.get('mascota') || ''
   const preServicioId = searchParams.get('servicio') || ''
@@ -168,6 +169,7 @@ export const ConsultationForm = () => {
     } as any) // 'as any' temporal para evitar error de tipos si no has actualizado types.ts
     
     form.reset()
+    navigate('/app/historias')
   }
 
   return (
