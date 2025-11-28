@@ -13,7 +13,7 @@ import {
   useVeterinariansQuery,
 } from '@/hooks/appointments'
 import { AvailabilityPicker } from '@/pages/appointments/components/AvailabilityPicker'
-import { formatDateTime } from '@/utils/datetime'
+import { formatDateTime, parseDateFromISO } from '@/utils/datetime'
 
 export const AppointmentDetailPage = () => {
   const { id } = useParams<{ id: string }>()
@@ -31,11 +31,21 @@ export const AppointmentDetailPage = () => {
   const [newDateTime, setNewDateTime] = useState<string>('')
   const [activeAction, setActiveAction] = useState<'reschedule' | 'cancel'>('reschedule')
 
+  // Inicializar el veterinario de la cita actual al cargar los datos
   useEffect(() => {
-    if (!selectedVet && (veterinarios?.length ?? 0) > 0) {
-      setSelectedVet(String(veterinarios![0].id))
+    if (data && veterinarios) {
+      // Buscar el veterinario por nombre si existe
+      if (data.veterinario_nombre && !selectedVet) {
+        const vet = veterinarios.find(v => v.nombre === data.veterinario_nombre)
+        if (vet) {
+          setSelectedVet(String(vet.id))
+        }
+      } else if (!selectedVet && veterinarios.length > 0) {
+        // Si no hay veterinario asignado, usar el primero disponible
+        setSelectedVet(String(veterinarios[0].id))
+      }
     }
-  }, [selectedVet, veterinarios])
+  }, [data, selectedVet, veterinarios])
 
   const handleCancel = () => {
     cancelMutation.mutate(id, {
@@ -70,6 +80,9 @@ export const AppointmentDetailPage = () => {
     return 'neutral'
   }
 
+  // Obtener la fecha inicial de la cita actual para el picker
+  const initialDate = data.fecha_hora ? parseDateFromISO(data.fecha_hora) : undefined
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -80,7 +93,7 @@ export const AppointmentDetailPage = () => {
             <Badge tone={getStatusBadgeTone(data.estado)}>
               {data.estado}
             </Badge>
-            <p className="text-sm text-[var(--color-text-secondary)]">ID #{data.id}</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">ID {data.id}</p>
           </div>
         </div>
         <Button asChild variant="ghost" startIcon={<ArrowLeft size={16} className="text-gray-700" />}>
@@ -159,7 +172,10 @@ export const AppointmentDetailPage = () => {
                 <select
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
                   value={selectedVet}
-                  onChange={(event) => setSelectedVet(event.target.value)}
+                  onChange={(event) => {
+                    setSelectedVet(event.target.value)
+                    setNewDateTime('') // Limpiar horario seleccionado al cambiar veterinario
+                  }}
                 >
                   <option value="">Selecciona veterinario</option>
                   {(veterinarios ?? []).map((vet) => (
@@ -173,7 +189,12 @@ export const AppointmentDetailPage = () => {
             
             <div className="rounded-xl bg-[var(--color-surface-200)] p-4 border border-gray-200">
               <p className="text-sm font-semibold text-gray-900 mb-3">Nuevo horario</p>
-              <AvailabilityPicker veterinarioId={selectedVet} value={newDateTime} onChange={setNewDateTime} />
+              <AvailabilityPicker 
+                veterinarioId={selectedVet} 
+                value={newDateTime} 
+                onChange={setNewDateTime}
+                initialDate={initialDate}
+              />
             </div>
             
             <Button

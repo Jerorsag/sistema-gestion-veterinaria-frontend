@@ -71,7 +71,7 @@ export const AppointmentForm = () => {
     form.reset()
   }
 
-  const selectedService = services?.find((s) => s.id === Number(selectedServicio))
+  const selectedService = Array.isArray(services) ? services.find((s) => s.id === Number(selectedServicio)) : undefined
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -147,7 +147,7 @@ export const AppointmentForm = () => {
                 onChange={(event) => form.setValue('servicio_id', event.target.value)}
               >
                 <option value="">Selecciona un servicio</option>
-                {(services ?? []).map((service) => (
+                {(Array.isArray(services) ? services : []).map((service) => (
                   <option key={service.id} value={service.id}>
                     {service.nombre} - ${Number(service.costo).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </option>

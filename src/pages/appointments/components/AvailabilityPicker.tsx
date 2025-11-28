@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Calendar } from 'lucide-react'
 import clsx from 'clsx'
 import dayjs from 'dayjs'
@@ -6,22 +6,64 @@ import dayjs from 'dayjs'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAvailabilityQuery } from '@/hooks/appointments'
-import { buildClinicISOString } from '@/utils/datetime'
+import { buildClinicISOString, parseDateFromISO } from '@/utils/datetime'
 
 interface AvailabilityPickerProps {
   veterinarioId?: number | string
   value?: string
   onChange: (isoString: string) => void
+  initialDate?: string // Para inicializar con una fecha específica (ej: fecha de cita al reagendar)
 }
 
 const MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30']
 const AFTERNOON_SLOTS = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30']
 
-export const AvailabilityPicker = ({ veterinarioId, value, onChange }: AvailabilityPickerProps) => {
-  // Mantenemos la fecha seleccionada en formato simple YYYY-MM-DD
-  const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
+export const AvailabilityPicker = ({ veterinarioId, value, onChange, initialDate }: AvailabilityPickerProps) => {
+  // Si hay una fecha inicial (ej: al reagendar), la usamos; sino, usamos hoy
+  const getInitialDate = () => {
+    if (initialDate) {
+      const parsed = parseDateFromISO(initialDate)
+      return parsed || dayjs().format('YYYY-MM-DD')
+    }
+    return dayjs().format('YYYY-MM-DD')
+  }
+
+  const [date, setDate] = useState(getInitialDate)
+  
+  // Si cambia initialDate o veterinarioId, resetear la fecha
+  useEffect(() => {
+    if (initialDate) {
+      const parsed = parseDateFromISO(initialDate)
+      if (parsed) {
+        setDate(parsed)
+      }
+    }
+  }, [initialDate])
+
   const { data: slots, isFetching } = useAvailabilityQuery(veterinarioId, date)
-  const availableSlots = useMemo(() => new Set(slots ?? []), [slots])
+  
+  // Normalizar los slots para comparación segura
+  const availableSlots = useMemo(() => {
+    if (!slots || !Array.isArray(slots)) return new Set<string>()
+    // Asegurar que todos los slots estén en formato "HH:MM"
+    return new Set(slots.map(slot => {
+      if (typeof slot === 'string') {
+        // Si viene como "08:00:00", convertir a "08:00"
+        return slot.length > 5 ? slot.substring(0, 5) : slot
+      }
+      return String(slot)
+    }))
+  }, [slots])
+
+  // Limpiar el valor seleccionado si cambia la fecha o el veterinario
+  useEffect(() => {
+    if (value) {
+      const currentDate = parseDateFromISO(value)
+      if (currentDate !== date) {
+        onChange('')
+      }
+    }
+  }, [date, veterinarioId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-4">
@@ -34,7 +76,10 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
             className="w-full bg-transparent text-gray-900 focus:outline-none"
             min={dayjs().format('YYYY-MM-DD')}
             value={date}
-            onChange={(event) => setDate(event.target.value)}
+            onChange={(event) => {
+              setDate(event.target.value)
+              onChange('') // Limpiar selección cuando cambia la fecha
+            }}
           />
         </div>
       </label>
@@ -60,9 +105,21 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
               </div>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                 {section.slots.map((slot) => {
-                  const iso = buildClinicISOString(date, slot)
-                  const isAvailable = availableSlots.has(slot)
-                  const isActive = value === iso
+                  // Normalizar el slot para comparación
+                  const normalizedSlot = slot.length > 5 ? slot.substring(0, 5) : slot
+                  const isAvailable = availableSlots.has(normalizedSlot)
+                  
+                  // Generar el ISO string solo cuando se necesite (en el onClick)
+                  const handleSlotClick = () => {
+                    if (!isAvailable) return
+                    
+                    const iso = buildClinicISOString(date, slot)
+                    onChange(iso)
+                  }
+                  
+                  // Calcular si está activo comparando con el valor actual
+                  const currentIso = buildClinicISOString(date, slot)
+                  const isActive = value === currentIso
 
                   return (
                     <Button
@@ -74,7 +131,7 @@ export const AvailabilityPicker = ({ veterinarioId, value, onChange }: Availabil
                         !isAvailable && 'border border-red-300 bg-red-50 text-red-600 line-through opacity-60 cursor-not-allowed',
                       )}
                       disabled={!isAvailable}
-                      onClick={() => isAvailable && onChange(iso)}
+                      onClick={handleSlotClick}
                       type="button"
                     >
                       {slot}

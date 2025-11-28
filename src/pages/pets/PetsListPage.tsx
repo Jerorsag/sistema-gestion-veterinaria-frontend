@@ -68,61 +68,59 @@ export const PetsListPage = () => {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-surface p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <Spinner size="lg" />
-          </div>
-        ) : pets && pets.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {pets.map((pet) => (
-              <Card
-                key={pet.id}
-                className="flex flex-col gap-3"
-                header={
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
-                      <PawPrint size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-heading">{pet.nombre}</h3>
-                      {pet.cliente && <p className="text-xs text-secondary">Propietario: {pet.cliente}</p>}
-                    </div>
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Spinner size="lg" />
+        </div>
+      ) : pets && pets.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {pets.map((pet) => (
+            <Card
+              key={pet.id}
+              className="flex flex-col gap-3"
+              header={
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-[var(--color-primary)]/20 p-2 text-[var(--color-primary)]">
+                    <PawPrint size={20} />
                   </div>
-                }
-                footer={
-                  <Button asChild variant="ghost" fullWidth>
-                    <Link to={`/app/mascotas/${pet.id}`}>Ver detalle</Link>
-                  </Button>
-                }
-              >
-                <dl className="space-y-2 text-sm text-secondary">
-                  <div className="flex justify-between">
-                    <dt>Especie</dt>
-                    <dd>{typeof pet.especie === 'string' ? pet.especie : pet.especie?.nombre ?? '—'}</dd>
+                  <div>
+                    <h3 className="text-lg font-semibold text-heading">{pet.nombre}</h3>
+                    {pet.cliente && <p className="text-xs text-secondary">Propietario: {pet.cliente}</p>}
                   </div>
-                  <div className="flex justify-between">
-                    <dt>Raza</dt>
-                    <dd>{typeof pet.raza === 'string' ? pet.raza : pet.raza?.nombre ?? '—'}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt>Sexo</dt>
-                    <dd>{formatPetSex(pet.sexo)}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt>Peso</dt>
-                    <dd>{pet.peso ? `${pet.peso} kg` : '—'}</dd>
-                  </div>
-                </dl>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
-            No hay mascotas registradas para los filtros seleccionados.
-          </div>
-        )}
-      </section>
+                </div>
+              }
+              footer={
+                <Button asChild variant="ghost" fullWidth>
+                  <Link to={`/app/mascotas/${pet.id}`}>Ver detalle</Link>
+                </Button>
+              }
+            >
+              <dl className="space-y-2 text-sm text-secondary">
+                <div className="flex justify-between">
+                  <dt>Especie</dt>
+                  <dd>{typeof pet.especie === 'string' ? pet.especie : pet.especie?.nombre ?? '—'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Raza</dt>
+                  <dd>{typeof pet.raza === 'string' ? pet.raza : pet.raza?.nombre ?? '—'}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Sexo</dt>
+                  <dd>{formatPetSex(pet.sexo)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt>Peso</dt>
+                  <dd>{pet.peso ? `${pet.peso} kg` : '—'}</dd>
+                </div>
+              </dl>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-[var(--border-subtle-color)] px-6 py-12 text-center text-secondary" style={{ borderWidth: 'var(--border-subtle-width)', borderStyle: 'dashed' }}>
+          No hay mascotas registradas para los filtros seleccionados.
+        </div>
+      )}
     </div>
   )
 }
