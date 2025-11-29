@@ -68,10 +68,10 @@ export const usePetCreateMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: PetPayload) => petService.create(payload),
-    onSuccess: (pet) => {
+    onSuccess: () => {
       toast.success('Mascota registrada')
       queryClient.invalidateQueries({ queryKey: ['pets'] })
-      navigate(`/app/mascotas/${pet.id}`)
+      navigate('/app/mascotas')
     },
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
