@@ -209,10 +209,11 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
         <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
           <span className="font-medium">Estado</span>
           <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             style={{
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
+              color: '#000000',
             }}
             {...form.register('estado')}
           >
