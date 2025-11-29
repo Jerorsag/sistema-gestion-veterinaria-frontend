@@ -65,6 +65,7 @@ export const endpoints = {
     byPet: (petId: number | string) => withBase(`/consultas/mascota/${petId}/`)(),
     byVet: (vetId: number | string) => withBase(`/consultas/veterinario/${vetId}/`)(),
     consent: (id: number | string) => withBase(`/consultas/${id}/enviar-consentimiento/`)(),
+    confirmConsent: withBase('/consultas/confirmar-consentimiento/'),
     stats: withBase('/consultas/estadisticas/'),
     availableForInvoice: withBase('/consultas/disponibles-para-facturar/'),
   },
