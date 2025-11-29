@@ -2,9 +2,9 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
-import { PlusCircle, X, Pill, FileText, Syringe, PawPrint, Info } from 'lucide-react'
+import { PlusCircle, X, Pill, FileText, Syringe, PawPrint, Info, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner' 
@@ -14,6 +14,7 @@ import {
   useConsultationCreateMutation, useConsultationUpdateMutation,useConsultationDetailQuery  } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
 import { useProductsQuery } from '@/hooks/inventory'
+import { useProfileQuery } from '@/hooks/auth'
 
 interface Product {
   id: number
@@ -182,8 +183,21 @@ useEffect(() => {
     ? productsData
     : (productsData as any)?.results || []
 
+  // Obtener el perfil del usuario actual para validar que tenga licencia y especialidad
+  const { data: userProfile } = useProfileQuery()
+
   const mutation = useConsultationCreateMutation()
   const updateMutation = useConsultationUpdateMutation()
+
+  // Validar que el veterinario tenga licencia y especialidad
+  const canCreateConsultation = useMemo(() => {
+    if (!userProfile?.perfil_veterinario) {
+      return false
+    }
+    const vetProfile = userProfile.perfil_veterinario
+    return Boolean(vetProfile.licencia && vetProfile.licencia.trim() !== '' && 
+                   vetProfile.especialidad && vetProfile.especialidad.trim() !== '')
+  }, [userProfile])
 
   // Limpiar vacunas_descripcion cuando el estado es AL_DIA o NINGUNA
   const estadoVacunas = form.watch('vacunas.estado')
@@ -194,6 +208,15 @@ useEffect(() => {
   }, [estadoVacunas, form])
 
   const onSubmit = async (values: FormValues) => {
+    // Validar que el veterinario tenga licencia y especialidad antes de crear la consulta
+    if (!canCreateConsultation) {
+      form.setError('root', {
+        type: 'manual',
+        message: 'No puedes generar consultas. Tu perfil de veterinario debe tener licencia y especialidad registradas.',
+      })
+      return
+    }
+
     const payload = {
       mascota: Number(values.mascota),
       fecha_consulta: values.fecha_consulta.includes('T')
@@ -242,6 +265,32 @@ try {
       
       <input type="hidden" {...form.register('cita')} />
       <input type="hidden" {...form.register('servicio')} />
+
+      {/* Alerta si el veterinario no tiene licencia y especialidad */}
+      {!canCreateConsultation && !isEditing && (
+        <Card className="border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-900">No puedes generar consultas</p>
+              <p className="text-sm text-red-700 mt-1">
+                Tu perfil de veterinario debe tener licencia y especialidad registradas. 
+                Por favor, actualiza tu perfil en la sección de usuarios.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Mostrar error del formulario si existe */}
+      {form.formState.errors.root && (
+        <Card className="border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{form.formState.errors.root.message}</p>
+          </div>
+        </Card>
+      )}
 
       {/* --- SECCIÓN DATOS GENERALES --- */}
 {preCitaId && (
@@ -561,7 +610,7 @@ try {
         </Button>
         <Button 
           type="submit" 
-          disabled={form.formState.isSubmitting || mutation.isPending}
+          disabled={form.formState.isSubmitting || mutation.isPending || (!canCreateConsultation && !isEditing)}
         >
           {form.formState.isSubmitting || mutation.isPending || updateMutation.isPending
           ? 'Guardando...' 
