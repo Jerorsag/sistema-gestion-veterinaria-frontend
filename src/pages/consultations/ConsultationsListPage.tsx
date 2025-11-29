@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { Calendar, Filter, Stethoscope, PlusCircle } from 'lucide-react'
+import { Calendar, Filter, Stethoscope, PlusCircle, Edit, Eye } from 'lucide-react'
 
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { usePetsQuery } from '@/hooks/pets'
 import { formatDateTime } from '@/utils/datetime'
@@ -120,17 +119,47 @@ export const ConsultationsListPage = () => {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-3 md:ml-6">
-                    <Badge tone={consultation.estado_vacunacion === 'AL_DIA' ? 'success' : consultation.estado_vacunacion === 'PENDIENTE' ? 'warning' : 'neutral'}>
-                      {consultation.estado_vacunacion}
-                    </Badge>
+                    {/* Estado con colores mejorados */}
+                    {consultation.estado_vacunacion === 'AL_DIA' && (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-green-800 border border-green-200">
+                        {consultation.estado_vacunacion}
+                      </span>
+                    )}
+                    {consultation.estado_vacunacion === 'PENDIENTE' && (
+                      <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-800 border border-yellow-200">
+                        {consultation.estado_vacunacion}
+                      </span>
+                    )}
+                    {consultation.estado_vacunacion === 'EN_PROCESO' && (
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-800 border border-blue-200">
+                        {consultation.estado_vacunacion}
+                      </span>
+                    )}
+                    {!['AL_DIA', 'PENDIENTE', 'EN_PROCESO'].includes(consultation.estado_vacunacion) && (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-800 border border-gray-200">
+                        {consultation.estado_vacunacion}
+                      </span>
+                    )}
+                    
+                    {/* Botones de acceso con colores */}
                     {!hasRole('cliente') && (
-                      <Button asChild variant="ghost">
+                      <Button 
+                        asChild 
+                        variant="ghost"
+                        className="text-blue-600 border border-blue-200 hover:bg-blue-50"
+                        startIcon={<Edit size={16} />}
+                      >
                         <Link to={`/app/consultas/${consultation.id}/editar`}>
                           Editar consulta
                         </Link>
                       </Button>
                     )}
-                    <Button asChild variant="ghost" startIcon={<Calendar size={16} className="text-gray-700" />}>
+                    <Button 
+                      asChild 
+                      variant="ghost"
+                      className="text-[var(--color-secondary)] border border-[var(--color-secondary)]/30 hover:bg-[var(--color-secondary)]/10"
+                      startIcon={<Eye size={16} />}
+                    >
                       <Link to={`/app/consultas/${consultation.id}`}>Ver detalle</Link>
                     </Button>
                   </div>

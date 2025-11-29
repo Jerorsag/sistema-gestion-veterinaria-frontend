@@ -209,10 +209,11 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
         <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
           <span className="font-medium">Estado</span>
           <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             style={{
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
+              color: '#000000',
             }}
             {...form.register('estado')}
           >
@@ -337,16 +338,16 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
       {mode === 'create' && (
         <div className="space-y-4 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
           <div>
-            <label className="block space-y-2 text-sm" htmlFor="password">
-              <span className="font-medium text-[var(--color-text-heading)]">Contraseña</span>
+            <label className="block text-sm" htmlFor="password">
+              <span className="font-medium text-[var(--color-text-heading)] block mb-2">Contraseña</span>
               <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                   <Lock size={18} />
                 </div>
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 relative z-0"
                   placeholder="Mínimo 6 caracteres"
                   {...form.register('password')}
                   error={form.formState.errors.password?.message}
@@ -354,7 +355,7 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -384,16 +385,16 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
           </div>
 
           <div>
-            <label className="block space-y-2 text-sm" htmlFor="password_confirm">
-              <span className="font-medium text-[var(--color-text-heading)]">Confirmar contraseña</span>
+            <label className="block text-sm" htmlFor="password_confirm">
+              <span className="font-medium text-[var(--color-text-heading)] block mb-2">Confirmar contraseña</span>
               <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                   <Lock size={18} />
                 </div>
                 <Input
                   id="password_confirm"
                   type={showPasswordConfirm ? 'text' : 'password'}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 relative z-0"
                   placeholder="Repite la contraseña"
                   {...form.register('password_confirm')}
                   error={form.formState.errors.password_confirm?.message}
@@ -401,7 +402,7 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                 <button
                   type="button"
                   onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                   aria-label={showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}

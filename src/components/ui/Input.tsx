@@ -12,12 +12,12 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
 
   return (
     <div className="w-full">
-      <label 
-        className={label ? 'block space-y-2' : 'block'} 
-        style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} 
-        htmlFor={inputId}
-      >
-        {label && (
+      {label && (
+        <label 
+          className="block mb-2" 
+          style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} 
+          htmlFor={inputId}
+        >
           <span
             className="font-medium block"
             style={{
@@ -28,7 +28,9 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
           >
             {label}
           </span>
-        )}
+        </label>
+      )}
+      <div className="relative">
         <input
           id={inputId}
           className={clsx(
@@ -47,7 +49,7 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
           }}
           {...props}
         />
-      </label>
+      </div>
       {helperText && !error && (
         <p className="mt-1 text-muted" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           {helperText}
