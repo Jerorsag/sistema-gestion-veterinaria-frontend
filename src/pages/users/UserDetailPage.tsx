@@ -77,6 +77,8 @@ export const UserDetailPage = () => {
       roles: data.roles.map((rol) => rol.nombre),
       telefono: data.perfil_cliente?.telefono ?? '',
       direccion: data.perfil_cliente?.direccion ?? '',
+      licencia: data.perfil_veterinario?.licencia ?? '',
+      especialidad: data.perfil_veterinario?.especialidad ?? '',
     }
   }, [data])
 

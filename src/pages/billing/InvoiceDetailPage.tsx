@@ -24,6 +24,7 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import type { PaymentInvoicePayload } from '@/api/types/billing'
 import { useDisclosure } from '@/hooks/useDisclosure'
+import { useSessionStore } from '@/core/store/session-store'
 
 const paymentSchema = z.object({
   metodo_pago: z.number().min(1, 'Selecciona un método de pago'),
@@ -48,6 +49,9 @@ export const InvoiceDetailPage = () => {
   const payMutation = useInvoicePayMutation()
   const cancelMutation = useInvoiceCancelMutation()
   const sendEmailMutation = useInvoiceSendEmailMutation()
+  const user = useSessionStore((state) => state.user)
+  const isClient = user?.roles?.includes('cliente') ?? false
+  const isAdmin = user?.roles?.includes('administrador') ?? false
 
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const receiptModal = useDisclosure()
@@ -580,42 +584,42 @@ export const InvoiceDetailPage = () => {
     )
   }
 
-  const canPay = data?.estado === 'PENDIENTE'
-  const canCancel = data?.estado === 'PENDIENTE' || data?.estado === 'PAGADA'
+  const canPay = data?.estado === 'PENDIENTE' && !isClient
+  const canCancel = (data?.estado === 'PENDIENTE' || data?.estado === 'PAGADA') && isAdmin
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-4 sm:space-y-6 -mx-4 sm:-mx-6 md:mx-0">
+      <div className="px-4 sm:px-6 md:px-0 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-label">Factura</p>
-          <h1 className="text-3xl font-semibold text-heading">Factura #{data.id}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-secondary">
-            <span>{formatDateTime(data.fecha)}</span>
-            <span>•</span>
-            <Badge tone={status.tone}>{status.label}</Badge>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-heading break-words">Factura #{data.id}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-secondary">
+            <span className="break-words">{formatDateTime(data.fecha)}</span>
+            <span className="hidden sm:inline">•</span>
+            <Badge tone={status.tone} className="text-xs">{status.label}</Badge>
             {data.pagada && (
               <>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span className="flex items-center gap-1 text-emerald-600">
                   <CheckCircle size={14} />
-                  Pagada
+                  <span className="hidden sm:inline">Pagada</span>
                 </span>
               </>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <Button 
             asChild 
             variant="ghost" 
-            className="px-3 py-1.5 text-sm"
+            className="px-3 py-1.5 text-sm w-full sm:w-auto"
             startIcon={<ArrowLeft size={16} className="text-black" />}
           >
             <Link to="/app/facturacion">Volver</Link>
           </Button>
           {canPay && (
             <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 px-3 py-1.5 text-sm font-medium whitespace-nowrap"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 px-3 py-1.5 text-sm font-medium whitespace-nowrap w-full sm:w-auto"
               style={{ boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)' }}
               startIcon={<CheckCircle2 size={16} />}
               onClick={() => setShowPaymentForm(!showPaymentForm)}
@@ -626,7 +630,7 @@ export const InvoiceDetailPage = () => {
           {canCancel && (
             <Button 
               variant="danger" 
-              className="px-3 py-1.5 text-sm"
+              className="px-3 py-1.5 text-sm w-full sm:w-auto"
               startIcon={<X size={16} />} 
               onClick={handleCancel} 
               disabled={cancelMutation.isPending}
@@ -639,25 +643,26 @@ export const InvoiceDetailPage = () => {
 
       {/* Formulario de pago */}
       {showPaymentForm && canPay && (
+        <div className="px-4 sm:px-6 md:px-0">
         <Card
           header={
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-emerald-500/20 p-2.5 text-emerald-600">
-                <DollarSign size={18} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="rounded-xl bg-emerald-500/20 p-2 sm:p-2.5 text-emerald-600 flex-shrink-0">
+                <DollarSign size={16} className="sm:w-[18px] sm:h-[18px]" />
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pago</p>
-                <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Registrar pago</h3>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pago</p>
+                <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Registrar pago</h3>
               </div>
             </div>
           }
         >
-          <form onSubmit={handleSubmit(handlePay)} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
+          <form onSubmit={handleSubmit(handlePay)} className="space-y-3 sm:space-y-4">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+              <label className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-[var(--color-text-heading)]">
                 <span className="font-medium">Método de pago</span>
                 <select
-                  className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                  className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 sm:px-4 py-2 text-sm sm:text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
                   style={{
                     borderWidth: 'var(--border-subtle-width)',
                     borderStyle: 'var(--border-subtle-style)',
@@ -671,7 +676,7 @@ export const InvoiceDetailPage = () => {
                     </option>
                   ))}
                 </select>
-                {errors.metodo_pago && <p className="text-xs text-red-600">{errors.metodo_pago.message}</p>}
+                {errors.metodo_pago && <p className="text-[10px] sm:text-xs text-red-600">{errors.metodo_pago.message}</p>}
               </label>
 
               <Input
@@ -693,32 +698,33 @@ export const InvoiceDetailPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
-              <Button type="button" variant="ghost" onClick={() => setShowPaymentForm(false)}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+              <Button type="button" variant="ghost" onClick={() => setShowPaymentForm(false)} className="w-full sm:w-auto">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={payMutation.isPending} className="min-w-[120px]">
+              <Button type="submit" disabled={payMutation.isPending} className="w-full sm:w-auto min-w-[120px]">
                 {payMutation.isPending ? 'Procesando...' : 'Registrar pago'}
               </Button>
             </div>
           </form>
         </Card>
+        </div>
       )}
 
       {/* Información de la factura */}
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="px-4 sm:px-6 md:px-0 grid gap-4 sm:gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         {/* Columna principal - Detalles */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Información del cliente */}
           <Card
             header={
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-[var(--color-primary)]/20 p-2.5 text-[var(--color-primary)]">
-                  <User size={18} />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="rounded-xl bg-[var(--color-primary)]/20 p-2 sm:p-2.5 text-[var(--color-primary)] flex-shrink-0">
+                  <User size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Cliente</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Cliente</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)] break-words">
                     {clienteNombre || (typeof data.cliente === 'string' ? data.cliente : `Cliente #${data.cliente}`)}
                   </h3>
                 </div>
@@ -727,15 +733,15 @@ export const InvoiceDetailPage = () => {
           >
             <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
               {clienteNombre && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="font-medium text-[var(--color-text-heading)]">Nombre completo:</span>
-                  <span>{clienteNombre}</span>
+                  <span className="break-words">{clienteNombre}</span>
                 </div>
               )}
               {clienteData?.email && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                   <span className="font-medium text-[var(--color-text-heading)]">Email:</span>
-                  <span>{clienteData.email}</span>
+                  <span className="break-all">{clienteData.email}</span>
                 </div>
               )}
             </div>
@@ -744,80 +750,87 @@ export const InvoiceDetailPage = () => {
           {/* Detalles de la factura */}
           <Card
             header={
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-[var(--color-secondary)]/20 p-2.5 text-[var(--color-secondary)]">
-                  <FileText size={18} />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="rounded-xl bg-[var(--color-secondary)]/20 p-2 sm:p-2.5 text-[var(--color-secondary)] flex-shrink-0">
+                  <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Detalles</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Items de la factura</h3>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Detalles</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Items de la factura</h3>
                 </div>
               </div>
             }
           >
             {data.detalles && data.detalles.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                      <th className="px-4 py-3">Descripción</th>
-                      <th className="px-4 py-3 text-right">Cantidad</th>
-                      <th className="px-4 py-3 text-right">Precio Unit.</th>
-                      <th className="px-4 py-3 text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                    {data.detalles.map((detalle) => {
-                      const precioUnit = typeof detalle.precio_unitario === 'number' ? detalle.precio_unitario : Number(detalle.precio_unitario || 0)
-                      const subtotal = typeof detalle.subtotal === 'number' ? detalle.subtotal : Number(detalle.subtotal || precioUnit * detalle.cantidad)
-                      const isProduct = !!detalle.producto
-                      const isService = !!detalle.servicio
-                      
-                      return (
-                        <tr key={detalle.id || Math.random()} className="text-sm text-[var(--color-text-secondary)]">
-                          <td className="px-4 py-3">
-                            <div className="font-medium text-[var(--color-text-heading)]">
-                              {detalle.descripcion || 'Sin descripción'}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                              {isProduct && detalle.producto_nombre && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                                  <Package size={12} />
-                                  {detalle.producto_nombre}
-                                </span>
-                              )}
-                              {isService && detalle.servicio_nombre && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
-                                  <ClipboardList size={12} />
-                                  {detalle.servicio_nombre}
-                                </span>
-                              )}
-                              {isProduct && !detalle.producto_nombre && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                                  <Package size={12} />
-                                  Producto #{detalle.producto}
-                                </span>
-                              )}
-                              {isService && !detalle.servicio_nombre && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
-                                  <ClipboardList size={12} />
-                                  Servicio #{detalle.servicio}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium">{detalle.cantidad}</td>
-                          <td className="px-4 py-3 text-right">
-                            ${precioUnit.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold text-[var(--color-text-heading)]">
-                            ${subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
+              <div className="overflow-x-auto -mx-4 sm:-mx-6 md:mx-0">
+                <div className="inline-block min-w-full align-middle px-4 sm:px-6 md:px-0">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full text-left">
+                      <thead>
+                        <tr className="text-xs uppercase tracking-wide text-[var(--color-text-muted)] border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                          <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">Descripción</th>
+                          <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right whitespace-nowrap">Cant.</th>
+                          <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right whitespace-nowrap hidden sm:table-cell">Precio Unit.</th>
+                          <th className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right whitespace-nowrap">Subtotal</th>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                        {data.detalles.map((detalle) => {
+                          const precioUnit = typeof detalle.precio_unitario === 'number' ? detalle.precio_unitario : Number(detalle.precio_unitario || 0)
+                          const subtotal = typeof detalle.subtotal === 'number' ? detalle.subtotal : Number(detalle.subtotal || precioUnit * detalle.cantidad)
+                          const isProduct = !!detalle.producto
+                          const isService = !!detalle.servicio
+                          
+                          return (
+                            <tr key={detalle.id || Math.random()} className="text-xs sm:text-sm text-[var(--color-text-secondary)]">
+                              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 min-w-[150px] sm:min-w-[200px]">
+                                <div className="font-medium text-[var(--color-text-heading)] break-words">
+                                  {detalle.descripcion || 'Sin descripción'}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5">
+                                  {isProduct && detalle.producto_nombre && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                                      <Package size={10} className="sm:w-3 sm:h-3" />
+                                      <span className="truncate max-w-[80px] sm:max-w-[120px]">{detalle.producto_nombre}</span>
+                                    </span>
+                                  )}
+                                  {isService && detalle.servicio_nombre && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
+                                      <ClipboardList size={10} className="sm:w-3 sm:h-3" />
+                                      <span className="truncate max-w-[80px] sm:max-w-[120px]">{detalle.servicio_nombre}</span>
+                                    </span>
+                                  )}
+                                  {isProduct && !detalle.producto_nombre && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                                      <Package size={10} className="sm:w-3 sm:h-3" />
+                                      <span className="hidden sm:inline">Producto </span>#{detalle.producto}
+                                    </span>
+                                  )}
+                                  {isService && !detalle.servicio_nombre && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]">
+                                      <ClipboardList size={10} className="sm:w-3 sm:h-3" />
+                                      <span className="hidden sm:inline">Servicio </span>#{detalle.servicio}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="sm:hidden mt-1 text-[10px] text-[var(--color-text-muted)]">
+                                  ${precioUnit.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {detalle.cantidad}
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right font-medium whitespace-nowrap">{detalle.cantidad}</td>
+                              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right whitespace-nowrap hidden sm:table-cell">
+                                ${precioUnit.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-right font-semibold text-[var(--color-text-heading)] whitespace-nowrap">
+                                ${subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             ) : (
               <p className="py-8 text-center text-sm text-[var(--color-text-muted)]">No hay detalles en esta factura</p>
@@ -826,38 +839,38 @@ export const InvoiceDetailPage = () => {
         </div>
 
         {/* Columna lateral - Resumen */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Resumen financiero */}
           <Card
             header={
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-[var(--color-accent-pink)]/20 p-2.5 text-[var(--color-accent-pink)]">
-                  <DollarSign size={18} />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="rounded-xl bg-[var(--color-accent-pink)]/20 p-2 sm:p-2.5 text-[var(--color-accent-pink)] flex-shrink-0">
+                  <DollarSign size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Resumen</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Totales</h3>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Resumen</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Totales</h3>
                 </div>
               </div>
             }
           >
             <div className="space-y-4">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-[var(--color-text-secondary)]">Subtotal:</span>
-                <span className="font-semibold text-[var(--color-text-heading)]">
+                <span className="font-semibold text-[var(--color-text-heading)] break-words text-right">
                   ${typeof data.subtotal === 'number' ? data.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Number(data.subtotal || 0).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-[var(--color-text-secondary)]">Impuestos:</span>
-                <span className="font-semibold text-[var(--color-text-heading)]">
+                <span className="font-semibold text-[var(--color-text-heading)] break-words text-right">
                   ${typeof data.impuestos === 'number' ? data.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Number(data.impuestos || 0).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="border-t pt-4" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                <div className="flex justify-between text-base">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span className="font-semibold text-[var(--color-text-heading)]">Total:</span>
-                  <span className="text-xl font-bold text-[var(--color-primary)]">
+                  <span className="text-lg sm:text-xl font-bold text-[var(--color-primary)] break-words text-right">
                     ${remainingBalance.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -868,28 +881,28 @@ export const InvoiceDetailPage = () => {
           {/* Información adicional */}
           <Card
             header={
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-[var(--color-accent-lavender)]/20 p-2.5 text-[var(--color-accent-lavender)]">
-                  <Calendar size={18} />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="rounded-xl bg-[var(--color-accent-lavender)]/20 p-2 sm:p-2.5 text-[var(--color-accent-lavender)] flex-shrink-0">
+                  <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Información</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Datos adicionales</h3>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Información</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Datos adicionales</h3>
                 </div>
               </div>
             }
           >
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-xs sm:text-sm">
               <div>
                 <p className="text-xs text-[var(--color-text-muted)] mb-1">Fecha de emisión</p>
-                <p className="font-semibold text-[var(--color-text-heading)]">{formatDateTime(data.fecha)}</p>
+                <p className="font-semibold text-[var(--color-text-heading)] break-words">{formatDateTime(data.fecha)}</p>
               </div>
               {data.cita && (
                 <div>
                   <p className="text-xs text-[var(--color-text-muted)] mb-1">Cita relacionada</p>
                   <Link
                     to={`/app/citas/${data.cita}`}
-                    className="font-semibold text-[var(--color-primary)] hover:underline"
+                    className="font-semibold text-[var(--color-primary)] hover:underline break-all"
                   >
                     Ver cita
                   </Link>
@@ -900,7 +913,7 @@ export const InvoiceDetailPage = () => {
                   <p className="text-xs text-[var(--color-text-muted)] mb-1">Consulta relacionada</p>
                   <Link
                     to={`/app/consultas/${data.consulta}`}
-                    className="font-semibold text-[var(--color-primary)] hover:underline"
+                    className="font-semibold text-[var(--color-primary)] hover:underline break-all"
                   >
                     Ver consulta
                   </Link>
@@ -913,13 +926,13 @@ export const InvoiceDetailPage = () => {
           {data.pagos && data.pagos.length > 0 && (
             <Card
               header={
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-emerald-500/20 p-2.5 text-emerald-600">
-                    <CreditCard size={18} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="rounded-xl bg-emerald-500/20 p-2 sm:p-2.5 text-emerald-600 flex-shrink-0">
+                    <CreditCard size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pagos</p>
-                    <h3 className="mt-2 text-lg font-semibold text-[var(--color-text-heading)]">Historial de pagos</h3>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pagos</p>
+                    <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Historial de pagos</h3>
                   </div>
                 </div>
               }
@@ -932,35 +945,35 @@ export const InvoiceDetailPage = () => {
                   return (
                     <div
                       key={pago.id}
-                      className="rounded-xl border p-4 transition-all hover:shadow-md"
+                      className="rounded-xl border p-3 sm:p-4 transition-all hover:shadow-md"
                       style={{ 
                         borderColor: pago.aprobado ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-subtle-color)',
                         backgroundColor: pago.aprobado ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
                       }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-[var(--color-text-heading)]">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="font-semibold text-[var(--color-text-heading)] break-words">
                               ${monto.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                             {pago.aprobado ? (
-                              <Badge tone="success" className="text-xs">Aprobado</Badge>
+                              <Badge tone="success" className="text-xs whitespace-nowrap">Aprobado</Badge>
                             ) : (
-                              <Badge tone="warning" className="text-xs">Pendiente</Badge>
+                              <Badge tone="warning" className="text-xs whitespace-nowrap">Pendiente</Badge>
                             )}
                           </div>
-                          <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+                          <div className="space-y-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
                             <div className="flex items-center gap-2">
-                              <CreditCard size={14} className="text-[var(--color-text-muted)]" />
-                              <span>{metodoNombre}</span>
+                              <CreditCard size={12} className="sm:w-[14px] sm:h-[14px] text-[var(--color-text-muted)] flex-shrink-0" />
+                              <span className="break-words">{metodoNombre}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Clock size={14} className="text-[var(--color-text-muted)]" />
-                              <span>{formatDateTime(pago.fecha)}</span>
+                              <Clock size={12} className="sm:w-[14px] sm:h-[14px] text-[var(--color-text-muted)] flex-shrink-0" />
+                              <span className="break-words">{formatDateTime(pago.fecha)}</span>
                             </div>
                             {pago.referencia && (
-                              <div className="text-xs text-[var(--color-text-muted)]">
+                              <div className="text-[10px] sm:text-xs text-[var(--color-text-muted)] break-words">
                                 Referencia: {pago.referencia}
                               </div>
                             )}
@@ -978,12 +991,12 @@ export const InvoiceDetailPage = () => {
           {data.estado === 'PENDIENTE' && saldoPendiente > 0 && (
             <Card>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-[var(--color-text-heading)]">Saldo pendiente</p>
-                <p className="text-2xl font-bold text-[var(--color-primary)]">
+                <p className="text-xs sm:text-sm font-medium text-[var(--color-text-heading)]">Saldo pendiente</p>
+                <p className="text-xl sm:text-2xl font-bold text-[var(--color-primary)] break-words">
                   ${saldoPendiente.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
                 {totalPagado > 0 && (
-                  <p className="text-xs text-[var(--color-text-muted)]">
+                  <p className="text-xs text-[var(--color-text-muted)] break-words">
                     Pagado: ${totalPagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 )}
@@ -993,10 +1006,10 @@ export const InvoiceDetailPage = () => {
 
           {/* Acciones */}
           <Card>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="flex flex-col gap-3">
               <Button
                 variant="secondary"
-                className="px-6 py-2.5 text-sm font-medium"
+                className="w-full sm:w-auto px-6 py-2.5 text-sm font-medium"
                 startIcon={<Receipt size={18} className="text-black" />}
                 onClick={receiptModal.open}
               >
@@ -1004,7 +1017,7 @@ export const InvoiceDetailPage = () => {
               </Button>
               <Button
                 variant="secondary"
-                className="px-6 py-2.5 text-sm font-medium"
+                className="w-full sm:w-auto px-6 py-2.5 text-sm font-medium"
                 startIcon={<Mail size={18} className="text-black" />}
                 onClick={handleSendEmail}
                 disabled={sendEmailMutation.isPending}
@@ -1029,26 +1042,26 @@ export const InvoiceDetailPage = () => {
             <div className="space-y-6 receipt-view">
               {/* Encabezado del recibo */}
               <div className="text-center border-b pb-4" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                <h3 className="text-2xl font-bold text-[var(--color-text-heading)]">Recibo de Factura</h3>
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">{receiptData.numero_factura}</p>
-                <Badge tone={receiptData.estado === 'PAGADA' ? 'success' : receiptData.estado === 'ANULADA' ? 'info' : 'warning'} className="mt-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-[var(--color-text-heading)] break-words">Recibo de Factura</h3>
+                <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1 break-words">{receiptData.numero_factura}</p>
+                <Badge tone={receiptData.estado === 'PAGADA' ? 'success' : receiptData.estado === 'ANULADA' ? 'info' : 'warning'} className="mt-2 text-xs">
                   {receiptData.estado}
                 </Badge>
               </div>
 
             {/* Información del cliente */}
             <div>
-              <h4 className="font-semibold text-[var(--color-text-heading)] mb-2">Cliente</h4>
-              <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
-                <p><span className="font-medium">Nombre:</span> {receiptData.cliente.nombre_completo}</p>
-                <p><span className="font-medium">Email:</span> {receiptData.cliente.email}</p>
-                <p><span className="font-medium">Usuario:</span> {receiptData.cliente.username}</p>
+              <h4 className="font-semibold text-[var(--color-text-heading)] mb-2 text-sm sm:text-base">Cliente</h4>
+              <div className="space-y-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
+                <p className="break-words"><span className="font-medium">Nombre:</span> {receiptData.cliente.nombre_completo}</p>
+                <p className="break-all"><span className="font-medium">Email:</span> {receiptData.cliente.email}</p>
+                <p className="break-words"><span className="font-medium">Usuario:</span> {receiptData.cliente.username}</p>
               </div>
             </div>
 
             {/* Fecha */}
             <div>
-              <p className="text-sm text-[var(--color-text-muted)]">
+              <p className="text-xs sm:text-sm text-[var(--color-text-muted)] break-words">
                 <span className="font-medium">Fecha de emisión:</span> {formatDateTime(receiptData.fecha_emision)}
               </p>
             </div>
@@ -1056,60 +1069,64 @@ export const InvoiceDetailPage = () => {
             {/* Detalles */}
             <div>
               <h4 className="font-semibold text-[var(--color-text-heading)] mb-3">Detalles</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)]">Descripción</th>
-                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Cantidad</th>
-                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Precio Unit.</th>
-                      <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {receiptData.detalles.map((detalle) => {
-                      return (
-                        <tr key={detalle.id} className="border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
-                          <td className="px-3 py-2 text-[var(--color-text-secondary)]">
-                            <div>{detalle.descripcion}</div>
-                            {(detalle.producto_nombre || detalle.servicio_nombre) && (
-                              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                                {detalle.producto_nombre || detalle.servicio_nombre}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-right">{detalle.cantidad}</td>
-                          <td className="px-3 py-2 text-right">
-                            ${detalle.precio_unitario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                          <td className="px-3 py-2 text-right font-medium">
-                            ${detalle.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-left" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                          <th className="px-3 py-2 font-medium text-[var(--color-text-heading)]">Descripción</th>
+                          <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right whitespace-nowrap">Cantidad</th>
+                          <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right whitespace-nowrap">Precio Unit.</th>
+                          <th className="px-3 py-2 font-medium text-[var(--color-text-heading)] text-right whitespace-nowrap">Subtotal</th>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {receiptData.detalles.map((detalle) => {
+                          return (
+                            <tr key={detalle.id} className="border-b" style={{ borderColor: 'var(--border-subtle-color)' }}>
+                              <td className="px-3 py-2 text-[var(--color-text-secondary)] min-w-[150px]">
+                                <div className="break-words">{detalle.descripcion}</div>
+                                {(detalle.producto_nombre || detalle.servicio_nombre) && (
+                                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5 break-words">
+                                    {detalle.producto_nombre || detalle.servicio_nombre}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-right whitespace-nowrap">{detalle.cantidad}</td>
+                              <td className="px-3 py-2 text-right whitespace-nowrap">
+                                ${detalle.precio_unitario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-3 py-2 text-right font-medium whitespace-nowrap">
+                                ${detalle.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Totales */}
             <div className="border-t pt-4 space-y-2" style={{ borderColor: 'var(--border-subtle-color)' }}>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-[var(--color-text-secondary)]">Subtotal:</span>
-                <span className="font-semibold text-[var(--color-text-heading)]">
+                <span className="font-semibold text-[var(--color-text-heading)] break-words">
                   ${receiptData.totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-[var(--color-text-secondary)]">Impuestos:</span>
-                <span className="font-semibold text-[var(--color-text-heading)]">
+                <span className="font-semibold text-[var(--color-text-heading)] break-words">
                   ${receiptData.totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-base pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
+              <div className="flex justify-between text-sm sm:text-base pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
                 <span className="font-bold text-[var(--color-text-heading)]">Total:</span>
-                <span className="text-xl font-bold text-[var(--color-primary)]">
+                <span className="text-lg sm:text-xl font-bold text-[var(--color-primary)] break-words">
                   ${receiptData.totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1117,9 +1134,9 @@ export const InvoiceDetailPage = () => {
             
             {/* Total pagado */}
             {receiptData.total_pagado > 0 && (
-              <div className="flex justify-between text-sm pt-2">
+              <div className="flex justify-between text-xs sm:text-sm pt-2">
                 <span className="text-[var(--color-text-secondary)]">Total pagado:</span>
-                <span className="font-semibold text-emerald-600">
+                <span className="font-semibold text-emerald-600 break-words">
                   ${receiptData.total_pagado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1128,14 +1145,14 @@ export const InvoiceDetailPage = () => {
             {/* Vínculos */}
             {(receiptData.vinculos.cita_id || receiptData.vinculos.consulta_id) && (
               <div>
-                <h4 className="font-semibold text-[var(--color-text-heading)] mb-2">Vínculos</h4>
-                <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
+                <h4 className="font-semibold text-[var(--color-text-heading)] mb-2 text-sm sm:text-base">Vínculos</h4>
+                <div className="space-y-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
                   {receiptData.vinculos.cita_id && (
-                    <p>
+                    <p className="break-words">
                       <span className="font-medium">Cita:</span>{' '}
                       <Link
                         to={`/app/citas/${receiptData.vinculos.cita_id}`}
-                        className="text-[var(--color-primary)] hover:underline"
+                        className="text-[var(--color-primary)] hover:underline break-all"
                         onClick={receiptModal.close}
                       >
                         Ver cita #{receiptData.vinculos.cita_id}
@@ -1143,11 +1160,11 @@ export const InvoiceDetailPage = () => {
                     </p>
                   )}
                   {receiptData.vinculos.consulta_id && (
-                    <p>
+                    <p className="break-words">
                       <span className="font-medium">Consulta:</span>{' '}
                       <Link
                         to={`/app/consultas/${receiptData.vinculos.consulta_id}`}
-                        className="text-[var(--color-primary)] hover:underline"
+                        className="text-[var(--color-primary)] hover:underline break-all"
                         onClick={receiptModal.close}
                       >
                         Ver consulta #{receiptData.vinculos.consulta_id}

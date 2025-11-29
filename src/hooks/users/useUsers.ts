@@ -76,10 +76,10 @@ export const useUserCreateMutation = () => {
 
   return useMutation({
     mutationFn: (payload: UserCreatePayload) => userService.create(payload),
-    onSuccess: (user) => {
+    onSuccess: () => {
       toast.success('Usuario creado correctamente')
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      navigate(`/app/usuarios/${user.id}`)
+      navigate('/app/usuarios')
     },
     onError: (error: AxiosError) => toast.error(getError(error)),
   })

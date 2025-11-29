@@ -123,11 +123,13 @@ export const ConsultationsListPage = () => {
                     <Badge tone={consultation.estado_vacunacion === 'AL_DIA' ? 'success' : consultation.estado_vacunacion === 'PENDIENTE' ? 'warning' : 'neutral'}>
                       {consultation.estado_vacunacion}
                     </Badge>
-                    <Button asChild variant="ghost">
-                      <Link to={`/app/consultas/${consultation.id}/editar`}>
-                        Editar consulta
-                      </Link>
-                    </Button>
+                    {!hasRole('cliente') && (
+                      <Button asChild variant="ghost">
+                        <Link to={`/app/consultas/${consultation.id}/editar`}>
+                          Editar consulta
+                        </Link>
+                      </Button>
+                    )}
                     <Button asChild variant="ghost" startIcon={<Calendar size={16} className="text-gray-700" />}>
                       <Link to={`/app/consultas/${consultation.id}`}>Ver detalle</Link>
                     </Button>
