@@ -155,13 +155,8 @@ export const InvoiceDetailPage = () => {
 
   const handleSendEmail = async () => {
     if (!id) return
-
-    try {
-      await sendEmailMutation.mutateAsync(id)
-      toast.success('Factura enviada por correo electrónico')
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Error al enviar el correo')
-    }
+    // El hook useInvoiceSendEmailMutation maneja automáticamente los toasts de éxito y error
+    await sendEmailMutation.mutateAsync(id)
   }
 
   const handlePrintReceipt = () => {

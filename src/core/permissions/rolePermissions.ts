@@ -64,7 +64,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     label: 'Inventario',
     href: '/app/inventario',
     icon: Package,
-    allowedRoles: ['administrador', 'veterinario', 'recepcionista'],
+    allowedRoles: ['administrador', 'recepcionista'],
   },
   {
     label: 'Facturación',
