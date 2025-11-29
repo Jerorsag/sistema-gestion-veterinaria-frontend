@@ -45,7 +45,7 @@ const statusMap: Record<string, { tone: 'success' | 'warning' | 'info' | 'neutra
 export const InvoiceDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const { data, isLoading, error, refetch } = useInvoiceDetailQuery(id)
-  const { data: paymentMethods } = usePaymentMethodsQuery()
+  const { data: paymentMethods, isLoading: isLoadingPaymentMethods, error: paymentMethodsError } = usePaymentMethodsQuery()
   const payMutation = useInvoicePayMutation()
   const cancelMutation = useInvoiceCancelMutation()
   const sendEmailMutation = useInvoiceSendEmailMutation()
@@ -135,12 +135,12 @@ export const InvoiceDetailPage = () => {
 
     try {
       await payMutation.mutateAsync({ invoiceId: id, payload })
-      toast.success('Factura pagada correctamente')
+      // El toast de éxito ya se maneja en el hook useInvoicePayMutation
       setShowPaymentForm(false)
       reset()
       refetch()
     } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Error al procesar el pago')
+      // El toast de error ya se maneja en el hook useInvoicePayMutation
     }
   }
 
@@ -651,8 +651,8 @@ export const InvoiceDetailPage = () => {
                 <DollarSign size={16} className="sm:w-[18px] sm:h-[18px]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pago</p>
-                <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Registrar pago</h3>
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Pago</p>
+                <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black">Registrar pago</h3>
               </div>
             </div>
           }
@@ -662,19 +662,28 @@ export const InvoiceDetailPage = () => {
               <label className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-[var(--color-text-heading)]">
                 <span className="font-medium">Método de pago</span>
                 <select
-                  className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 sm:px-4 py-2 text-sm sm:text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                  className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-3 sm:px-4 py-2 text-sm sm:text-base transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
                   style={{
                     borderWidth: 'var(--border-subtle-width)',
                     borderStyle: 'var(--border-subtle-style)',
+                    color: '#000000',
                   }}
                   {...register('metodo_pago', { valueAsNumber: true })}
                 >
                   <option value="0">Selecciona un método</option>
-                  {paymentMethods && Array.isArray(paymentMethods) && paymentMethods.map((method) => (
-                    <option key={method.id} value={method.id}>
-                      {method.nombre}
-                    </option>
-                  ))}
+                  {isLoadingPaymentMethods ? (
+                    <option disabled>Cargando métodos de pago...</option>
+                  ) : paymentMethodsError ? (
+                    <option disabled>Error al cargar métodos de pago</option>
+                  ) : paymentMethods && Array.isArray(paymentMethods) && paymentMethods.length > 0 ? (
+                    paymentMethods.map((method) => (
+                      <option key={method.id} value={method.id}>
+                        {method.nombre}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No hay métodos de pago disponibles</option>
+                  )}
                 </select>
                 {errors.metodo_pago && <p className="text-[10px] sm:text-xs text-red-600">{errors.metodo_pago.message}</p>}
               </label>
@@ -723,8 +732,8 @@ export const InvoiceDetailPage = () => {
                   <User size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Cliente</p>
-                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)] break-words">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Cliente</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black break-words">
                     {clienteNombre || (typeof data.cliente === 'string' ? data.cliente : `Cliente #${data.cliente}`)}
                   </h3>
                 </div>
@@ -734,7 +743,7 @@ export const InvoiceDetailPage = () => {
             <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
               {clienteNombre && (
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                  <span className="font-medium text-[var(--color-text-heading)]">Nombre completo:</span>
+                  <span className="font-medium text-black">Nombre completo:</span>
                   <span className="break-words">{clienteNombre}</span>
                 </div>
               )}
@@ -755,8 +764,8 @@ export const InvoiceDetailPage = () => {
                   <FileText size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Detalles</p>
-                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Items de la factura</h3>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Detalles</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black">Items de la factura</h3>
                 </div>
               </div>
             }
@@ -848,8 +857,8 @@ export const InvoiceDetailPage = () => {
                   <DollarSign size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Resumen</p>
-                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Totales</h3>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Resumen</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black">Totales</h3>
                 </div>
               </div>
             }
@@ -886,8 +895,8 @@ export const InvoiceDetailPage = () => {
                   <Calendar size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Información</p>
-                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Datos adicionales</h3>
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Información</p>
+                  <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black">Datos adicionales</h3>
                 </div>
               </div>
             }
@@ -931,8 +940,8 @@ export const InvoiceDetailPage = () => {
                     <CreditCard size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-[var(--color-text-muted)] font-medium">Pagos</p>
-                    <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-[var(--color-text-heading)]">Historial de pagos</h3>
+                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] text-black font-medium">Pagos</p>
+                    <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-semibold text-black">Historial de pagos</h3>
                   </div>
                 </div>
               }
@@ -1051,11 +1060,11 @@ export const InvoiceDetailPage = () => {
 
             {/* Información del cliente */}
             <div>
-              <h4 className="font-semibold text-[var(--color-text-heading)] mb-2 text-sm sm:text-base">Cliente</h4>
+              <h4 className="font-semibold text-black mb-2 text-sm sm:text-base">Cliente</h4>
               <div className="space-y-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
-                <p className="break-words"><span className="font-medium">Nombre:</span> {receiptData.cliente.nombre_completo}</p>
-                <p className="break-all"><span className="font-medium">Email:</span> {receiptData.cliente.email}</p>
-                <p className="break-words"><span className="font-medium">Usuario:</span> {receiptData.cliente.username}</p>
+                <p className="break-words"><span className="font-medium text-black">Nombre:</span> {receiptData.cliente.nombre_completo}</p>
+                <p className="break-all"><span className="font-medium text-black">Email:</span> {receiptData.cliente.email}</p>
+                <p className="break-words"><span className="font-medium text-black">Usuario:</span> {receiptData.cliente.username}</p>
               </div>
             </div>
 
@@ -1068,7 +1077,7 @@ export const InvoiceDetailPage = () => {
 
             {/* Detalles */}
             <div>
-              <h4 className="font-semibold text-[var(--color-text-heading)] mb-3">Detalles</h4>
+              <h4 className="font-semibold text-black mb-3">Detalles</h4>
               <div className="overflow-x-auto -mx-4 sm:mx-0">
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden">
@@ -1145,11 +1154,11 @@ export const InvoiceDetailPage = () => {
             {/* Vínculos */}
             {(receiptData.vinculos.cita_id || receiptData.vinculos.consulta_id) && (
               <div>
-                <h4 className="font-semibold text-[var(--color-text-heading)] mb-2 text-sm sm:text-base">Vínculos</h4>
+                <h4 className="font-semibold text-black mb-2 text-sm sm:text-base">Vínculos</h4>
                 <div className="space-y-1 text-xs sm:text-sm text-[var(--color-text-secondary)]">
                   {receiptData.vinculos.cita_id && (
                     <p className="break-words">
-                      <span className="font-medium">Cita:</span>{' '}
+                      <span className="font-medium text-black">Cita:</span>{' '}
                       <Link
                         to={`/app/citas/${receiptData.vinculos.cita_id}`}
                         className="text-[var(--color-primary)] hover:underline break-all"
@@ -1161,7 +1170,7 @@ export const InvoiceDetailPage = () => {
                   )}
                   {receiptData.vinculos.consulta_id && (
                     <p className="break-words">
-                      <span className="font-medium">Consulta:</span>{' '}
+                      <span className="font-medium text-black">Consulta:</span>{' '}
                       <Link
                         to={`/app/consultas/${receiptData.vinculos.consulta_id}`}
                         className="text-[var(--color-primary)] hover:underline break-all"
