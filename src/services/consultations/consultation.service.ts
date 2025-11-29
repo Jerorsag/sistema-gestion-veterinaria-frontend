@@ -67,6 +67,36 @@ const sendConsent = async (id: number | string) => {
   return data
 }
 
+const confirmConsent = async (token: string) => {
+  // Usar axios directamente sin interceptores para este endpoint público
+  const axios = (await import('axios')).default
+  const { appConfig } = await import('@/core/config/app-config')
+  
+  try {
+    const { data } = await axios.post<{ message: string }>(
+      `${appConfig.apiUrl}/consultas/confirmar-consentimiento/`,
+      { token },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        timeout: 15000,
+      }
+    )
+    return data
+  } catch (error: any) {
+    // Log para debugging
+    console.error('Error al confirmar consentimiento:', {
+      token: token?.substring(0, 10) + '...',
+      url: `${appConfig.apiUrl}/consultas/confirmar-consentimiento/`,
+      error: error?.response?.data || error?.message,
+      status: error?.response?.status,
+    })
+    throw error
+  }
+}
+
 const stats = async () => {
   const { data } = await apiClient.get<ConsultationStats>(endpoints.consultations.stats())
   return data
@@ -86,6 +116,7 @@ export const consultationService = {
   byPet,
   byVet,
   sendConsent,
+  confirmConsent,
   stats,
   availableForInvoice,
 }

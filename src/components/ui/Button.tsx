@@ -24,7 +24,7 @@ export const Button = ({
 }: ButtonProps) => {
   const { type, ...restProps } = props
   const baseStyles =
-    'inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60'
+    'inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60 text-center'
 
   const variants: Record<ButtonVariant, string> = {
     primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-primary)] border border-transparent',
@@ -34,11 +34,11 @@ export const Button = ({
   }
 
   const content = (
-    <>
-      {startIcon && <span className="text-base">{startIcon}</span>}
-      <span>{children}</span>
-      {endIcon && <span className="text-base">{endIcon}</span>}
-    </>
+    <span className="flex items-center justify-center gap-2 w-full">
+      {startIcon && <span className="flex items-center justify-center flex-shrink-0">{startIcon}</span>}
+      <span className="flex items-center">{children}</span>
+      {endIcon && <span className="flex items-center justify-center flex-shrink-0">{endIcon}</span>}
+    </span>
   )
 
   if (asChild) {
@@ -53,11 +53,11 @@ export const Button = ({
       ...(restProps as Record<string, unknown>),
       className: clsx(baseStyles, variants[variant], fullWidth && 'w-full', child.props.className, className),
       children: (
-        <>
-          {startIcon && <span className="text-base">{startIcon}</span>}
-          <span>{child.props.children ?? null}</span>
-          {endIcon && <span className="text-base">{endIcon}</span>}
-        </>
+        <span className="flex items-center justify-center gap-2 w-full">
+          {startIcon && <span className="flex items-center justify-center flex-shrink-0">{startIcon}</span>}
+          <span className="flex items-center">{child.props.children ?? null}</span>
+          {endIcon && <span className="flex items-center justify-center flex-shrink-0">{endIcon}</span>}
+        </span>
       ),
     })
   }
