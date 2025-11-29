@@ -140,35 +140,44 @@ export const VerifyCodeForm = ({ email: initialEmail = '', onBack, onSuccess }: 
           </div>
 
           <div className="space-y-4">
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-                <Mail size={18} />
+            <div>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+                  <Mail size={18} />
+                </div>
+                <Input
+                  type="email"
+                  className="pl-10"
+                  placeholder="Correo electrónico"
+                  {...register('email')}
+                  error={errors.email?.message}
+                  disabled={!!initialEmail}
+                />
               </div>
-              <Input
-                type="email"
-                className="pl-10"
-                placeholder="Correo electrónico"
-                {...register('email')}
-                error={errors.email?.message}
-                disabled={!!initialEmail}
-              />
             </div>
 
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-                <ShieldCheck size={18} />
+            <div>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+                  <ShieldCheck size={18} />
+                </div>
+                <Input
+                  className="pl-10"
+                  placeholder="Código de 6 dígitos"
+                  maxLength={6}
+                  {...register('code')}
+                  error={errors.code?.message}
+                />
               </div>
-              <Input
-                className="pl-10"
-                placeholder="Código de 6 dígitos"
-                maxLength={6}
-                {...register('code')}
-                error={errors.code?.message}
-              />
             </div>
           </div>
 
-          <Button type="submit" fullWidth disabled={isSubmitting || verifyMutation.isPending}>
+          <Button 
+            type="submit" 
+            fullWidth 
+            disabled={isSubmitting || verifyMutation.isPending}
+            className="bg-[var(--color-secondary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-secondary)]"
+          >
             {isSubmitting || verifyMutation.isPending ? 'Verificando...' : 'Verificar código'}
           </Button>
 

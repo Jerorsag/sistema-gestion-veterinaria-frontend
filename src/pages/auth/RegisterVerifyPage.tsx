@@ -60,7 +60,12 @@ export const RegisterVerifyPage = () => {
       <Input label="Correo" {...register('email')} error={errors.email?.message} />
       <Input label="Código de 6 dígitos" {...register('code')} error={errors.code?.message} />
 
-      <Button type="submit" fullWidth disabled={isSubmitting || verifyMutation.isPending}>
+      <Button 
+        type="submit" 
+        fullWidth 
+        disabled={isSubmitting || verifyMutation.isPending}
+        className="bg-[var(--color-secondary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-secondary)]"
+      >
         {isSubmitting || verifyMutation.isPending ? 'Verificando...' : 'Confirmar cuenta'}
       </Button>
 

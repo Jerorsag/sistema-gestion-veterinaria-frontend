@@ -279,7 +279,13 @@ export const RegisterForm = ({ initialData, onDataChange, onRegisterSuccess }: R
         </button>
       </div>
 
-      <Button type="submit" fullWidth disabled={isSubmitting || mutation.isPending} startIcon={<UserPlus size={18} />}>
+      <Button 
+        type="submit" 
+        fullWidth 
+        disabled={isSubmitting || mutation.isPending} 
+        startIcon={<UserPlus size={18} />}
+        className="bg-[var(--color-secondary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-secondary)]"
+      >
         {isSubmitting || mutation.isPending ? 'Creando cuenta...' : 'Registrarse'}
       </Button>
 
