@@ -204,15 +204,15 @@ export const ProfilePage = () => {
           <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block space-y-2 text-sm" htmlFor="nombre">
-                  <span className="font-medium text-[var(--color-text-heading)]">Nombre</span>
+                <label className="block text-sm" htmlFor="nombre">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Nombre</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <User size={18} />
                     </div>
                     <Input
                       id="nombre"
-                      className="pl-10"
+                      className="pl-10 relative z-0"
                       placeholder="Tu nombre"
                       {...register('nombre', { required: 'El nombre es requerido' })}
                       error={profileErrors.nombre?.message}
@@ -221,24 +221,35 @@ export const ProfilePage = () => {
                 </label>
               </div>
 
-              <Input
-                label="Apellido"
-                placeholder="Tu apellido"
-                {...register('apellido', { required: 'El apellido es requerido' })}
-                error={profileErrors.apellido?.message}
-              />
+              <div>
+                <label className="block text-sm" htmlFor="apellido">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Apellido</span>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
+                      <User size={18} />
+                    </div>
+                    <Input
+                      id="apellido"
+                      className="pl-10 relative z-0"
+                      placeholder="Tu apellido"
+                      {...register('apellido', { required: 'El apellido es requerido' })}
+                      error={profileErrors.apellido?.message}
+                    />
+                  </div>
+                </label>
+              </div>
 
               <div className="md:col-span-2">
-                <label className="block space-y-2 text-sm" htmlFor="email">
-                  <span className="font-medium text-[var(--color-text-heading)]">Correo electrónico</span>
+                <label className="block text-sm" htmlFor="email">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Correo electrónico</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <Mail size={18} />
                     </div>
                     <Input
                       id="email"
                       type="email"
-                      className="pl-10"
+                      className="pl-10 relative z-0"
                       placeholder="tu@correo.com"
                       {...register('email', { required: 'El correo es requerido', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Correo inválido' } })}
                       error={profileErrors.email?.message}
@@ -248,16 +259,16 @@ export const ProfilePage = () => {
               </div>
 
               <div>
-                <label className="block space-y-2 text-sm" htmlFor="telefono">
-                  <span className="font-medium text-[var(--color-text-heading)]">Teléfono</span>
+                <label className="block text-sm" htmlFor="telefono">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Teléfono</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <Phone size={18} />
                     </div>
                     <Input
                       id="telefono"
                       type="tel"
-                      className="pl-10"
+                      className="pl-10 relative z-0"
                       placeholder="+57 300 000 0000"
                       {...register('telefono')}
                       error={profileErrors.telefono?.message}
@@ -267,15 +278,15 @@ export const ProfilePage = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block space-y-2 text-sm" htmlFor="direccion">
-                  <span className="font-medium text-[var(--color-text-heading)]">Dirección</span>
+                <label className="block text-sm" htmlFor="direccion">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Dirección</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <MapPin size={18} />
                     </div>
                     <Input
                       id="direccion"
-                      className="pl-10"
+                      className="pl-10 relative z-0"
                       placeholder="Tu dirección completa"
                       {...register('direccion')}
                       error={profileErrors.direccion?.message}
@@ -378,16 +389,16 @@ export const ProfilePage = () => {
           >
             <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
               <div>
-                <label className="block space-y-2 text-sm" htmlFor="password_actual">
-                  <span className="font-medium text-[var(--color-text-heading)]">Contraseña actual</span>
+                <label className="block text-sm" htmlFor="password_actual">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Contraseña actual</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <Lock size={18} />
                     </div>
                     <Input
                       id="password_actual"
                       type={showCurrentPassword ? 'text' : 'password'}
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 relative z-0"
                       placeholder="••••••••"
                       {...registerPassword('password_actual')}
                       error={passwordErrors.password_actual?.message}
@@ -395,7 +406,7 @@ export const ProfilePage = () => {
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                      className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                       aria-label={showCurrentPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -405,16 +416,16 @@ export const ProfilePage = () => {
               </div>
 
               <div>
-                <label className="block space-y-2 text-sm" htmlFor="password_nueva">
-                  <span className="font-medium text-[var(--color-text-heading)]">Nueva contraseña</span>
+                <label className="block text-sm" htmlFor="password_nueva">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Nueva contraseña</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <Lock size={18} />
                     </div>
                     <Input
                       id="password_nueva"
                       type={showNewPassword ? 'text' : 'password'}
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 relative z-0"
                       placeholder="••••••••"
                       {...registerPassword('password_nueva')}
                       error={passwordErrors.password_nueva?.message}
@@ -422,7 +433,7 @@ export const ProfilePage = () => {
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                      className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                       aria-label={showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -453,16 +464,16 @@ export const ProfilePage = () => {
               )}
 
               <div>
-                <label className="block space-y-2 text-sm" htmlFor="password_nueva_confirm">
-                  <span className="font-medium text-[var(--color-text-heading)]">Confirmar nueva contraseña</span>
+                <label className="block text-sm" htmlFor="password_nueva_confirm">
+                  <span className="font-medium text-[var(--color-text-heading)] block mb-2">Confirmar nueva contraseña</span>
                   <div className="relative">
-                    <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                    <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                       <Lock size={18} />
                     </div>
                     <Input
                       id="password_nueva_confirm"
                       type={showConfirmPassword ? 'text' : 'password'}
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 relative z-0"
                       placeholder="••••••••"
                       {...registerPassword('password_nueva_confirm')}
                       error={passwordErrors.password_nueva_confirm?.message}
@@ -470,7 +481,7 @@ export const ProfilePage = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                      className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                       aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
