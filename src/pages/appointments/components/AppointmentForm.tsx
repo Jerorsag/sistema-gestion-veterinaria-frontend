@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PawPrint, User, Scissors, Clock, FileText, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
@@ -28,6 +28,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export const AppointmentForm = () => {
+  const navigate = useNavigate()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -70,6 +71,8 @@ export const AppointmentForm = () => {
     
     await mutation.mutateAsync(payload)
     form.reset()
+    // Redirigir a la lista de citas después de crear exitosamente
+    navigate('/app/citas')
   }
 
   const selectedService = Array.isArray(services) ? services.find((s) => s.id === Number(selectedServicio)) : undefined
