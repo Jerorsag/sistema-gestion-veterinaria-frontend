@@ -26,7 +26,7 @@ interface RegisterFormData {
 }
 
 export const AuthWelcomePage = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('welcome')
+  const [viewMode, setViewMode] = useState<ViewMode>('login')
   const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null)
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
@@ -117,55 +117,144 @@ export const AuthWelcomePage = () => {
 
   return (
     <div className="auth-welcome-container relative h-[calc(100vh-4rem)] w-full overflow-hidden rounded-[var(--radius-card)] bg-surface" style={{ boxShadow: 'var(--shadow-card)' }}>
-      {/* Modo móvil con toggle */}
+      {/* Modo móvil - Diseño optimizado para usabilidad */}
       {isMobile ? (
-        <div className="h-full space-y-6 p-6">
-          {/* Toggle Switch para móvil */}
-          <div className="flex items-center justify-center gap-2 rounded-full bg-[var(--color-surface-200)] p-1" style={{ boxShadow: 'var(--shadow-soft)' }}>
-            <button
-              onClick={() => setViewMode('login')}
-              className={clsx(
-                'flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300',
-                viewMode === 'login'
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'text-[var(--color-text-secondary)]',
-              )}
-              style={viewMode === 'login' ? { boxShadow: 'var(--shadow-primary)' } : {}}
-            >
-              <LogIn size={18} />
-              <span>Iniciar sesión</span>
-            </button>
-            <button
-              onClick={() => {
-                if (showVerifyCode) {
-                  setViewMode('verify')
-                } else {
-                  setViewMode('register')
-                }
-              }}
-              className={clsx(
-                'flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300',
-                (viewMode === 'register' || viewMode === 'verify')
-                  ? 'bg-[var(--color-secondary)] text-white'
-                  : 'text-[var(--color-text-secondary)]',
-              )}
-              style={(viewMode === 'register' || viewMode === 'verify') ? { boxShadow: 'var(--shadow-orange)' } : {}}
-            >
-              <UserPlus size={18} />
-              <span>{showVerifyCode ? 'Verificar' : 'Registrarse'}</span>
-            </button>
-          </div>
+        <div className="flex h-full flex-col overflow-hidden bg-white">
+          {/* Header con toggle claro y visible - Color dinámico según modo */}
+          <motion.div
+            className="flex-shrink-0 px-6 pt-8 pb-6"
+            animate={{
+              background: viewMode === 'login' || viewMode === 'welcome'
+                ? 'linear-gradient(135deg, var(--color-primary) 0%, rgba(212, 163, 115, 0.95) 100%)'
+                : 'linear-gradient(135deg, var(--color-secondary) 0%, rgba(95, 167, 127, 0.95) 100%)',
+            }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          >
+            <div className="mb-6 flex items-center justify-center gap-2 rounded-xl bg-white/20 p-1 backdrop-blur-sm">
+              <button
+                onClick={() => {
+                  setShowVerifyCode(false)
+                  setViewMode('login')
+                }}
+                className={clsx(
+                  'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200',
+                  viewMode === 'login'
+                    ? 'bg-white text-[var(--color-primary)] shadow-md'
+                    : 'text-white/90 hover:text-white',
+                )}
+              >
+                <LogIn size={18} />
+                <span>Iniciar sesión</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (showVerifyCode) {
+                    setViewMode('verify')
+                  } else {
+                    setViewMode('register')
+                  }
+                }}
+                className={clsx(
+                  'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200',
+                  (viewMode === 'register' || viewMode === 'verify')
+                    ? 'bg-white text-[var(--color-secondary)] shadow-md'
+                    : 'text-white/90 hover:text-white',
+                )}
+              >
+                <UserPlus size={18} />
+                <span>{showVerifyCode ? 'Verificar' : 'Registrarse'}</span>
+              </button>
+            </div>
 
-          {/* Formulario según modo */}
-          <div className="flex-1 overflow-y-auto">
+            {/* Título contextual */}
             <AnimatePresence mode="wait">
+              {viewMode === 'welcome' && (
+                <motion.div
+                  key="welcome-title"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-center"
+                >
+                  <motion.div
+                    className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <Heart size={40} className="text-white" />
+                  </motion.div>
+                  <h2 className="text-3xl font-bold text-white">¡Bienvenido!</h2>
+                  <p className="mt-2 text-base text-white/90">Elige una opción para continuar</p>
+                </motion.div>
+              )}
+              {viewMode === 'login' && (
+                <motion.div
+                  key="login-title"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-center"
+                >
+                  <h2 className="text-2xl font-bold text-white">¡Bienvenido de nuevo!</h2>
+                </motion.div>
+              )}
+              {viewMode === 'register' && (
+                <motion.div
+                  key="register-title"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-center"
+                >
+                  <h2 className="text-2xl font-bold text-white">¡Te damos la bienvenida!</h2>
+                </motion.div>
+              )}
+              {viewMode === 'verify' && (
+                <motion.div
+                  key="verify-title"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-center"
+                >
+                  <h2 className="text-2xl font-bold text-white">Verifica tu cuenta</h2>
+                  <p className="mt-1 text-sm text-white/90">Ingresa el código de 6 dígitos</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Contenido principal - Formulario siempre visible */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <AnimatePresence mode="wait">
+              {viewMode === 'welcome' && (
+                <motion.div
+                  key="welcome"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="w-full space-y-5"
+                >
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold text-[var(--color-text-heading)]">¡Bienvenido!</h3>
+                    <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+                      Elige una opción arriba para comenzar
+                    </p>
+                  </div>
+                </motion.div>
+              )}
               {viewMode === 'login' && (
                 <motion.div
                   key="login"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
                   <LoginForm 
                     initialData={loginFormData}
@@ -176,10 +265,10 @@ export const AuthWelcomePage = () => {
               {viewMode === 'register' && !showVerifyCode && (
                 <motion.div
                   key="register"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
                   <RegisterForm 
                     initialData={registerFormData as RegisterFormData}
@@ -195,10 +284,10 @@ export const AuthWelcomePage = () => {
               {(viewMode === 'verify' || showVerifyCode) && (
                 <motion.div
                   key="verify"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
                   <VerifyCodeForm
                     email={verificationEmail}

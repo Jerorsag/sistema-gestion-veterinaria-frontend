@@ -11,44 +11,50 @@ export const Input = ({ label, helperText, error, className, id, ...props }: Inp
   const inputId = id ?? props.name
 
   return (
-    <label className="space-y-2" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} htmlFor={inputId}>
-      {label && (
-        <span
-          className="font-medium"
-          style={{
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-medium)',
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          {label}
-        </span>
-      )}
-      <input
-        id={inputId}
-        className={clsx(
-          'w-full rounded-lg border bg-[var(--color-surface-200)] px-4 py-2 transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30',
-          error && 'border-red-400 focus:border-red-500 focus:ring-red-300/60',
-          !error && 'border-[var(--border-subtle-color)]',
-          className,
+    <div className="w-full">
+      <label 
+        className={label ? 'block space-y-2' : 'block'} 
+        style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }} 
+        htmlFor={inputId}
+      >
+        {label && (
+          <span
+            className="font-medium block"
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-medium)',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            {label}
+          </span>
         )}
-        style={{
-          fontSize: 'var(--font-size-base)',
-          fontWeight: 'var(--font-weight-normal)',
-          lineHeight: 'var(--line-height-normal)',
-          color: 'var(--color-text-primary)',
-          borderWidth: 'var(--border-subtle-width)',
-          borderStyle: 'var(--border-subtle-style)',
-        }}
-        {...props}
-      />
+        <input
+          id={inputId}
+          className={clsx(
+            'w-full rounded-lg border bg-[var(--color-surface-200)] px-4 py-2 transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30',
+            error && 'border-red-400 focus:border-red-500 focus:ring-red-300/60',
+            !error && 'border-[var(--border-subtle-color)]',
+            className,
+          )}
+          style={{
+            fontSize: 'var(--font-size-base)',
+            fontWeight: 'var(--font-weight-normal)',
+            lineHeight: 'var(--line-height-normal)',
+            color: 'var(--color-text-primary)',
+            borderWidth: 'var(--border-subtle-width)',
+            borderStyle: 'var(--border-subtle-style)',
+          }}
+          {...props}
+        />
+      </label>
       {helperText && !error && (
-        <p className="text-muted" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+        <p className="mt-1 text-muted" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           {helperText}
         </p>
       )}
-      {error && <p style={{ fontSize: 'var(--font-size-xs)', color: '#DC2626' }}>{error}</p>}
-    </label>
+      {error && <p className="mt-1" style={{ fontSize: 'var(--font-size-xs)', color: '#DC2626' }}>{error}</p>}
+    </div>
   )
 }
 

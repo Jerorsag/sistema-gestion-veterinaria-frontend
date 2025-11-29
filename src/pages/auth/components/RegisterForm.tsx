@@ -148,110 +148,124 @@ export const RegisterForm = ({ initialData, onDataChange, onRegisterSuccess }: R
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-              <User size={18} />
+          <div>
+            <div className="relative">
+              <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+                <User size={18} />
+              </div>
+              <Input
+                className="pl-10"
+                placeholder="Nombre"
+                {...register('nombre')}
+                error={errors.nombre?.message}
+              />
             </div>
-            <Input
-              className="pl-10"
-              placeholder="Nombre"
-              {...register('nombre')}
-              error={errors.nombre?.message}
-            />
           </div>
           <Input placeholder="Apellido" {...register('apellido')} error={errors.apellido?.message} />
         </div>
 
-        <div className="relative">
-          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-            <User size={18} />
+        <div>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+              <User size={18} />
+            </div>
+            <Input
+              className="pl-10"
+              placeholder="Nombre de usuario"
+              {...register('username')}
+              error={errors.username?.message}
+            />
           </div>
-          <Input
-            className="pl-10"
-            placeholder="Nombre de usuario"
-            {...register('username')}
-            error={errors.username?.message}
-          />
         </div>
 
-        <div className="relative">
-          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-            <Mail size={18} />
+        <div>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+              <Mail size={18} />
+            </div>
+            <Input
+              type="email"
+              className="pl-10"
+              placeholder="Correo electrónico"
+              {...register('email')}
+              error={errors.email?.message}
+            />
           </div>
-          <Input
-            type="email"
-            className="pl-10"
-            placeholder="Correo electrónico"
-            {...register('email')}
-            error={errors.email?.message}
-          />
         </div>
 
-        <div className="relative">
-          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-            <Lock size={18} />
+        <div>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+              <Lock size={18} />
+            </div>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              className="pl-10 pr-10"
+              placeholder="Contraseña"
+              {...register('password')}
+              error={errors.password?.message}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-[14px] z-10 text-[var(--color-secondary)] transition-colors hover:opacity-70"
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
-          <Input
-            type={showPassword ? 'text' : 'password'}
-            className="pl-10 pr-10"
-            placeholder="Contraseña"
-            {...register('password')}
-            error={errors.password?.message}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)] transition-colors hover:opacity-70"
-            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
         </div>
 
-        <div className="relative">
-          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-            <Lock size={18} />
+        <div>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+              <Lock size={18} />
+            </div>
+            <Input
+              type={showPasswordConfirm ? 'text' : 'password'}
+              className="pl-10 pr-10"
+              placeholder="Confirmar contraseña"
+              {...register('password_confirm')}
+              error={errors.password_confirm?.message}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+              className="absolute right-3 top-[14px] z-10 text-[var(--color-secondary)] transition-colors hover:opacity-70"
+              aria-label={showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
-          <Input
-            type={showPasswordConfirm ? 'text' : 'password'}
-            className="pl-10 pr-10"
-            placeholder="Confirmar contraseña"
-            {...register('password_confirm')}
-            error={errors.password_confirm?.message}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)] transition-colors hover:opacity-70"
-            aria-label={showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
         </div>
 
         {showAdvanced && (
           <>
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-                <Phone size={18} />
+            <div>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+                  <Phone size={18} />
+                </div>
+                <Input
+                  className="pl-10"
+                  placeholder="Teléfono (opcional)"
+                  {...register('telefono')}
+                  error={errors.telefono?.message}
+                />
               </div>
-              <Input
-                className="pl-10"
-                placeholder="Teléfono (opcional)"
-                {...register('telefono')}
-                error={errors.telefono?.message}
-              />
             </div>
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-secondary)]">
-                <MapPin size={18} />
+            <div>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-secondary)]">
+                  <MapPin size={18} />
+                </div>
+                <Input
+                  className="pl-10"
+                  placeholder="Dirección (opcional)"
+                  {...register('direccion')}
+                  error={errors.direccion?.message}
+                />
               </div>
-              <Input
-                className="pl-10"
-                placeholder="Dirección (opcional)"
-                {...register('direccion')}
-                error={errors.direccion?.message}
-              />
             </div>
           </>
         )}
@@ -265,7 +279,13 @@ export const RegisterForm = ({ initialData, onDataChange, onRegisterSuccess }: R
         </button>
       </div>
 
-      <Button type="submit" fullWidth disabled={isSubmitting || mutation.isPending} startIcon={<UserPlus size={18} />}>
+      <Button 
+        type="submit" 
+        fullWidth 
+        disabled={isSubmitting || mutation.isPending} 
+        startIcon={<UserPlus size={18} />}
+        className="bg-[var(--color-secondary)] text-white hover:opacity-90 focus-visible:outline-[var(--color-secondary)]"
+      >
         {isSubmitting || mutation.isPending ? 'Creando cuenta...' : 'Registrarse'}
       </Button>
 
