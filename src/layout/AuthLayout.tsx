@@ -34,15 +34,15 @@ export const AuthLayout = () => {
       </div>
 
       {/* Contenido del toggle - Encima del video */}
-      <motion.div
+    <motion.div
         className="relative z-10 w-full max-w-7xl"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Outlet />
-      </motion.div>
-    </div>
-  )
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Outlet />
+    </motion.div>
+  </div>
+)
 }
 
