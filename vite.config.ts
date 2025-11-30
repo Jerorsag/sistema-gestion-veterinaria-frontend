@@ -10,4 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  build: {
+    outDir: 'dist',
+    // Asegurar que se copien archivos de public (incluyendo _redirects)
+    copyPublicDir: true,
+  },
+  publicDir: 'public',
 })
