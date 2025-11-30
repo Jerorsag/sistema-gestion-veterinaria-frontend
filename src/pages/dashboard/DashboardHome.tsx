@@ -14,6 +14,7 @@ import { useAppointmentsQuery } from '@/hooks/appointments'
 import { useConsultationsQuery } from '@/hooks/consultations'
 import { useUsersQuery } from '@/hooks/users'
 import { useFinancialReportsQuery } from '@/hooks/billing'
+import { useHistoriesQuery, useHistoriesStatsQuery } from '@/hooks/histories'
 import type { UserListResponse } from '@/api/types/users'
 import type { AppointmentSummary } from '@/api/types/appointments'
 import { formatDateTime } from '@/utils/datetime'
@@ -28,6 +29,21 @@ export const DashboardHome = () => {
   const { data: consultations, isLoading: consultationsLoading } = useConsultationsQuery({})
   const { data: usersData, isLoading: usersLoading } = useUsersQuery({})
   const { data: financialReports, isLoading: reportsLoading } = useFinancialReportsQuery()
+  const { data: histories, isLoading: historiesLoading } = useHistoriesQuery({ search: '' })
+  const { data: historiesStats, isLoading: historiesStatsLoading, isError: historiesStatsError } = useHistoriesStatsQuery()
+  
+  // Usar estadísticas si están disponibles, sino usar el conteo del listado
+  const historiesCount = useMemo(() => {
+    if (historiesStats?.total !== undefined) {
+      return historiesStats.total
+    }
+    if (histories && Array.isArray(histories)) {
+      return histories.length
+    }
+    return null
+  }, [historiesStats, histories])
+  
+  const historiesIsLoading = historiesStatsLoading || (historiesStatsError && historiesLoading)
 
   // Normalizar datos de usuarios
   const users = Array.isArray(usersData) ? usersData : (usersData as UserListResponse)?.results ?? []
@@ -220,10 +236,10 @@ export const DashboardHome = () => {
       },
       {
         label: 'Historias clínicas',
-        value: '—',
+        value: historiesCount !== null ? String(historiesCount) : '—',
         icon: NotebookTabs,
         href: '/app/historias',
-        isLoading: false,
+        isLoading: historiesIsLoading,
         color: 'text-indigo-500',
         bgColor: 'bg-indigo-500/10',
       },
@@ -259,10 +275,10 @@ export const DashboardHome = () => {
       },
       {
         label: 'Historias clínicas',
-        value: '—',
+        value: historiesCount !== null ? String(historiesCount) : '—',
         icon: NotebookTabs,
         href: '/app/historias',
-        isLoading: false,
+        isLoading: historiesIsLoading,
         color: 'text-indigo-500',
         bgColor: 'bg-indigo-500/10',
       },

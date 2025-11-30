@@ -2,7 +2,8 @@ import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { PawPrint, User, Scissors, Clock, FileText } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { PawPrint, User, Scissors, Clock, FileText, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -27,6 +28,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export const AppointmentForm = () => {
+  const navigate = useNavigate()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -69,6 +71,8 @@ export const AppointmentForm = () => {
     
     await mutation.mutateAsync(payload)
     form.reset()
+    // Redirigir a la lista de citas después de crear exitosamente
+    navigate('/app/citas')
   }
 
   const selectedService = Array.isArray(services) ? services.find((s) => s.id === Number(selectedServicio)) : undefined
@@ -87,7 +91,12 @@ export const AppointmentForm = () => {
         <div className="grid gap-4 md:grid-cols-2">
           {/* Selector de Mascota */}
           <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
-            <span className="font-medium">Mascota *</span>
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Mascota *</span>
+              <Link to="/app/mascotas/nueva" className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1">
+                <Plus size={12} /> Añadir mascota
+              </Link>
+            </div>
             <select
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 transition-all focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
               value={selectedMascota}

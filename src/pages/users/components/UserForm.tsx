@@ -22,6 +22,8 @@ type FormValues = {
   direccion?: string
   password?: string
   password_confirm?: string
+  licencia?: string
+  especialidad?: string
 }
 
 const buildSchema = (mode: 'create' | 'edit'): ZodType<FormValues> =>
@@ -37,6 +39,8 @@ const buildSchema = (mode: 'create' | 'edit'): ZodType<FormValues> =>
       direccion: z.string().optional(),
       password: z.string().optional(),
       password_confirm: z.string().optional(),
+      licencia: z.string().optional(),
+      especialidad: z.string().optional(),
     })
     .superRefine((values, ctx) => {
       const requiresPassword = mode === 'create'
@@ -54,6 +58,15 @@ const buildSchema = (mode: 'create' | 'edit'): ZodType<FormValues> =>
       }
       if (values.password_confirm && values.password_confirm.length < 6) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Mínimo 6 caracteres', path: ['password_confirm'] })
+      }
+      // Validar que si se selecciona rol veterinario, se requiera licencia y especialidad
+      if (values.roles.includes('veterinario')) {
+        if (!values.licencia || values.licencia.trim() === '') {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'La licencia es requerida para veterinarios', path: ['licencia'] })
+        }
+        if (!values.especialidad || values.especialidad.trim() === '') {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'La especialidad es requerida para veterinarios', path: ['especialidad'] })
+        }
       }
     }) as ZodType<FormValues>
 
@@ -83,6 +96,8 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
       direccion: '',
       password: '',
       password_confirm: '',
+      licencia: '',
+      especialidad: '',
       ...initialValues,
     },
   })
@@ -114,10 +129,15 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
       form.reset({
         roles: ['cliente'],
         estado: initialValues.estado ?? 'activo',
+        licencia: '',
+        especialidad: '',
         ...initialValues,
       })
     }
-  }, [initialValues, form])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues])
+
+  // La validación de roles se hace en el schema de Zod, no necesitamos useEffect
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const payload: UserCreatePayload | UserUpdatePayload = {
@@ -127,10 +147,22 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
       username: values.username,
       estado: values.estado ?? 'activo',
       roles: values.roles ?? [],
-      perfil_cliente: {
+    }
+
+    // Agregar perfil de cliente solo si tiene el rol cliente (campos opcionales)
+    if (values.roles.includes('cliente')) {
+      payload.perfil_cliente = {
         telefono: values.telefono,
         direccion: values.direccion,
-      },
+      }
+    }
+
+    // Agregar perfil de veterinario si el rol está seleccionado (licencia y especialidad obligatorias)
+    if (values.roles.includes('veterinario')) {
+      payload.perfil_veterinario = {
+        licencia: values.licencia,
+        especialidad: values.especialidad,
+      }
     }
 
     if (mode === 'create') {
@@ -142,7 +174,12 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
   })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form 
+      onSubmit={handleSubmit} 
+      className="space-y-6" 
+      noValidate
+      style={{ position: 'relative', zIndex: 1 }}
+    >
       <div className="grid gap-4 md:grid-cols-2">
         <Input 
           label="Nombre" 
@@ -172,10 +209,11 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
         <label className="space-y-2 text-sm text-[var(--color-text-heading)]">
           <span className="font-medium">Estado</span>
           <select
-            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base text-[var(--color-text-primary)] transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+            className="w-full rounded-lg border border-[var(--border-subtle-color)] bg-[var(--color-surface-200)] px-4 py-2 text-base transition-all focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
             style={{
               borderWidth: 'var(--border-subtle-width)',
               borderStyle: 'var(--border-subtle-style)',
+              color: '#000000',
             }}
             {...form.register('estado')}
           >
@@ -236,33 +274,80 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
             <p className="text-xs text-red-600 mt-1">{form.formState.errors.roles.message as string}</p>
           )}
         </div>
-        <Input 
-          label="Teléfono" 
-          placeholder="+57 300 000 0000"
-          {...form.register('telefono')} 
-          error={form.formState.errors.telefono?.message} 
-        />
-        <Input 
-          label="Dirección" 
-          placeholder="Dirección completa"
-          {...form.register('direccion')} 
-          error={form.formState.errors.direccion?.message} 
-        />
+        
+        {/* Campos de perfil cliente - solo mostrar si el rol cliente está seleccionado */}
+        {form.watch('roles')?.includes('cliente') && (
+          <div className="space-y-4 pt-4 border-t md:col-span-2" style={{ borderColor: 'var(--border-subtle-color)' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="rounded-lg bg-[var(--color-primary)]/10 p-1.5 text-[var(--color-primary)]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <h4 className="text-sm font-semibold text-[var(--color-text-heading)]">Perfil de Cliente</h4>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input 
+                label="Teléfono" 
+                placeholder="+57 300 000 0000"
+                {...form.register('telefono')} 
+                error={form.formState.errors.telefono?.message} 
+              />
+              <Input 
+                label="Dirección" 
+                placeholder="Dirección completa"
+                {...form.register('direccion')} 
+                error={form.formState.errors.direccion?.message} 
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Campos de perfil veterinario - solo mostrar si el rol veterinario está seleccionado */}
+        {form.watch('roles')?.includes('veterinario') && (
+          <div className="space-y-4 pt-4 border-t md:col-span-2" style={{ borderColor: 'var(--border-subtle-color)' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="rounded-lg bg-[var(--color-primary)]/10 p-1.5 text-[var(--color-primary)]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                  <path d="M2 17l10 5 10-5"></path>
+                  <path d="M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <h4 className="text-sm font-semibold text-[var(--color-text-heading)]">Perfil de Veterinario</h4>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input 
+                label="Licencia *" 
+                placeholder="Número de licencia veterinaria"
+                {...form.register('licencia')} 
+                error={form.formState.errors.licencia?.message} 
+              />
+              <Input 
+                label="Especialidad *" 
+                placeholder="Ej: Cirugía, Medicina interna, etc."
+                {...form.register('especialidad')} 
+                error={form.formState.errors.especialidad?.message} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {mode === 'create' && (
         <div className="space-y-4 pt-2 border-t" style={{ borderColor: 'var(--border-subtle-color)' }}>
           <div>
-            <label className="block space-y-2 text-sm" htmlFor="password">
-              <span className="font-medium text-[var(--color-text-heading)]">Contraseña</span>
+            <label className="block text-sm" htmlFor="password">
+              <span className="font-medium text-[var(--color-text-heading)] block mb-2">Contraseña</span>
               <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                   <Lock size={18} />
                 </div>
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 relative z-0"
                   placeholder="Mínimo 6 caracteres"
                   {...form.register('password')}
                   error={form.formState.errors.password?.message}
@@ -270,7 +355,7 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -300,16 +385,16 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
           </div>
 
           <div>
-            <label className="block space-y-2 text-sm" htmlFor="password_confirm">
-              <span className="font-medium text-[var(--color-text-heading)]">Confirmar contraseña</span>
+            <label className="block text-sm" htmlFor="password_confirm">
+              <span className="font-medium text-[var(--color-text-heading)] block mb-2">Confirmar contraseña</span>
               <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)]">
+                <div className="pointer-events-none absolute left-3 top-[14px] z-10 flex items-center text-[var(--color-primary)]">
                   <Lock size={18} />
                 </div>
                 <Input
                   id="password_confirm"
                   type={showPasswordConfirm ? 'text' : 'password'}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 relative z-0"
                   placeholder="Repite la contraseña"
                   {...form.register('password_confirm')}
                   error={form.formState.errors.password_confirm?.message}
@@ -317,7 +402,7 @@ export const UserForm = ({ mode, initialValues, onSubmit, isSubmitting }: UserFo
                 <button
                   type="button"
                   onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
+                  className="absolute right-3 top-[14px] z-10 flex items-center text-[var(--color-primary)] transition-colors hover:opacity-70"
                   aria-label={showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}

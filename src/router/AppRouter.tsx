@@ -35,11 +35,16 @@ import { InvoiceDetailPage } from '@/pages/billing/InvoiceDetailPage'
 import { ClinicConfigPage } from '@/pages/clinic-config/ClinicConfigPage'
 import { LandingRedirect } from '@/pages/misc/LandingRedirect'
 import { NotFoundPage } from '@/pages/misc/NotFoundPage'
+import { ConfirmConsentPage } from '@/pages/consultations/ConfirmConsentPage'
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <LandingRedirect />,
+  },
+  {
+    path: '/confirmar-consentimiento',
+    element: <ConfirmConsentPage />,
   },
   {
     path: '/auth',

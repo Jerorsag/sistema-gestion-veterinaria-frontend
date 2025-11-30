@@ -90,6 +90,11 @@ export const useConsultationConsentMutation = () =>
     onError: (error: AxiosError) => toast.error(getError(error)),
   })
 
+export const useConfirmConsentMutation = () =>
+  useMutation({
+    mutationFn: (token: string) => consultationService.confirmConsent(token),
+  })
+
 export const useConsultationStatsQuery = () =>
   useQuery({
     queryKey: ['consultations', 'stats'],

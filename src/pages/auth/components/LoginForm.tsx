@@ -126,37 +126,41 @@ export const LoginForm = ({ initialData, onDataChange }: LoginFormProps = {}) =>
             </div>
 
             <div className="space-y-4">
-              <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)]">
-                  <User size={18} />
+              <div>
+                <div className="relative">
+                  <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-primary)]">
+                    <User size={18} />
+                  </div>
+                  <Input
+                    className="pl-10"
+                    placeholder="Usuario o correo"
+                    {...register('username')}
+                    error={errors.username?.message}
+                  />
                 </div>
-                <Input
-                  className="pl-10"
-                  placeholder="Usuario o correo"
-                  {...register('username')}
-                  error={errors.username?.message}
-                />
               </div>
 
-              <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)]">
-                  <Lock size={18} />
+              <div>
+                <div className="relative">
+                  <div className="pointer-events-none absolute left-3 top-[14px] z-10 text-[var(--color-primary)]">
+                    <Lock size={18} />
+                  </div>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    className="pl-10 pr-10"
+                    placeholder="Contraseña"
+                    {...register('password')}
+                    error={errors.password?.message}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-[14px] z-10 text-[var(--color-primary)] transition-colors hover:opacity-70"
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  className="pl-10 pr-10"
-                  placeholder="Contraseña"
-                  {...register('password')}
-                  error={errors.password?.message}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)] transition-colors hover:opacity-70"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
             </div>
 

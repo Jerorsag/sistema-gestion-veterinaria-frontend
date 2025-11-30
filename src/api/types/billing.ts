@@ -72,6 +72,11 @@ export interface PaymentMethod {
   codigo: string
 }
 
+export interface PaymentMethodCreatePayload {
+  nombre: string
+  codigo: string
+}
+
 export interface Payment {
   id: number
   factura: number
