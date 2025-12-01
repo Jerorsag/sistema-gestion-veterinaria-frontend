@@ -6,11 +6,15 @@ import type { LoginPayload, RegisterSimplePayload, RegisterStepOnePayload, Regis
 import { authService, passwordService, profileService } from '@/services/auth'
 import { useSessionStore } from '@/core/store/session-store'
 
+/**
+ * Extrae y formatea errores de autenticación complejos.
+ * Maneja errores de campo (ej: "password": ["Es muy corta"]) y errores generales ("detail").
+ */
 const getErrorMessage = (error: AxiosError<any>) => {
   if (error.response?.data) {
     const data = error.response.data as Record<string, unknown>
     
-    // Mostrar errores de campos específicos
+    // Recopilar errores de campos específicos (ej: email, password)
     const fieldErrors: string[] = []
     Object.keys(data).forEach((key) => {
       if (key !== 'detail' && key !== 'message' && key !== 'non_field_errors') {
@@ -27,22 +31,25 @@ const getErrorMessage = (error: AxiosError<any>) => {
       return fieldErrors.join(', ')
     }
     
+    // Errores generales
     if (typeof data.detail === 'string') return data.detail
     if (typeof data.message === 'string') return data.message
     if (Array.isArray(data.non_field_errors) && data.non_field_errors[0]) return String(data.non_field_errors[0])
-    
-    // Log completo del error para debug
-    console.error('Error completo del backend:', JSON.stringify(data, null, 2))
   }
   return 'Ocurrió un error inesperado.'
 }
 
+/**
+ * Mutación para Iniciar Sesión.
+ * Al completarse: Guarda el usuario y tokens en el Store de Zustand (persistiendo la sesión).
+ */
 export const useLoginMutation = () => {
   const setSession = useSessionStore((state) => state.setSession)
 
   return useMutation({
     mutationFn: (payload: LoginPayload) => authService.login(payload),
     onSuccess: ({ user, access, refresh }) => {
+      // Actualizamos el estado global, lo que dispara la redirección a /app automáticamente
       setSession({ user, accessToken: access, refreshToken: refresh })
       toast.success(`Bienvenido ${user.nombre_completo}`)
     },
@@ -52,6 +59,11 @@ export const useLoginMutation = () => {
   })
 }
 
+/**
+ * Mutación para Cerrar Sesión.
+ * Realiza un logout "best-effort": intenta invalidar el token en el backend,
+ * pero siempre limpia la sesión local (Store) sin importar si la petición falla.
+ */
 export const useLogoutMutation = () => {
   const refreshToken = useSessionStore((state) => state.refreshToken)
   const clearSession = useSessionStore((state) => state.clearSession)
@@ -63,11 +75,17 @@ export const useLogoutMutation = () => {
       }
     },
     onSettled: () => {
+      // 'onSettled' se ejecuta siempre (éxito o error).
+      // Garantiza que el usuario salga de la app aunque el servidor esté caído.
       clearSession()
     },
   })
 }
 
+/**
+ * Registro simple (para Clientes).
+ * Solo notifica el éxito, la redirección se maneja en el componente.
+ */
 export const useRegisterSimpleMutation = () =>
   useMutation({
     mutationFn: (payload: RegisterSimplePayload) => authService.registerSimple(payload),
@@ -75,6 +93,9 @@ export const useRegisterSimpleMutation = () =>
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
 
+/**
+ * Paso 1 del Registro con Código (envío de datos y generación de OTP).
+ */
 export const useRegisterStepMutation = () =>
   useMutation({
     mutationFn: (payload: RegisterStepOnePayload) => authService.registerStepOne(payload),
@@ -82,6 +103,9 @@ export const useRegisterStepMutation = () =>
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
 
+/**
+ * Paso 2: Verificación del código OTP.
+ */
 export const useVerifyCodeMutation = () =>
   useMutation({
     mutationFn: (payload: RegisterVerifyPayload) => authService.verifyRegistrationCode(payload),
@@ -95,6 +119,8 @@ export const useResendCodeMutation = () =>
     onSuccess: () => toast.success('Nuevo código enviado.'),
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
+
+// --- Gestión de Contraseñas ---
 
 export const useRequestResetMutation = () =>
   useMutation({
@@ -110,6 +136,12 @@ export const useConfirmResetMutation = () =>
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
 
+// --- Gestión de Perfil ---
+
+/**
+ * Obtiene los datos del perfil actual.
+ * Solo se ejecuta si el usuario está autenticado (`enabled: isAuthenticated`).
+ */
 export const useProfileQuery = () => {
   const isAuthenticated = useSessionStore((state) => state.isAuthenticated)
 
@@ -121,6 +153,10 @@ export const useProfileQuery = () => {
   })
 }
 
+/**
+ * Actualiza los datos del perfil.
+ * Actualiza manualmente la caché de ['auth', 'profile'] para reflejar los cambios sin recargar.
+ */
 export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient()
 
@@ -140,4 +176,3 @@ export const useChangePasswordMutation = () =>
     onSuccess: () => toast.success('Contraseña actualizada'),
     onError: (error: AxiosError) => toast.error(getErrorMessage(error)),
   })
-
