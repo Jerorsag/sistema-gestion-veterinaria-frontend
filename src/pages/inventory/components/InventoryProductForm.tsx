@@ -18,6 +18,7 @@ const schema = z.object({
   precio_venta: z.string().optional(),
   codigo_barras: z.string().optional(),
   codigo_interno: z.string().optional(),
+  fecha_vencimiento: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -41,6 +42,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
       precio_venta: product?.precio_venta ?? '',
       codigo_barras: product?.codigo_barras ?? '',
       codigo_interno: product?.codigo_interno ?? '',
+      fecha_vencimiento: product?.fecha_vencimiento ?? ''
     },
   })
 
@@ -63,6 +65,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
     precio_venta: values.precio_venta ? Number(values.precio_venta) : undefined,
     codigo_barras: values.codigo_barras,
     codigo_interno: values.codigo_interno,
+    fecha_vencimiento: values.fecha_vencimiento
   })
 
 
@@ -90,6 +93,7 @@ export const InventoryProductForm = ({ mode, product }: InventoryProductFormProp
         <Input label="Stock mínimo" type="number" min="0" {...form.register('stock_minimo')} />
         <Input label="Precio compra" type="number" step="0.01" {...form.register('precio_compra')} />
         <Input label="Precio venta" type="number" step="0.01" {...form.register('precio_venta')} />
+        <Input label="Fecha vencimiento" type="date" {...form.register('fecha_vencimiento')} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

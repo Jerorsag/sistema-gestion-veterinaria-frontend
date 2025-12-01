@@ -11,6 +11,13 @@ const getErrorMessage = (error: AxiosError<any>) => {
   if (data) {
     if (typeof data.detail === 'string') return data.detail
     if (typeof data.message === 'string') return data.message
+    if (typeof data.mensaje === 'string') return data.mensaje
+    
+    if (Array.isArray(data.mensaje) && data.mensaje.length > 0) {
+      return data.mensaje
+        .map((msg: string) => msg.replace(/^\['(.+)'\]$/, '$1'))
+        .join(', ')
+    }
   }
   return 'Ocurrió un error en inventario.'
 }

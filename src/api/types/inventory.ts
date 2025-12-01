@@ -19,6 +19,7 @@ export interface InventoryProduct {
   codigo_barras: string | null
   codigo_interno: string | null
   activo: boolean
+  fecha_vencimiento: string
 }
 
 export interface InventoryProductPayload {
@@ -32,6 +33,7 @@ export interface InventoryProductPayload {
   precio_venta?: number
   codigo_barras?: string
   codigo_interno?: string
+  fecha_vencimiento?: String
 }
 
 export interface InventoryCategory {
